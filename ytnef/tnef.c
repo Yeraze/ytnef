@@ -1110,6 +1110,7 @@ void MAPIPrint(MAPIProps *p)
                         }
                         printf("]\n");
                     }
+                    break;
                 default:
                     printf("    Value: [%s]\n", mapidata->data);
             }
