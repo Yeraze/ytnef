@@ -1,0 +1,391 @@
+Pseudocode
+----------
+
+All position offsets are from the beginning of the 0x8216 MAPI ID. The
+existence of this MAPI ID with nonzero length should signify a recurrence.
+
+Constants:
+week_table {
+        0x02 = Monday
+        0x04 = Tuesday
+        0x08 = Wednesday
+        0x10 = Thursday
+        0x20 = Friday
+        0x40 = Saturday
+        0x01 = Sunday
+}
+
+Bitwise OR of above makes multiple selection of days
+
+month_table {
+        0x0000 = January
+        0x60AE = February
+        0xE04B = March
+        0x40FA = April
+        0x00A3 = May
+        0x6051 = June
+        0x20FA = July
+        0x80A8 = August
+        0xE056 = September
+        0xA0FF = October
+        0x00AE = November
+        0xC056 = December
+}
+
+switch on value of position 0x04
+        case 0x0A
+                daily_recurrence()
+        case 0x0B
+                weekly_recurrence()
+        case 0x0C
+                monthly_recurrence()
+        case 0x0D
+                yearly_recurrence()
+
+sub daily_occurrence {
+        # There are 2 types of daily recurrences
+        # 1 - Every X days
+        # 2 - Every weekday (Mon-Fri)
+        # Each can have either an indefinite period, or end after Y
+        # recurrences
+
+        if position 0x16 == (0x23 or 0x22 or 0x21)
+                # This is type 1 above
+                X = value for MAPI Code: [UD:x0011]
+                if position 0x16 == 0x23
+                        no ending period (indefinite)
+                elsif position 0x16 == (0x22 or 0x21)
+                        Y = positions 0x1B 0x1A
+                        # (i.e. if 0x1B = 0x03, and 0x1A = 0xE7, num = 0x03E7 = 999 occurrences)
+
+        elsif position 0x16 == 0x3E
+                # This is type 2 above
+                if position 0x1A == 0x23
+                        no ending period (indefinite)
+                elsif position 0x1A == (0x22 or 0x21)
+                        Y = positions 0x1F 0x1E
+                        # (i.e. if 0x1F = 0x03, and 0x1E = 0xE7, num = 0x03E7 = 999 occurrences)
+}
+
+sub weekly_recurrence {
+        # Every X week(s) on Y day
+        # (Y is day of week, e.g. Monday)
+        # There can be an indefinite period, or end after Z recurrences
+
+        X = position 0x0E
+        Y = position 0x16 (according to week_table above)
+
+        if position 0x1A == 0x23
+                no ending period (indefinite)
+        elsif position 0x1A == (0x22 or 0x21)
+                Z = positions 0x1F 0x1E
+                # (i.e. if 0x1F = 0x03, and 0x1E = 0xE7, num = 0x03E7 = 999 occurrences)
+}
+
+sub monthly_recurrence {
+        # There are 2 types of monthly recurrences
+        # 1 - Day X of every Y month(s)
+        # 2 - The Xth Y of every Z month(s)
+        # (where X is First,Second,Third,Fourth,Last and
+        # Y is Dayname,Weekday,Weekend Day,Day (any))
+        #
+        # Each can have either an indefinite period, or end after N
+        # recurrences
+
+        if position 0x06 == 0x02
+                # This is type 1 above
+                X = position 0x16
+                Y = position 0x0E
+                
+                if position 0x1A == 0x23
+                        no ending period (indefinite)
+                elsif position 0x1A == (0x22 or 0x21)
+                        N = positions 0x1F 0x1E
+                        # (i.e. if 0x1F = 0x03, and 0x1E = 0xE7, num = 0x03E7 = 999 occurrences)
+
+        elsif position 0x06 == 0x03
+                # This is type 2 above
+                X = position 0x1A (0x01 = First ... 0x05 = Last)
+                Y = position 0x16 (according to week_table above)
+
+                # Y can also take the following special values not in week_table:
+                # 0x7F = any day (i.e. 2nd day of month)
+                # 0x3E = weekday (Mon-Fri)
+                # 0x41 = weekend day (Sat, Sun)
+
+                Z = position 0x0E
+
+                if position 0x1E == 0x23
+                        no ending period (indefinite)
+                elsif position 0x1E == (0x22 or 0x21)
+                        N = positions 0x23 0x22
+                        # (i.e. if 0x23 = 0x03, and 0x22 = 0xE7, num = 0x03E7 = 999 occurrences)
+}
+
+sub yearly_recurrence {
+        # There are 2 types of yearly recurrences
+        # 1 - Every X Y
+        # (where X is month name, Y is day number)
+        # 2 - The Xth Y of Z
+        # (where X is First,Second,Third,Fourth,Last and Y
+        # Y is Dayname,Weekday,Weekend Day,Day (any) and Z is month name)
+        #
+        # Each can have either an indefinite period, or end after N
+        # recurrences
+
+        if position 0x06 == 0x02
+                # This is type 1 above
+                X = positions 0x0A 0x0B (according to month_table above)
+                Y = position 0x16
+
+                if position 0x1A == 0x23
+                        no ending period (indefinite)
+                elsif position 0x1A == (0x22 or 0x21)
+                        N = positions 0x1F 0x1E
+                        # (i.e. if 0x1F = 0x03, and 0x1E = 0xE7, num = 0x03E7 = 999 occurrences)
+
+        elsif position 0x06 == 0x03
+                # This is type 2 above
+                X = position 0x1A (0x01 = First ... 0x05 = Last)
+                Y = position 0x16 (according to week_table above)
+
+                # Y can also take the following special values not in week_table:
+                # 0x7F = any day (i.e. 2nd day of month)
+                # 0x3E = weekday (Mon-Fri)
+                # 0x41 = weekend day (Sat, Sun)
+
+                Z = positions 0x0A 0x0B (according to month_table above)
+
+                if position 0x1E == 0x23
+                        no ending period (indefinite)
+                elsif position 0x1E = (0x22 or 0x21)
+                        N = positions 0x23 0x22
+                        # (i.e. if 0x23 = 0x03, and 0x22 = 0xE7, num = 0x03E7 = 999 occurrences)
+}
+
+Details
+-------
+
+Daily Occurrences
+-----------------
+
+Position 0x04 = 0x0A always
+
+Position        0x0A    0x0B    0x0C    0x0D    0x0E    0x0F    0x10
+--------------------------------------------------------------------
+Every 1 day     0x00    0x00    0x00    0x00    0xA0    0x05    0x00
+Every 2 days    0x00    0x00    0x00    0x00    0x40    0x0B    0x00
+Every 3 days    0xA0    0x05    0x00    0x00    0xE0    0x10    0x00
+Every 4 days    0x00    0x00    0x00    0x00    0x80    0x16    0x00
+Every 16 days   0x80    0x16    0x00    0x00    0x00    0x5A    0x00
+Every 999 days  0x60    0x1E    0x09    0x00    0x60    0xF3    0x15
+
+0x16 = 
+        (0x23 or 0x22) every X days
+        0x3E every weekday
+
+X = value for MAPI Code: [UD:x0011]
+
+Ending time logic:
+If position 0x16 == 0x23
+        No end (indefinite)
+elsif position 0x16 == 0x22
+        num of occurrences = 0x1B 0x1A
+        (i.e. if 0x1B = 0x03, and 0x1A = 0xE7, num = 0x03E7 = 999 occurrences)
+elsif position 0x16 == 0x3E
+        if position 0x1A == 0x23
+                No end (indefinite)
+        elsif position 0x1A == 0x22
+                num of occurrences = 0x1F 0x1E
+                (i.e. if 0x1F = 0x03, and 0x1E = 0xE7, num = 0x03E7 = 999 occurrences)
+
+Weekly Occurrences
+------------------
+
+Position 0x04 = 0x0B always
+
+These byte positions seem to designate how often recurrence occurs
+99 = max week interval
+Position        0x0A    0x0B    0x0C    0x0E
+--------------------------------------------
+Every 1 week    0xC0    0x21    0x00    0x01
+Every 2 weeks   0x20    0x49    0x00    0x02
+Every 3 weeks   0x20    0x49    0x00    0x03
+Every 9 weeks   0x40    0xBF    0x00    0x09
+Every 10 weeks  0x60    0x35    0x01    0x0A
+Every 99 weeks  0x20    0xAB    0x07    0x63
+
+Every 1 week, these byte positions seem to indicate weekday
+
+Position        0x16    0x2E    0x2F
+------------------------------------
+Monday          0x02    0x40    0xD3
+Tuesday         0x04    0xE0    0xD8
+Wednesday       0x08    0x80    0xDE
+Thursday        0x10    0x20    0xE4
+Friday          0x20    0xC0    0xE9
+Saturday        0x40    0x60    0xEF
+Sunday          0x01    0x00    0xF5
+
+Logic:
+Weekly Occurrence = Position 0x04 = 0x0B
+
+Every X weeks on weekday Y
+X = Position 0x0E
+Y = Position 0x16
+        0x02 = Monday
+        0x04 = Tuesday
+        0x08 = Wednesday
+        0x10 = Thursday
+        0x20 = Friday
+        0x40 = Saturday
+        0x01 = Sunday
+
+Ending time
+Position        0x1A    0x1E    0x1F    0x32    0x33    0x34    0x35
+--------------------------------------------------------------------
+no end          0x23    0x0A    0x00    0xDF    0x80    0xE9    0x5A
+1 occurrence    0x22    0x01    0x00    0xE0    0xD8    0xA3    0x0C
+2 occurrences   0x22    0x02    0x00    0x40    0x00    0xA4    0x0C
+9 occurrences   0x22    0x09    0x00    0xE0    0x13    0xA5    0x0C
+10 occurrences  0x22    0x0A    0x00    0x40    0x3B    0xA5    0x0C
+11 occurrences  0x22    0x0B    0x00    0xA0    0x62    0xA5    0x0C
+231 occurrences 0x22    0xE7    0x00    0x20    0x39    0xC7    0x0C
+232 occurrences 0x22    0xE8    0x00    0x80    0x60    0xC7    0x0C
+998 occurrences 0x22    0xE6    0x03    0xC0    0x31    0x3D    0x0D
+999 occurrences 0x22    0xE7    0x03    0x20    0x59    0x3D    0x0D
+
+Ending time logic:
+If position 0x1A == 0x23
+        No end (indefinite)
+elsif position 0x1A == 0x22
+        num of occurrences = 0x1F 0x1E
+        (i.e. if 0x1F = 0x03, and 0x1E = 0xE7, num = 0x03E7 = 999 occurrences)
+
+Ending date goes by same logic as above. Number of occurrences is calculated
+by Outlook, and there is no end date value stored.
+
+Monthly Recurrences
+-------------------
+
+Position 0x04 = 0x0C always
+
+Position                0x04    0x0E    0x16    0x2E    0x2F
+------------------------------------------------------------
+6th, every 1 month      0x0C    0x01    0x06    0x00    0x4F
+16th, every 1 month     0x0C    0x01    0x10    0xE0    0xD8
+16th, every 2 month     0x0C    0x02    0x10    0xE0    0xD8
+17th, every 1 month     0x0C    0x01    0x11    0x80    0xDE
+28th, every 1 month     0x0C    0x01    0x1C    0x60    0x1C
+31st, every 1 month     0x0C    0x01    0x1F    0x40    0x2D
+
+0x06 = 0x02
+0x16 = day of month
+0x0E = every X month
+
+Ending time logic:
+If position 0x1A == 0x23
+        No end (indefinite)
+elsif position 0x1A == 0x22
+        num of occurrences = 0x1F 0x1E
+        (i.e. if 0x1F = 0x03, and 0x1E = 0xE7, num = 0x03E7 = 999 occurrences)
+
+Position                        0x04    0x06    0x0E    0x16    0x1A
+--------------------------------------------------------------------
+Every 1 month, 3rd Tuesday      0x0C    0x03    0x01    0x04    0x03
+Every 1 month, 4th Tuesday      0x0C    0x03    0x01    0x04    0x04
+Every 1 month, last Tuesday     0x0C    0x03    0x01    0x04    0x05
+Every 99 months, last Tuesday   0x0C    0x03    0x63    0x04    0x05
+Every 2 months, 2nd Wednesday   0x0C    0x03    0x02    0x08    0x02
+Every 2 months, 2nd day         0x0C    0x03    0x02    0x7F    0x02
+Every 2 months, 2nd weekday     0x0C    0x03    0x02    0x3E    0x02
+Every 2 months, 2nd weekendday  0x0C    0x03    0x02    0x41    0x02
+
+0x06 = 0x03 when using Every X month, Yth Z day of week
+0x16 = Z day of week (as above)
+        or
+        0x7F = any day (i.e. 2nd day of month)
+        0x3E = weekday (Mon-Fri)
+        0x41 = weekend day (Sat, Sun)
+
+0x1A = Yth day (0x01 = First ... 0x05 = Last)
+0x0E = every X month
+
+Ending time logic:
+If position 0x1E == 0x23
+        No end (indefinite)
+elsif position 0x1E == 0x22
+        num of occurrences = 0x23 0x22
+        (i.e. if 0x23 = 0x03, and 0x22 = 0xE7, num = 0x03E7 = 999 occurrences)
+
+Yearly Occurrences
+------------------
+
+Position 0x04 = 0x0D always
+
+Position                0x04    0x0C    0x16    0x30
+----------------------------------------------------
+Every 1 year, 03-16     0x0D    0x01    0x10    0xA3
+Every 1 year, 04-16     0x0D    0x01    0x10    0xA4
+Every 1 year, 05-16     0x0D    0x01    0x10    0xA5
+
+0x06 = 0x02
+0x0A 0x0B = month
+0x16 = day number
+
+Ending time logic:
+If position 0x1A == 0x23
+        No end (indefinite)
+elsif position 0x1A == 0x22
+        num of occurrences = 0x1F 0x1E
+        (i.e. if 0x1F = 0x03, and 0x1E = 0xE7, num = 0x03E7 = 999 occurrences)
+
+Position                0x04    0x1A    0x16    0x0A    0x0B    0x32    0x33    0x34
+------------------------------------------------------------------------------------
+1st Tuesday of January  0x0D    0x01    0x04    0x00    0x00    0x20    0x4F    0xA2
+1st Tuesday of February 0x0D    0x01    0x04    0x60    0xAE    0x20    0xEC    0xAA
+2nd Tuesday of March    0x0D    0x02    0x04    0xE0    0x4B    0x80    0xB1    0xA3
+3rd Tuesday of March    0x0D    0x03    0x04    0xE0    0x4B    0x60    0xD8    0xAB
+3rd Tuesday of April    0x0D    0x03    0x04    0x40    0xFA    0xC0    0x9D    0xA4
+3rd Tuesday of May      0x0D    0x03    0x04    0x00    0xA3    0x40    0x3B    0xA5
+2nd Tuesday of May      0x0D    0x02    0x04    0x00    0xA3    0x60    0x13    0xAD
+1st Tuesday of June     0x0D    0x01    0x04    0x60    0x51    0x00    0x8A    0xA5
+1st Tuesday of July     0x0D    0x01    0x04    0x20    0xFA    0xE0    0x4E    0xA6
+1st Tuesday of August   0x0D    0x01    0x04    0x80    0xA8    0x60    0xEC    0xA6
+1st Tuesday of Septemb  0x0D    0x01    0x04    0xE0    0x56    0x40    0xB1    0xA7
+1st Tuesday of October  0x0D    0x01    0x04    0xA0    0xFF    0xC0    0x4E    0xA8
+1st Tuesday of Novemb   0x0D    0x01    0x04    0x00    0xAE    0x40    0xEC    0xA8
+1st Tuesday of Decemb   0x0D    0x01    0x04    0xC0    0x56    0x20    0xB1    0xA9
+
+0x06 = 0x03 when using Every Xth Y day of Z month
+0x1A = X
+0x16 = Y day of week (as above)
+        or
+        0x7F = any day (i.e. 2nd day of month)
+        0x3E = weekday (Mon-Fri)
+        0x41 = weekend day (Sat, Sun)
+
+0x0A 0x0B = Z month
+        0x0000 = January
+        0x60AE = February
+        0xE04B = March
+        0x40FA = April
+        0x00A3 = May
+        0x6051 = June
+        0x20FA = July
+        0x80A8 = August
+        0xE056 = September
+        0xA0FF = October
+        0x00AE = November
+        0xC056 = December
+
+Ending time logic:
+If position 0x1E == 0x23
+        No end (indefinite)
+elsif position 0x1E == 0x22
+        num of occurrences = 0x23 0x22
+        (i.e. if 0x23 = 0x03, and 0x22 = 0xE7, num = 0x03E7 = 999 occurrences)
+
+Notes
+-----
+Outlook only sends cancellation when deleting recurrence, not specific entry
