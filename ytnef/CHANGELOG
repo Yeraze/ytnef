@@ -1,3 +1,8 @@
+v1.14
+Made a change to save vCard entries with a .vcard extension instead of a .vcf
+extension.  This way I can detect it in ytnefprocess.pl and mark it as a type
+text/x-vcard instead of text/vcalendar.
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 v1.13
 Fixed a problem in the checking of existence.  Should have been
 (variableLength*)-1 instead of NULL.. Made MAPI_UNDEFINED to keep this

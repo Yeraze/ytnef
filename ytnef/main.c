@@ -630,14 +630,14 @@ void SaveVCard(TNEFStruct TNEF) {
         return;
     }
     if ((listonly == 1) && (filenameonly == 1)) 
-        printf("%s.vcf\n", vl->data);
+        printf("%s.vcard\n", vl->data);
     if (filepath == NULL) {
-        sprintf(ifilename, "%s.vcf", vl->data);
+        sprintf(ifilename, "%s.vcard", vl->data);
     } else {
-        sprintf(ifilename, "%s/%s.vcf", filepath, vl->data);
+        sprintf(ifilename, "%s/%s.vcard", filepath, vl->data);
     }
     if ((listonly == 1) && (filenameonly == 0)) 
-        printf("%s.vcf\n", vl->data);
+        printf("%s.vcard\n", vl->data);
     if (listonly == 0) 
         printf("%s\n", ifilename);
     if ((fptr = fopen(ifilename, "wb"))==NULL) {
