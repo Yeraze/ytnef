@@ -4,7 +4,7 @@
 #define BYTE unsigned char
 #define WORD unsigned short int
 #define DWORD unsigned int
-#define ULONG DWORD
+#define ULONG unsigned int
 #define DDWORD unsigned long long
 typedef struct
 {

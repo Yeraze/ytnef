@@ -2,7 +2,7 @@
 AC_INIT(libytnef, 1.3, yerase@yeraze.com)
 AM_INIT_AUTOMAKE
 AC_CONFIG_SRCDIR([ytnef.c])
-AC_CONFIG_HEADER([config.h])
+AM_CONFIG_HEADER([config.h])
 
 # Checks for programs.
 AC_PROG_CC
@@ -23,3 +23,4 @@ AC_CHECK_FUNCS([memset])
 
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT
+AC_OUTPUT(libytnef.spec)
