@@ -148,6 +148,40 @@ void ProcessTNEF(TNEFStruct TNEF) {
         }
     }
 
+    if (strcmp(TNEF.messageClass, "IPM.Microsoft Mail.Note") == 0) {
+        if ((saveRTF == 1) && (TNEF.subject.size > 0)) {
+            // Description
+            if ((filename=MAPIFindProperty(&(TNEF.MapiProperties),
+                                    PROP_TAG(PT_BINARY, PR_RTF_COMPRESSED)))
+                    != MAPI_UNDEFINED) {
+                int size;
+                variableLength buf;
+                if ((buf.data = DecompressRTF(filename, &(buf.size))) != NULL) {
+                    if (filepath == NULL) {
+                        sprintf(ifilename, "%s.rtf", TNEF.subject.data);
+                    } else {
+                        sprintf(ifilename, "%s/%s.rtf", filepath, TNEF.subject.data);
+                    }
+                    for(i=0; i<strlen(ifilename); i++) 
+                        if (ifilename[i] == ' ') 
+                            ifilename[i] = '_';
+
+                    printf("%s\n", ifilename);
+                    if ((fptr = fopen(ifilename, "wb"))==NULL) {
+                        printf("ERROR: Error writing file to disk!");
+                    } else {
+                        fwrite(buf.data,
+                                sizeof(BYTE), 
+                                buf.size, 
+                                fptr);
+                        fclose(fptr);
+                    }
+                    free(buf.data);
+                }
+            } 
+        }
+    }
+
 // Now process each attachment
     p = TNEF.starting_attach.next;
     while (p != NULL) {
