@@ -1,5 +1,6 @@
-bin_PROGRAMS = ytnefprint
+bin_PROGRAMS = ytnef
 
-ytnefprint_SOURCES = main.c
-ytnefprint_LDADD = -lytnef
+ytnef_SOURCES = main.c
+ytnef_LDADD = -lytnef
 
+EXTRA_DIST = vcal.c vcard.c vtask.c utility.c
