@@ -1149,6 +1149,7 @@ void MAPIPrint(MAPIProps *p)
     dtr thedate;
     MAPIProperty *mapi;
     variableLength *mapidata;
+    variableLength vlTemp;
     int found;
 
     for(j=0; j<p->count; j++) {
@@ -1246,15 +1247,26 @@ void MAPIPrint(MAPIProps *p)
                     printf("\n");
                     break;
                 case PT_BINARY:
-                    printf("    Value: [");
-                    for(h=0; h< mapidata->size; h++) {
-                        if (isprint(mapidata->data[h])) 
-                            printf("%c", mapidata->data[h]);
-                        else 
-                            printf(".");
+                    if(IsCompressedRTF(mapidata)==1) {
+                        printf("    Detected Compressed RTF.");
+                        printf("Decompressed text follows\n");
+                        printf("-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-\n");
+                        if((vlTemp.data = DecompressRTF(mapidata, &(vlTemp.size))) != NULL) {
+                            printf("%s\n", vlTemp.data);
+                            free(vlTemp.data);
+                        }
+                        printf("-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-\n");
+                    } else {
+                        printf("    Value: [");
+                        for(h=0; h< mapidata->size; h++) {
+                            if (isprint(mapidata->data[h])) 
+                                printf("%c", mapidata->data[h]);
+                            else 
+                                printf(".");
 
+                        }
+                        printf("]\n");
                     }
-                    printf("]\n");
                     break;
                 case PT_STRING8:
                     printf("    Value: [%s]\n", mapidata->data);
@@ -1277,6 +1289,31 @@ void MAPIPrint(MAPIProps *p)
     }
 }
 
+
+int IsCompressedRTF(variableLength *p) {
+    unsigned int in;
+    unsigned char *src;
+
+    src = p->data;
+    in = 0;
+
+    ULONG compressedSize = (ULONG)SwapDWord(src+in);
+    in += 4;
+    ULONG uncompressedSize = (ULONG)SwapDWord(src+in);
+    in += 4;
+    DWORD magic = SwapDWord(src+in);
+    in += 4;
+    DWORD crc32 = SwapDWord(src+in);
+    in += 4;
+
+    if (magic == 0x414c454d) { 
+        return 1;
+    } else if (magic == 0x75465a4c) { 
+        return 1;
+    } else {
+        return 0;
+    }
+}
 
 unsigned char *DecompressRTF(variableLength *p, int *size) {
     unsigned char *dst; // destination for uncompressed bytes
