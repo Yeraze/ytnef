@@ -83,12 +83,12 @@ WORD SwapWord(BYTE *p)
     }
 
     if (ByteOrder == 0) {
-        word_ptr = p;
+        word_ptr = (WORD*)p;
         return *word_ptr;
     } else {
         bytes[0] = p[1];
         bytes[1] = p[0];
-        word_ptr = &(bytes[0]);
+        word_ptr = (WORD*)&(bytes[0]);
         return *word_ptr;
     }
 }
@@ -102,29 +102,29 @@ DWORD SwapDWord(BYTE *p)
     }
 
     if (ByteOrder == 0) {
-        dword_ptr = p;
+        dword_ptr = (DWORD*)p;
         return *dword_ptr;
     } else {
         bytes[0] = p[3];
         bytes[1] = p[2];
         bytes[2] = p[1];
         bytes[3] = p[0];
-        dword_ptr = &(bytes[0]);
+        dword_ptr = (DWORD*)&(bytes[0]);
         return *dword_ptr;
     }
 }
 
-ULONG SwapULong(BYTE *p)
+DDWORD SwapDDWord(BYTE *p)
 {
-    ULONG *ulong_ptr;
+    DDWORD *ddword_ptr;
     BYTE bytes[8];
     if (ByteOrder == -1) {
         SetFlip();
     }
 
     if (ByteOrder == 0) {
-        ulong_ptr = p;
-        return *ulong_ptr;
+        ddword_ptr = (DDWORD*)p;
+        return *ddword_ptr;
     } else {
         bytes[0] = p[7];
         bytes[1] = p[6];
@@ -134,65 +134,18 @@ ULONG SwapULong(BYTE *p)
         bytes[5] = p[2];
         bytes[6] = p[1];
         bytes[7] = p[0];
-        ulong_ptr = &(bytes[0]);
-        return *ulong_ptr;
-    }
-}
-DDWORD SwapDDWord(BYTE *p)
-{
-    DDWORD *ddword_ptr;
-    BYTE bytes[16];
-    if (ByteOrder == -1) {
-        SetFlip();
-    }
-
-    if (ByteOrder == 0) {
-        ddword_ptr = p;
-        return *ddword_ptr;
-    } else {
-        bytes[0] = p[15];
-        bytes[1] = p[14];
-        bytes[2] = p[13];
-        bytes[3] = p[12];
-        bytes[4] = p[11];
-        bytes[5] = p[10];
-        bytes[6] = p[9];
-        bytes[7] = p[8];
-        bytes[8] = p[7];
-        bytes[9] = p[6];
-        bytes[10] = p[5];
-        bytes[11] = p[4];
-        bytes[12] = p[3];
-        bytes[13] = p[2];
-        bytes[14] = p[1];
-        bytes[15] = p[0];
-        ddword_ptr = &(bytes[0]);
+        ddword_ptr = (DDWORD*)&(bytes[0]);
         return *ddword_ptr;
     }
 }
 
-void SwapDTR(dtr *date, BYTE *data) {
-    WORD *date_element;
-    int i;
-
-    if (ByteOrder == -1) {
-        SetFlip();
-    }
-    date_element = date;
-
-    for(i=0;i<7;i++) {
-        *date_element = SwapWord(data);
-        data += sizeof(WORD);
-        date_element++;
-    }
-}
 
 void SetFlip(void) {
     DWORD x = 0x04030201;
     int i;
     BYTE *p;
 
-    p = &x;
+    p = (BYTE*)&x;
     for(i=0;i<sizeof(DWORD); i++) {
 	    printf("%02x ", *(p+i));
     }
@@ -345,7 +298,7 @@ void TNEFFillMapi(BYTE *data, DWORD size, MAPIProps *p) {
     DWORD num;
     BYTE *d;
     MAPIProperty *mp;
-    ULONG type;
+    DWORD type;
     DWORD length;
     variableLength *vl;
 
@@ -467,7 +420,7 @@ void TNEFFillMapi(BYTE *data, DWORD size, MAPIProps *p) {
             case PT_SYSTIME:
                 vl->size = 8;
                 vl->data = calloc(vl->size, sizeof(BYTE));
-                temp_ddword = SwapULong(d);
+                temp_ddword = SwapDDWord(d);
                 memcpy(vl->data, &temp_ddword, vl->size);
                 d+=8;
                 break;
@@ -514,6 +467,8 @@ int TNEFSentFor STD_ARGLIST {
 int TNEFDateHandler STD_ARGLIST {
     dtr *Date;
     Attachment *p;
+    WORD *tmp_src, *tmp_dst;
+    int i;
 
     p = &(TNEF->starting_attach);
     switch (TNEFList[id].id) {
@@ -535,7 +490,11 @@ int TNEFDateHandler STD_ARGLIST {
             return -1;
     }
 
-    SwapDTR(Date, data);
+    tmp_src = (WORD*)data;
+    tmp_dst = (WORD*)Date;
+    for(i=0;i<sizeof(dtr)/sizeof(WORD);i++) {
+        *tmp_dst++ = SwapWord((BYTE*)tmp_src++);
+    }
     return 0;
 }
 
@@ -643,7 +602,7 @@ int TNEFCheckForSignature(FILE *fptr) {
         return -1;
     }
 
-    sig = SwapDWord(&sig);
+    sig = SwapDWord((BYTE*)&sig);
 
     if (signature == sig) {
         return 0;
@@ -657,7 +616,7 @@ int TNEFGetKey(FILE *fptr, WORD *key) {
     if (fread(key, sizeof(WORD), 1, fptr) <1) {
         return -1;
     }
-    key = SwapWord(&key);
+    *key = SwapWord((BYTE*)&key);
     return 0;
 }
 
@@ -679,8 +638,8 @@ int TNEFGetHeader(FILE *fptr, DWORD *type, DWORD *size, WORD *header) {
     }
     
     *header = component;
-    type = SwapDWord(&type);
-    size = SwapDWord(&size);
+    *type = SwapDWord((BYTE*)type);
+    *size = SwapDWord((BYTE*)size);
     for(i=0; i<8; i++) {
         wtemp = temp[i];
         *header = (*header + wtemp);
@@ -899,7 +858,7 @@ variableLength *MAPIFindUserProp(MAPIProps *p, unsigned int ID)
             }
         }
     }
-    return -1;
+    return (variableLength*)-1;
 }
 
 variableLength *MAPIFindProperty(MAPIProps *p, unsigned int ID)
@@ -912,17 +871,19 @@ variableLength *MAPIFindProperty(MAPIProps *p, unsigned int ID)
             }
         }
     }
-    return -1;
+    return (variableLength*)-1;
 }
 
-int MAPISysTimetoDTR(DDWORD number, dtr *thedate)
+int MAPISysTimetoDTR(BYTE *data, dtr *thedate)
 {
     DDWORD ddword_tmp;
     int startingdate = 0;
     int tmp_date;
-    unsigned int months[] = {31,28,31,30,31,30, 31, 31, 30, 31, 30, 31};
+    unsigned int months[] = {31,28,31,30,31,30,31,31,30,31,30,31};
 
-    ddword_tmp = number /10; // micro-s
+
+    ddword_tmp = *((DDWORD*)data);
+    ddword_tmp = ddword_tmp /10; // micro-s
     ddword_tmp /= 1000; // ms
     ddword_tmp /= 1000; // s
 
@@ -976,6 +937,7 @@ int MAPISysTimetoDTR(DDWORD number, dtr *thedate)
     }
     thedate->wMonth++;
     thedate->wDay = tmp_date+1;
+    return 0;
 }
 
 void MAPIPrint(MAPIProps *p)
@@ -1059,8 +1021,7 @@ void MAPIPrint(MAPIProps *p)
             printf("Size: %i", mapidata->size);
             switch (PROP_TYPE(mapi->id)) {
                 case PT_SYSTIME:
-                    ddword_ptr = (mapidata->data);
-                    MAPISysTimetoDTR(*ddword_ptr, &thedate);
+                    MAPISysTimetoDTR(mapidata->data, &thedate);
                     printf("    Value: ");
                     TNEFPrintDate(thedate);
                     printf("\n");
