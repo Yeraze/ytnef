@@ -911,6 +911,8 @@ void SaveVTask(TNEFStruct TNEF) {
     char *charptr, *charptr2;
     dtr thedate;
     FILE *fptr;
+    DDWORD *ddword_ptr;
+    DDWORD ddword_val;
     
     vl = MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, PR_CONVERSATION_TOPIC));
     if (vl == (variableLength*)-1) {
