@@ -891,6 +891,7 @@ void SaveVTask(TNEFStruct TNEF) {
     variableLength *filename;
     int index;
     char ifilename[256];
+    char *charptr, *charptr2;
     dtr thedate;
     FILE *fptr;
     
@@ -923,6 +924,31 @@ void SaveVTask(TNEFStruct TNEF) {
         filename = NULL;
 
         fprintf(fptr, "BEGIN:VTODO\n");
+        filename = MAPIFindUserProp(&(TNEF.MapiProperties), \
+                        PROP_TAG(PT_STRING8, 0x8122));
+        if (filename != NULL) {
+            fprintf(fptr, "ORGANIZER:%s\n", filename->data);
+        }
+                 
+
+        if ((filename = MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, PR_DISPLAY_TO))) != (variableLength*)-1) {
+            filename = MAPIFindUserProp(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, 0x811f));
+        }
+        if (filename->size > 1) {
+            charptr = filename->data-1;
+            charptr2=strstr(charptr+1, ";");
+            while (charptr != NULL) {
+                charptr++;
+                charptr2 = strstr(charptr, ";");
+                if (charptr2 != NULL) {
+                    *charptr2 = 0;
+                }
+                while (*charptr == ' ') 
+                    charptr++;
+                fprintf(fptr, "ATTENDEE;CN=%s;ROLE=REQ-PARTICIPANT:%s\n", charptr, charptr);
+                charptr = charptr2;
+            }
+        }
 
         if (TNEF.subject.size > 0) {
             fprintf(fptr,"SUMMARY:");
