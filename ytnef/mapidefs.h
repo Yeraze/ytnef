@@ -1,8 +1,6 @@
 #ifndef MAPIDEFS_H
 #define MAPIDEFS_H
 
-#define MAPIMACRO(x) {x, #x}
-
 #define PR_ACKNOWLEDGEMENT_MODE                     0x0001
 #define PR_ALTERNATE_RECIPIENT_ALLOWED              0x0002
 #define PR_AUTHORIZING_USERS                        0x0003
