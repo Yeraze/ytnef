@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include "tnef.h"
+#include "ytnef.h"
 #include "tnef-errors.h"
 #include "mapi.h"
 #include "mapidefs.h"

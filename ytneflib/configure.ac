@@ -1,12 +1,12 @@
 # Process this file with autoconf to produce a configure script.
 AC_INIT(libytnef, 1.0, yerase@yeraze.com)
 AM_INIT_AUTOMAKE
-AM_PROG_LIBTOOL
 AC_CONFIG_SRCDIR([ytnef.c])
 AC_CONFIG_HEADER([config.h])
 
 # Checks for programs.
 AC_PROG_CC
+AC_PROG_LIBTOOL
 
 # Checks for libraries.
 
