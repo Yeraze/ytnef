@@ -413,6 +413,7 @@ void SaveVCalendar(TNEFStruct TNEF) {
     DDWORD *ddword_ptr;
     DDWORD ddword_val;
     dtr thedate;
+    int i;
 
     if (listonly == 0) 
         printf("-> Creating an icalendar attachment\n");
@@ -430,7 +431,23 @@ void SaveVCalendar(TNEFStruct TNEF) {
             printf("Error writing file to disk!");
     } else {
         fprintf(fptr, "BEGIN:VCALENDAR\n");
-        fprintf(fptr, "METHOD:REQUEST\n");
+        if (TNEF.messageClass[0] != 0) {
+            charptr2=TNEF.messageClass;
+            charptr=charptr2;
+            while (*charptr != 0) {
+                if (*charptr == '.') {
+                    charptr2 = charptr;
+                }
+                charptr++;
+            }
+            if (strcmp(charptr2, ".MtgCncl") == 0) {
+                fprintf(fptr, "METHOD:CANCEL\n");
+            } else {
+                fprintf(fptr, "METHOD:REQUEST\n");
+            }
+        } else {
+            fprintf(fptr, "METHOD:REQUEST\n");
+        }
         fprintf(fptr, "PRODID:-//The Gauntlet//Reader v1.0//EN\n");
         fprintf(fptr, "VERSION:2.0\n");
         fprintf(fptr, "BEGIN:VEVENT\n");

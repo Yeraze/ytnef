@@ -1,5 +1,6 @@
 v1.10
 Added attendee & organizer fields to Task Entries.
+Added support for meeting cancellations.
 -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 v1.09
 Made the Notes field of vCard's & the summary field of vCalendar entries
