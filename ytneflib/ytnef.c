@@ -1294,17 +1294,18 @@ void MAPIPrint(MAPIProps *p)
 int IsCompressedRTF(variableLength *p) {
     unsigned int in;
     unsigned char *src;
+    ULONG compressedSize, uncompressedSize, magic, crc32;
 
     src = p->data;
     in = 0;
 
-    ULONG compressedSize = (ULONG)SwapDWord(src+in);
+    compressedSize = (ULONG)SwapDWord(src+in);
     in += 4;
-    ULONG uncompressedSize = (ULONG)SwapDWord(src+in);
+    uncompressedSize = (ULONG)SwapDWord(src+in);
     in += 4;
-    DWORD magic = SwapDWord(src+in);
+    magic = SwapDWord(src+in);
     in += 4;
-    DWORD crc32 = SwapDWord(src+in);
+    crc32 = SwapDWord(src+in);
     in += 4;
 
     if (magic == 0x414c454d) { 
@@ -1323,6 +1324,7 @@ unsigned char *DecompressRTF(variableLength *p, int *size) {
     unsigned int out;
     int i;
     variableLength comp_Prebuf;
+    ULONG compressedSize, uncompressedSize, magic, crc32;
 
     comp_Prebuf.size = strlen(RTF_PREBUF);
     comp_Prebuf.data = calloc(comp_Prebuf.size, 1);
@@ -1331,13 +1333,13 @@ unsigned char *DecompressRTF(variableLength *p, int *size) {
     src = p->data;
     in = 0;
 
-    ULONG compressedSize = (ULONG)SwapDWord(src+in);
+    compressedSize = (ULONG)SwapDWord(src+in);
     in += 4;
-    ULONG uncompressedSize = (ULONG)SwapDWord(src+in);
+    uncompressedSize = (ULONG)SwapDWord(src+in);
     in += 4;
-    DWORD magic = SwapDWord(src+in);
+    magic = SwapDWord(src+in);
     in += 4;
-    DWORD crc32 = SwapDWord(src+in);
+    crc32 = SwapDWord(src+in);
     in += 4;
 
     // check size excluding the size field itself
@@ -1353,17 +1355,18 @@ unsigned char *DecompressRTF(variableLength *p, int *size) {
         memcpy(dst, src+4, uncompressedSize);
     } else if (magic == 0x75465a4c) { 
         // magic number that identifies the stream as a compressed stream
+        int flagCount = 0;
+        int flags = 0;
         dst = calloc(comp_Prebuf.size + uncompressedSize,1);
         memcpy(dst, comp_Prebuf.data, comp_Prebuf.size);
         out = comp_Prebuf.size;
-        int flagCount = 0;
-        int flags = 0;
         while (out < (comp_Prebuf.size+uncompressedSize)) {
             // each flag byte flags 8 literals/references, 1 per bit
             flags = (flagCount++ % 8 == 0) ? src[in++] : flags >> 1;
             if ((flags & 1) == 1) { // each flag bit is 1 for reference, 0 for literal
                 int offset = src[in++];
                 int length = src[in++];
+                int end;
                 offset = (offset << 4) | (length >> 4); // the offset relative to block start
                 length = (length & 0xF) + 2; // the number of bytes to copy
                 // the decompression buffer is supposed to wrap around back
@@ -1376,7 +1379,7 @@ unsigned char *DecompressRTF(variableLength *p, int *size) {
 	                offset -= 4096;
                 // note: can't use System.arraycopy, because the referenced
                 // bytes can cross through the current out position.
-                int end = offset + length;
+                end = offset + length;
                 while (offset < end)
 	                dst[out++] = dst[offset++];
             } else { // literal
