@@ -1,3 +1,8 @@
+v1.03 
+More endian fixes, now finally works on PowerPC.
+Modified the main.c to place the printing in a separate file.
+Added support for embedded TNEF streams.
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 v1.02 12-27-2002
 More fixes for the Endian problem, additions to the file-reading routines.
 Fixed warnings.
