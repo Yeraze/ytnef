@@ -1,3 +1,183 @@
+unsigned char GetRruleCount(unsigned char a, unsigned char b) {
+    return ((a << 8) | b);
+}
+
+unsigned char GetRruleMonthNum(unsigned char a, unsigned char b) {
+    switch (a) {
+        case 0x00:
+            switch (b) {
+                case 0x00:
+                    // Jan
+                    return(1);
+                case 0xA3:
+                    // May
+                    return(5);
+                case 0xAE:
+                    // Nov
+                    return(11);
+            }
+            break;
+        case 0x60:
+            switch (b) {
+                case 0xAE:
+                    // Feb
+                    return(2);
+                case 0x51:
+                    // Jun
+                    return(6);
+            }
+            break;
+        case 0xE0:
+            switch (b) {
+                case 0x4B:
+                    // Mar
+                    return(3);
+                case 0x56:
+                    // Sep
+                    return(9);
+            }
+            break;
+        case 0x40:
+            switch (b) {
+                case 0xFA:
+                    // Apr
+                    return(4);
+            }
+            break;
+        case 0x20:
+            if (b == 0xFA) {
+                // Jul
+                return(7);
+            }
+            break;
+        case 0x80:
+            if (b == 0xA8) {
+                // Aug
+                return(8);
+            }
+            break;
+        case 0xA0:
+            if (b == 0xFF) {
+                // Oct
+                return(10);
+            }
+            break;
+        case 0xC0:
+            if (b == 0x56) {
+                return(12);
+            }
+    }
+
+    // Error
+    return(0);
+}
+
+char * GetRruleDayname(unsigned char a) {
+    static char daystring[25];
+
+    *daystring = 0;
+
+    if (a & 0x01) {
+        strcat(daystring, "SU,");
+    }
+    if (a & 0x02) {
+        strcat(daystring, "MO,");
+    }
+    if (a & 0x04) {
+        strcat(daystring, "TU,");
+    }
+    if (a & 0x08) {
+        strcat(daystring, "WE,");
+    }
+    if (a & 0x10) {
+        strcat(daystring, "TH,");
+    }
+    if (a & 0x20) {
+        strcat(daystring, "FR,");
+    }
+    if (a & 0x40) {
+        strcat(daystring, "SA,");
+    }
+
+    if (strlen(daystring)) {
+        daystring[strlen(daystring) - 1] = 0;
+    }
+
+    return(daystring);
+}
+
+void PrintRrule(FILE *fptr, char *recur_data, int size, TNEFStruct TNEF) {
+    variableLength *filename;
+
+    if (size < 0x1F) {
+        return;
+    }
+
+    fprintf(fptr, "RRULE:FREQ=");
+
+    if (recur_data[0x04] == 0x0A) {
+        fprintf(fptr, "DAILY");
+
+        if (recur_data[0x16] == 0x23 || recur_data[0x16] == 0x22) {
+            if ((filename=MAPIFindUserProp(&(TNEF.MapiProperties),
+                    PROP_TAG(PT_I2, 0x0011))) != MAPI_UNDEFINED) {
+                fprintf(fptr, ";INTERVAL=%d", *(filename->data));
+            }
+            if (recur_data[0x16] == 0x22) {
+                fprintf(fptr, ";COUNT=%d", 
+                    GetRruleCount(recur_data[0x1B], recur_data[0x1A]));
+            }
+        } else if (recur_data[0x16] == 0x3E) {
+            fprintf(fptr, ";BYDAY=MO,TU,WE,TH,FR");
+            if (recur_data[0x1A] == 0x22) {
+                fprintf(fptr, ";COUNT=%d", 
+                    GetRruleCount(recur_data[0x1F], recur_data[0x1E]));
+            }
+        }
+    } else if (recur_data[0x04] == 0x0B) {
+        fprintf(fptr, "WEEKLY;INTERVAL=%d;BYDAY=%s", 
+            recur_data[0x0E], GetRruleDayname(recur_data[0x16]));
+        if (recur_data[0x1A] == 0x22) {
+            fprintf(fptr, ";COUNT=%d", 
+                GetRruleCount(recur_data[0x1F], recur_data[0x1E]));
+        }
+    } else if (recur_data[0x04] == 0x0C) {
+        fprintf(fptr, "MONTHLY");
+        if (recur_data[0x06] == 0x02) {
+            fprintf(fptr, ";INTERVAL=%d;BYMONTHDAY=%d", recur_data[0x0E],
+                recur_data[0x16]);
+            if (recur_data[0x1A] == 0x22) {
+                fprintf(fptr, ";COUNT=%d", GetRruleCount(recur_data[0x1F], 
+                    recur_data[0x1E]));
+            }
+        } else if (recur_data[0x06] == 0x03) {
+            fprintf(fptr, ";BYDAY=%s;BYSETPOS=%d;INTERVAL=%d", 
+                GetRruleDayname(recur_data[0x16]),
+                recur_data[0x1A] == 0x05 ? -1 : recur_data[0x1A],
+                recur_data[0x0E]);
+            if (recur_data[0x1E] == 0x22) {
+                fprintf(fptr, ";COUNT=%d", GetRruleCount(recur_data[0x23],
+                    recur_data[0x22]));
+            }
+        }
+    } else if (recur_data[0x04] == 0x0D) {
+        fprintf(fptr, "YEARLY;BYMONTH=%d",
+                GetRruleMonthNum(recur_data[0x0A], recur_data[0x0B]));
+        if (recur_data[0x06] == 0x02) {
+            fprintf(fptr, ";BYMONTHDAY=%d", recur_data[0x16]);
+        } else if (recur_data[0x06] == 0x03) {
+            fprintf(fptr, ";BYDAY=%s;BYSETPOS=%d",
+                GetRruleDayname(recur_data[0x16]),
+                recur_data[0x1A] == 0x05 ? -1 : recur_data[0x1A]);
+        }
+        if (recur_data[0x1E] == 0x22) {
+            fprintf(fptr, ";COUNT=%d", GetRruleCount(recur_data[0x23],
+                recur_data[0x22]));
+        }
+    }
+    fprintf(fptr, "\n");
+}
+
 void SaveVCalendar(TNEFStruct TNEF) {
     char ifilename[256];
     variableLength *filename;
@@ -7,7 +187,6 @@ void SaveVCalendar(TNEFStruct TNEF) {
     DDWORD *ddword_ptr;
     DDWORD ddword_val;
     dtr thedate;
-    int i;
 
     if (filepath == NULL) {
         sprintf(ifilename, "calendar.vcf");
@@ -71,7 +250,7 @@ void SaveVCalendar(TNEFStruct TNEF) {
         if ((filename=MAPIFindUserProp(&(TNEF.MapiProperties), 
                         PROP_TAG(PT_LONG, 0x8201))) != MAPI_UNDEFINED) {
             ddword_ptr = (DDWORD*)filename->data;
-            fprintf(fptr, "SEQUENCE:%i\n", *ddword_ptr);
+            fprintf(fptr, "SEQUENCE:%i\n", (int) *ddword_ptr);
         }
         if ((filename=MAPIFindProperty(&(TNEF.MapiProperties), 
                         PROP_TAG(PT_BINARY, PR_SENDER_SEARCH_KEY))) 
@@ -168,7 +347,6 @@ void SaveVCalendar(TNEFStruct TNEF) {
         if ((filename=MAPIFindProperty(&(TNEF.MapiProperties),
                                 PROP_TAG(PT_BINARY, PR_RTF_COMPRESSED)))
                 != MAPI_UNDEFINED) {
-            int size;
             variableLength buf;
             if ((buf.data = DecompressRTF(filename, &(buf.size))) != NULL) {
                 fprintf(fptr, "DESCRIPTION:");
@@ -244,6 +422,12 @@ void SaveVCalendar(TNEFStruct TNEF) {
             } else {
                 fprintf(fptr,"PUBLIC\n");
             }
+        }
+        // Recurrence
+        filename = NULL;
+        if ((filename=MAPIFindUserProp(&(TNEF.MapiProperties), 
+                        PROP_TAG(PT_BINARY, 0x8216))) != MAPI_UNDEFINED) {
+            PrintRrule(fptr, filename->data, filename->size, TNEF);
         }
 
         // Wrap it up
