@@ -17,6 +17,7 @@ char *filepath = NULL;
 void PrintTNEF(TNEFStruct TNEF);
 void SaveVCalendar(TNEFStruct TNEF);
 void SaveVCard(TNEFStruct TNEF);
+void SaveVTask(TNEFStruct TNEF);
 
 
 void PrintHelp(void) {
@@ -158,6 +159,12 @@ void PrintTNEF(TNEFStruct TNEF) {
                 printf("Found a contact card\n");
             if (savefiles == 1) 
                 SaveVCard(TNEF);
+        }
+        if (strcmp(TNEF.messageClass, "IPM.Task") == 0) {
+            if (listonly == 0) 
+                printf("Found a Task Entry\n");
+            if (savefiles == 1) 
+                SaveVTask(TNEF);
         }
     }
 
@@ -845,4 +852,7 @@ void SaveVCard(TNEFStruct TNEF) {
         fprintf(fptr, "END:VCARD\n");
 
     }
+}
+
+void SaveVTask(TNEFStruct TNEF) {
 }
