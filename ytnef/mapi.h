@@ -25,3 +25,5 @@
 #define PROP_ID_NULL            0
 #define PROP_ID_INVALID         0xFFFF
 #define PR_NULL                 PROP_TAG( PT_NULL, PROP_ID_NULL)
+
+#define MAPI_UNDEFINED ((variableLength*)-1)

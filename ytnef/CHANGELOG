@@ -1,3 +1,9 @@
+v1.13
+Fixed a problem in the checking of existence.  Should have been
+(variableLength*)-1 instead of NULL.. Made MAPI_UNDEFINED to keep this
+from happening again.  This fixed an issue with segfaulting on certain task
+requests when a start/due date wasn't specified.
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 v1.12
 Fixed a problem with recurring calendar entries, occasionally have incorrect
 start dates.

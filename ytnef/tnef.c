@@ -934,7 +934,7 @@ variableLength *MAPIFindUserProp(MAPIProps *p, unsigned int ID)
             }
         }
     }
-    return (variableLength*)-1;
+    return MAPI_UNDEFINED;
 }
 
 variableLength *MAPIFindProperty(MAPIProps *p, unsigned int ID)
@@ -947,7 +947,7 @@ variableLength *MAPIFindProperty(MAPIProps *p, unsigned int ID)
             }
         }
     }
-    return (variableLength*)-1;
+    return MAPI_UNDEFINED;
 }
 
 int MAPISysTimetoDTR(BYTE *data, dtr *thedate)
