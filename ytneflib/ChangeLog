@@ -1,3 +1,7 @@
+-- CVS
+ * Implemented a change suggested by "Larry Jones" to allow the Compressed RTF
+        stuff to compile on older compilers.  Basically just pre-declaring
+        variables.
 1.3 - Dec 29th, 2003
  * Fixed a bug in MAPISysTimeToDTR (ytnef.c) where the dates were wrong in the
         upcoming leap year. (SR Bug: 867041)  This should fix the "off-by-one
