@@ -1,5 +1,5 @@
 # Process this file with autoconf to produce a configure script.
-AC_INIT(libytnef, 1.2, yerase@yeraze.com)
+AC_INIT(libytnef, 1.3, yerase@yeraze.com)
 AM_INIT_AUTOMAKE
 AC_CONFIG_SRCDIR([ytnef.c])
 AC_CONFIG_HEADER([config.h])

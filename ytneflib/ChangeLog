@@ -1,3 +1,7 @@
+1.3 - Dec 29th, 2003
+ * Fixed a bug in MAPISysTimeToDTR (ytnef.c) where the dates were wrong in the
+        upcoming leap year. (SR Bug: 867041)  This should fix the "off-by-one
+        day" bug and the "infinite hang" bug for events on New Years Day.
 1.1 - Nov 20th, 2003
  * Fixed a bug in the way the Multi-valued Mapi properties were handled
         Previously only the first 2 values were read, leaving the others
