@@ -393,7 +393,7 @@ void TNEFFillMapi(TNEFStruct *TNEF, BYTE *data, DWORD size, MAPIProps *p) {
         } else {
             i--;
             count++;
-            vl = mp->data+1;
+            vl = &(mp->data[count]);
         }
 
         switch (PROP_TYPE(mp->id)) {
@@ -1216,7 +1216,7 @@ void MAPIPrint(MAPIProps *p)
         for (i=0;i<mapi->count;i++) {
             mapidata = &(mapi->data[i]);
             if (mapi->count > 1) {
-                printf("    [%i] ", i);
+                printf("    [%i/%i] ", i, mapi->count);
             } else {
                 printf("    ");
             }
