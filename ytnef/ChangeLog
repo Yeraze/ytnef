@@ -1,3 +1,8 @@
+v2.2
+Need to start updating this file more often. Sorry guys.
+This release adds support for Contact cards with no name field.  So now if you
+have contact cards with no name, but just a Company, those will work.
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 v1.15
 Made a change to fill spaces in filenames with underscores.
 Split the vcard/vcal/vtask code into separate files for better readability.
