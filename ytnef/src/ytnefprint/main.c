@@ -7,6 +7,7 @@
 #define PRODID "PRODID:-//The Gauntlet//" PACKAGE_STRING "//EN\n"
 
 TNEFStruct TNEF;
+int verbose = 0;
 void PrintTNEF(TNEFStruct TNEF);
 void ProcessTNEF(TNEFStruct TNEF);
 void SaveVCalendar(TNEFStruct TNEF);
@@ -44,6 +45,13 @@ int main(int argc, char ** argv) {
     }
     
     for(i=1; i<argc; i++) {
+        if (argv[i][0] == '-') {
+            switch (argv[i][1]) {
+                case 'v': verbose++;
+                          break;
+            }
+            continue;
+        }
         TNEFInitialize(&TNEF);
         TNEF.Debug = verbose;
         if (TNEFParseFile(argv[i], &TNEF) == -1) {
