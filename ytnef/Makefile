@@ -1,19 +1,9 @@
-## SGI CC Compiler
-#CC = CC -n32
-## SUN CC Compiler
-#CC = g++
-## Linux CC Compiler
 CC = cc
 LINK = cc
 
 DEBUG = -g
 CFLAGS = $(DEBUG) $(DEFINES)
 
-## SGI Library line  
-#INVLIBS = -lglut -lGL -lGLU -lXmu -lXext -lXt -lX11 -lm
-## SUN Library line  
-#INVLIBS = -L/opt/gfx/lib -lXi -lXmu -lXext -lXt -lX11 -lglut -lGL -lGLU -lglut -lm
-## Linux Library line   
 INVLIBS = -lm
 
 
