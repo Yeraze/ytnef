@@ -12,6 +12,7 @@ AC_PROG_CC
 # Checks for header files.
 AC_HEADER_STDC
 AC_CHECK_HEADERS([stdlib.h string.h])
+AC_CHECK_HEADERS(ytnef.h,,AC_MSG_ERROR([Unable to find ytnef.h]),)
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_C_BIGENDIAN
