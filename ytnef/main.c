@@ -617,6 +617,11 @@ void SaveVCard(TNEFStruct TNEF) {
         fprintProperty(fptr, PT_STRING8, PR_TITLE, "TITLE:%s\n");
         fprintProperty(fptr, PT_STRING8, PR_PROFESSION, "ROLE:%s\n");
         fprintProperty(fptr, PT_STRING8, PR_BODY, "NOTE:%s\n");
+        if (TNEF.body.size > 0) {
+            fprintf(fptr, "NOTE;QUOTED-PRINTABLE:");
+            quotedfprint(fptr, &(TNEF.body));
+            fprintf(fptr,"\n");
+        }
 
 
         // Business Address
