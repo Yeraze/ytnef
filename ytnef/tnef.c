@@ -885,9 +885,15 @@ int TNEFMemory_Open (TNEFIOStruct *IO) {
 int TNEFMemory_Read (TNEFIOStruct *IO, int size, int count, void *dest) {
     TNEFMemInfo *minfo;
     int length;
+    long max;
     minfo = (TNEFMemInfo*)IO->data;
 
     length = count*size;
+    max = (minfo->dataStart + minfo->size) - (minfo->ptr);
+    if (max > length) {
+        return -1;
+    }
+
     if (minfo->Debug >= 3) 
         printf("DEBUG: Copying %i bytes\n", length);
 
@@ -899,7 +905,7 @@ int TNEFMemory_Close (TNEFIOStruct *IO) {
     // Do nothing, really...
 }
 
-int TNEFParseMemory(BYTE *memory, TNEFStruct *TNEF) {
+int TNEFParseMemory(BYTE *memory, long size, TNEFStruct *TNEF) {
     TNEFMemInfo minfo;
 
     if (TNEF->Debug >= 1) 
@@ -907,6 +913,7 @@ int TNEFParseMemory(BYTE *memory, TNEFStruct *TNEF) {
 
     minfo.dataStart = memory;
     minfo.ptr = memory;
+    minfo.size = size;
     minfo.Debug = TNEF->Debug;
     TNEF->IO.data = (void*)&minfo;
     TNEF->IO.InitProc = TNEFMemory_Open;

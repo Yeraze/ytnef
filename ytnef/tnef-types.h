@@ -85,6 +85,7 @@ typedef struct
 {
     BYTE *dataStart;
     BYTE *ptr;
+    long size;
     int Debug;
 } TNEFMemInfo;
 
