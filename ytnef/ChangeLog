@@ -1,3 +1,7 @@
+v2.3
+Thanks to Jason for pointing me toward jtnef, with which I was finally able to
+finish compressed RTF support.
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 v2.2
 Need to start updating this file more often. Sorry guys.
 This release adds support for Contact cards with no name field.  So now if you
