@@ -389,6 +389,20 @@ void quotedfprint(FILE *FPTR, variableLength *VL) {
     }
 }
 
+void Cstylefprint(FILE *FPTR, variableLength *VL) {
+    int index;
+
+    for (index=0;index<VL->size-1; index++) { 
+        if (VL->data[index] == '\n') { 
+            fprintf(FPTR, "\\n"); 
+        } else if (VL->data[index] == '\r') { 
+            fprintf(FPTR, "\\r");
+        } else { 
+            fprintf(FPTR, "%c", VL->data[index]); 
+        } 
+    }
+}
+
 void SaveVCalendar(TNEFStruct TNEF) {
     char ifilename[256];
     variableLength *filename;
@@ -470,10 +484,26 @@ void SaveVCalendar(TNEFStruct TNEF) {
                     charptr = charptr2;
                 }
             }
-        }
-        // Optional attendees
-        if ((filename = MAPIFindUserProp(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, 0x823c))) != (variableLength*)-1) {
-                // The list of optional participants
+            // Optional attendees
+            if ((filename = MAPIFindUserProp(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, 0x823c))) != (variableLength*)-1) {
+                    // The list of optional participants
+                if (filename->size > 1) {
+                    charptr = filename->data-1;
+                    charptr2=strstr(charptr+1, ";");
+                    while (charptr != NULL) {
+                        charptr++;
+                        charptr2 = strstr(charptr, ";");
+                        if (charptr2 != NULL) {
+                            *charptr2 = 0;
+                        }
+                        while (*charptr == ' ') 
+                            charptr++;
+                        fprintf(fptr, "ATTENDEE;CN=%s;ROLE=OPT-PARTICIPANT:\n", charptr);
+                        charptr = charptr2;
+                    }
+                }
+            }
+        } else if ((filename = MAPIFindUserProp(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, 0x8238))) != (variableLength*)-1) {
             if (filename->size > 1) {
                 charptr = filename->data-1;
                 charptr2=strstr(charptr+1, ";");
@@ -485,10 +515,11 @@ void SaveVCalendar(TNEFStruct TNEF) {
                     }
                     while (*charptr == ' ') 
                         charptr++;
-                    fprintf(fptr, "ATTENDEE;CN=%s;ROLE=OPT-PARTICIPANT:\n", charptr);
+                    fprintf(fptr, "ATTENDEE;CN=%s;ROLE=REQ-PARTICIPANT:\n", charptr);
                     charptr = charptr2;
                 }
             }
+
         }
         // Summary
         filename = NULL;
@@ -893,14 +924,14 @@ void SaveVTask(TNEFStruct TNEF) {
         fprintf(fptr, "BEGIN:VTODO\n");
 
         if (TNEF.subject.size > 0) {
-            fprintf(fptr,"SUMMARY;QUOTED-PRINTABLE:");
-            quotedfprint(fptr,&(TNEF.subject));
+            fprintf(fptr,"SUMMARY:");
+            Cstylefprint(fptr,&(TNEF.subject));
             fprintf(fptr,"\n");
         }
 
         if (TNEF.body.size > 0) {
-            fprintf(fptr,"DESCRIPTION;QUOTED-PRINTABLE:");
-            quotedfprint(fptr,&(TNEF.body));
+            fprintf(fptr,"DESCRIPTION:");
+            Cstylefprint(fptr,&(TNEF.body));
             fprintf(fptr,"\n");
         }
 

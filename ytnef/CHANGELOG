@@ -2,6 +2,10 @@ v1.09
 Made the Notes field of vCard's & the summary field of vCalendar entries
 quoted-printable.
 Added a : to the end of meeting attendees.
+Fixed a problem with meeting requests that didn't separate required & optional
+participants.
+Added code to use C-style \n's instead of quoted-printable encoding in task
+requests.
 -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 v1.08
 Code refactoring in the vCard section to improve readability.
