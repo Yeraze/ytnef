@@ -33,7 +33,6 @@ int TNEFMessageID STD_ARGLIST;
 int TNEFParentID STD_ARGLIST;
 int TNEFOriginalMsgClass STD_ARGLIST;
 int TNEFCodePage STD_ARGLIST;
-int ByteOrder = -1;
 
 extern int listonly;
 
@@ -81,66 +80,51 @@ TNEFHandler TNEFList[] = {
 WORD SwapWord(BYTE *p) 
 {
     WORD *word_ptr;
+#ifdef WORDS_BIGENDIAN
     BYTE bytes[2];
-    if (ByteOrder == -1) {
-        SetFlip();
-    }
-
-    if (ByteOrder == 0) {
-        word_ptr = (WORD*)p;
-        return *word_ptr;
-    } else {
-        bytes[0] = p[1];
-        bytes[1] = p[0];
-        word_ptr = (WORD*)&(bytes[0]);
-        return *word_ptr;
-    }
+    bytes[0] = p[1];
+    bytes[1] = p[0];
+    word_ptr = (WORD*)&(bytes[0]);
+#else
+    word_ptr = (WORD*)p;
+#endif
+    return *word_ptr;
 }
 
 DWORD SwapDWord(BYTE *p)
 {
     DWORD *dword_ptr;
+#ifdef WORDS_BIGENDIAN
     BYTE bytes[4];
-    if (ByteOrder == -1) {
-        SetFlip();
-    }
-
-    if (ByteOrder == 0) {
-        dword_ptr = (DWORD*)p;
-        return *dword_ptr;
-    } else {
-        bytes[0] = p[3];
-        bytes[1] = p[2];
-        bytes[2] = p[1];
-        bytes[3] = p[0];
-        dword_ptr = (DWORD*)&(bytes[0]);
-        return *dword_ptr;
-    }
+    bytes[0] = p[3];
+    bytes[1] = p[2];
+    bytes[2] = p[1];
+    bytes[3] = p[0];
+    dword_ptr = (DWORD*)&(bytes[0]);
+#else
+    dword_ptr = (DWORD*)p;
+#endif
+    return *dword_ptr;
 }
 
 DDWORD SwapDDWord(BYTE *p)
 {
     DDWORD *ddword_ptr;
+#ifdef WORDS_BIGENDIAN
     BYTE bytes[8];
-    if (ByteOrder == -1) {
-        SetFlip();
-    }
-
-    if (ByteOrder == 0) {
-        ddword_ptr = (DDWORD*)p;
-        return *ddword_ptr;
-    } else {
-        bytes[0] = p[7];
-        bytes[1] = p[6];
-        bytes[2] = p[5];
-        bytes[3] = p[4];
-        bytes[4] = p[3];
-        bytes[5] = p[2];
-        bytes[6] = p[1];
-        bytes[7] = p[0];
-        ddword_ptr = (DDWORD*)&(bytes[0]);
-        return *ddword_ptr;
-    }
+    bytes[0] = p[7];
+    bytes[1] = p[6];
+    bytes[2] = p[5];
+    bytes[3] = p[4];
+    bytes[4] = p[3];
+    bytes[5] = p[2];
+    bytes[6] = p[1];
+    bytes[7] = p[0];
+    ddword_ptr = (DDWORD*)&(bytes[0]);
+#else
+    ddword_ptr = (DDWORD*)p;
+#endif
+    return *ddword_ptr;
 }
 
 /* convert 16-bit unicode to UTF8 unicode */
@@ -172,36 +156,6 @@ char* to_utf8(int len, char* buf)
     return utf8;
 }
 
-
-void SetFlip(void) {
-#ifdef WORDS_BIGENDIAN
-    ByteOrder = 1;
-#else
-    ByteOrder = 0;
-#endif
-/*
-    DWORD x = 0x04030201;
-    int i;
-    BYTE *p;
-
-    p = (BYTE*)&x;
-    for(i=0;i<sizeof(DWORD); i++) {
-        if (listonly == 0) 
-	    printf("%02x ", *(p+i));
-    }
-    if (listonly == 0) 
-        printf(":");
-    if (*p == 1) {
-        if (listonly == 0) 
-            printf("Detected Little-Endian architecture\n");
-        ByteOrder = 0;
-    } else {
-        if (listonly == 0)
-            printf("Detected Big-Endian architecture\n");
-        ByteOrder = 1;
-    }
-    */
-}
 
 // -----------------------------------------------------------------------------
 int TNEFDefaultHandler STD_ARGLIST {
