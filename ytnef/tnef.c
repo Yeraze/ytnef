@@ -5,6 +5,7 @@
 #include "mapi.h"
 #include "mapidefs.h"
 #include "mapitags.h"
+#include "config.h"
 
 #define MIN(x,y) (((x)<(y))?(x):(y))
 void TNEFFillMapi(BYTE *data, DWORD size, MAPIProps *p);
@@ -173,6 +174,12 @@ char* to_utf8(int len, char* buf)
 
 
 void SetFlip(void) {
+#ifdef WORDS_BIGENDIAN
+    ByteOrder = 1;
+#else
+    ByteOrder = 0;
+#endif
+/*
     DWORD x = 0x04030201;
     int i;
     BYTE *p;
@@ -193,6 +200,7 @@ void SetFlip(void) {
             printf("Detected Big-Endian architecture\n");
         ByteOrder = 1;
     }
+    */
 }
 
 // -----------------------------------------------------------------------------
