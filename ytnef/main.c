@@ -9,6 +9,7 @@
 TNEFStruct TNEF;
 int verbose = 0;
 int savefiles = 0;
+int saveRTF = 0;
 char *filepath = NULL;
 
 void PrintTNEF(TNEFStruct TNEF);
@@ -17,18 +18,26 @@ void SaveVCard(TNEFStruct TNEF);
 
 
 void PrintHelp(void) {
-    printf("Yerase TNEF Exporter v1.04\n");
+    printf("Yerase TNEF Exporter v1.05-CVS\n");
     printf("\n");
     printf("  usage: ytnef [-+vhf] <filenames>\n");
     printf("\n");
     printf("   -/+v - Enables/Disables verbose printing of MAPI Properties\n");
     printf("   -/+f - Enables/Disables saving of attachments\n");
+    printf("   -/+F - Enables/Disables saving of inline message text as\n");
+    printf("          compressed RTF (not very *nix-friendly\n");
+    printf("           (requires -f option)\n");
+    printf("   -h   - Displays this help message\n");
     printf("\n");
     printf("Example:\n");
     printf("  ytnef -v winmail.dat\n");
     printf("     Parse with verbose output, don't save\n");
     printf("  ytnef -f . winmail.dat\n");
     printf("     Parse and save all attachments to local directory (.)\n");
+    printf("  ytnef -F -f . winmail.dat\n");
+    printf("     Parse and save all attachments to local directory (.)\n");
+    printf("     Including saving the message text to a RTF file.\n");
+
 }
 
 
@@ -56,6 +65,8 @@ int main(int argc, char ** argv) {
                           filepath = argv[i+1];
                           i++;
                           break;
+                case 'F': saveRTF = 1;
+                          break;
                 default: 
                           printf("Unknown option '%s'\n", argv[i]);
             }
@@ -68,6 +79,8 @@ int main(int argc, char ** argv) {
                           break;
                 case 'f': savefiles = 0;
                           filepath = NULL;
+                          break;
+                case 'F': saveRTF = 0;
                           break;
                 default: 
                           printf("Unknown option '%s'\n", argv[i]);
@@ -172,7 +185,7 @@ void PrintTNEF(TNEFStruct TNEF) {
         printf("    MAPI Properties: %i\n", TNEF.MapiProperties.count);
         if ((filename = MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_BINARY,PR_RTF_COMPRESSED))) == (variableLength*)-1) {
 
-        } else if (savefiles == 1) {
+        } else if ((savefiles == 1) && (saveRTF == 1)) {
             if (filepath == NULL) {
                 sprintf(ifilename, "message.rtf");
             } else {

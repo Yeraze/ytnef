@@ -140,6 +140,36 @@ DDWORD SwapDDWord(BYTE *p)
     }
 }
 
+/* convert 16-bit unicode to UTF8 unicode */
+static char*
+to_utf8(int len, char* buf)
+{
+    int i, j = 0;
+    /* worst case length */
+    char *utf8 = malloc(3 * len/2 + 1);
+
+    for (i=0; i<len-1; i+=2) {
+	unsigned int c = SwapWord(buf+i);
+	if (c <= 0x007f) {
+	    utf8[j++] = 0x00 | ((c & 0x007f) >> 0);
+	}
+	else if (c < 0x07ff) {
+	    utf8[j++] = 0xc0 | ((c & 0x07c0) >> 6);
+	    utf8[j++] = 0x80 | ((c & 0x003f) >> 0);
+	}
+	else {
+	    utf8[j++] = 0xe0 | ((c & 0xf000) >> 12);
+	    utf8[j++] = 0x80 | ((c & 0x0fc0) >> 6);
+	    utf8[j++] = 0x80 | ((c & 0x003f) >> 0);
+	}
+    }
+
+    /* just in case the original was not null terminated */
+    utf8[j++] = '\0';
+
+    return utf8;
+}
+
 
 void SetFlip(void) {
     DWORD x = 0x04030201;
@@ -395,8 +425,13 @@ void TNEFFillMapi(BYTE *data, DWORD size, MAPIProps *p) {
                 d+=4;
 
                 // now actual object
-                vl->data = calloc(vl->size, sizeof(BYTE));
-                memcpy(vl->data, d, vl->size);
+ 		if (PROP_TYPE(mp->id) == PT_UNICODE) {
+ 		    vl->data = to_utf8(vl->size, d);
+ 		}
+ 		else {
+ 		    vl->data = calloc(vl->size, sizeof(BYTE));
+ 		    memcpy(vl->data, d, vl->size);
+ 		}
 
                 // Make sure to read in a multiple of 4
                 num = vl->size;
