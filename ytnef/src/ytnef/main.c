@@ -157,14 +157,22 @@ void ProcessTNEF(TNEFStruct TNEF) {
                 int size;
                 variableLength buf;
                 if ((buf.data = DecompressRTF(filename, &(buf.size))) != NULL) {
-                    if (filepath == NULL) {
-                        sprintf(ifilename, "%s.rtf", TNEF.subject.data);
-                    } else {
-                        sprintf(ifilename, "%s/%s.rtf", filepath, TNEF.subject.data);
-                    }
-                    for(i=0; i<strlen(ifilename); i++) 
-                        if (ifilename[i] == ' ') 
+		    sprintf(ifilename, "%s.rtf", TNEF.subject.data);
+                    for(i=0; i<strlen(ifilename); i++) {
+		       switch (ifilename[i]) { 
+			   case '\\': 
+			   case '/': 
+			   case ' ':
+			   case ',':
                             ifilename[i] = '_';
+			    break;
+		       }
+		    }
+                    if (filepath != NULL) {
+			char tmp[256];
+                        sprintf(tmp, "%s/%s", filepath, ifilename);
+			strcpy (ifilename,tmp);
+                    }
 
                     printf("%s\n", ifilename);
                     if ((fptr = fopen(ifilename, "wb"))==NULL) {
