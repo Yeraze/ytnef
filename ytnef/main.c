@@ -226,7 +226,6 @@ void PrintTNEF(TNEFStruct TNEF) {
                 fwrite(filename->data, sizeof(BYTE), filename->size, fptr);
                 fclose(fptr);
             }
-
         }
         if (verbose == 1) {
             MAPIPrint(&TNEF.MapiProperties);
@@ -480,7 +479,7 @@ void SaveVCalendar(TNEFStruct TNEF) {
                     }
                     while (*charptr == ' ') 
                         charptr++;
-                    fprintf(fptr, "ATTENDEE;CN=%s;ROLE=REQ-PARTICIPANT:\n", charptr);
+                    fprintf(fptr, "ATTENDEE;CN=%s;ROLE=REQ-PARTICIPANT:%s\n", charptr, charptr);
                     charptr = charptr2;
                 }
             }
@@ -498,7 +497,7 @@ void SaveVCalendar(TNEFStruct TNEF) {
                         }
                         while (*charptr == ' ') 
                             charptr++;
-                        fprintf(fptr, "ATTENDEE;CN=%s;ROLE=OPT-PARTICIPANT:\n", charptr);
+                        fprintf(fptr, "ATTENDEE;CN=%s;ROLE=OPT-PARTICIPANT:%s\n", charptr, charptr);
                         charptr = charptr2;
                     }
                 }
@@ -515,7 +514,7 @@ void SaveVCalendar(TNEFStruct TNEF) {
                     }
                     while (*charptr == ' ') 
                         charptr++;
-                    fprintf(fptr, "ATTENDEE;CN=%s;ROLE=REQ-PARTICIPANT:\n", charptr);
+                    fprintf(fptr, "ATTENDEE;CN=%s;ROLE=REQ-PARTICIPANT:%s\n", charptr, charptr);
                     charptr = charptr2;
                 }
             }

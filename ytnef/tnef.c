@@ -143,8 +143,7 @@ DDWORD SwapDDWord(BYTE *p)
 }
 
 /* convert 16-bit unicode to UTF8 unicode */
-static char*
-to_utf8(int len, char* buf)
+char* to_utf8(int len, char* buf)
 {
     int i, j = 0;
     /* worst case length */
