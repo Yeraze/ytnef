@@ -20,5 +20,8 @@ AC_C_BIGENDIAN
 AC_FUNC_MALLOC
 AC_CHECK_FUNCS([memset strstr])
 
-AC_CONFIG_FILES([Makefile src/Makefile src/ytnef/Makefile])
+AC_CONFIG_FILES([Makefile 
+                 src/Makefile 
+                 src/ytnef/Makefile
+                 src/ytnefprint/Makefile])
 AC_OUTPUT
