@@ -63,8 +63,14 @@ void PrintRTF(FILE *fptr, variableLength *VL) {
     brace_ct = 0;
 
     for(index = 0, byte=VL->data; index < VL->size; index++, byte++) {
+        if (*byte == '}') {
+            brace_ct--;
+            key = 0;
+            continue;
+        }
         if (*byte == '{') {
             brace_ct++;
+            continue;
         }
         if (*byte == '\\') {
             key = 1;
@@ -86,10 +92,6 @@ void PrintRTF(FILE *fptr, variableLength *VL) {
             } else { 
                 fprintf(fptr, "%c", *byte );
             } 
-        }
-        if (*byte == '}') {
-            brace_ct--;
-            key = 0;
         }
     }
     fprintf(fptr, "\n");
