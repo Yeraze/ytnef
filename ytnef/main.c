@@ -223,7 +223,7 @@ void PrintTNEF(TNEFStruct TNEF) {
             if ((fptr = fopen(ifilename, "wb"))==NULL) {
                 printf("Error writing file to disk!");
             } else {
-                fwrite(filename->data, sizeof(BYTE), filename->size, fptr);
+                fwrite(filename->data+8, sizeof(BYTE), filename->size+8, fptr);
                 fclose(fptr);
             }
         }
@@ -313,6 +313,9 @@ void PrintTNEF(TNEFStruct TNEF) {
                 } else {
                     sprintf(ifilename, "%s/%s", filepath, filename->data);
                 }
+                for(i=0; i<strlen(ifilename); i++) 
+                    if (ifilename[i] == ' ') 
+                        ifilename[i] = '_';
                 if ((listonly == 1) && (filenameonly == 0)) 
                     printf("%s\n", ifilename);
                 if ((fptr = fopen(ifilename, "wb"))==NULL) {
@@ -620,7 +623,7 @@ void SaveVCard(TNEFStruct TNEF) {
     variableLength *vl;
     variableLength *pobox, *street, *city, *state, *zip, *country;
     dtr thedate;
-    int boolean,index;
+    int boolean,index,i;
 
     if (listonly == 0) 
         printf("-> Creating a vCard attachment: ");
@@ -629,6 +632,7 @@ void SaveVCard(TNEFStruct TNEF) {
             printf("\n-> Contact has no name. Aborting\n");
         return;
     }
+    
     if ((listonly == 1) && (filenameonly == 1)) 
         printf("%s.vcard\n", vl->data);
     if (filepath == NULL) {
@@ -636,6 +640,9 @@ void SaveVCard(TNEFStruct TNEF) {
     } else {
         sprintf(ifilename, "%s/%s.vcard", filepath, vl->data);
     }
+    for(i=0; i<strlen(ifilename); i++) 
+        if (ifilename[i] == ' ') 
+            ifilename[i] = '_';
     if ((listonly == 1) && (filenameonly == 0)) 
         printf("%s.vcard\n", vl->data);
     if (listonly == 0) 
@@ -902,7 +909,7 @@ void SaveVCard(TNEFStruct TNEF) {
 void SaveVTask(TNEFStruct TNEF) {
     variableLength *vl;
     variableLength *filename;
-    int index;
+    int index,i;
     char ifilename[256];
     char *charptr, *charptr2;
     dtr thedate;
@@ -920,6 +927,9 @@ void SaveVTask(TNEFStruct TNEF) {
     if (listonly == 0) 
         printf("-> Creating a vCalendar Task attachment: ");
 
+    index = strlen(vl->data);
+    while (vl->data[index] == ' ') 
+            vl->data[index--] = 0;
     if ((listonly == 1) && (filenameonly == 1)) 
         printf("%s.vcf\n", vl->data);
 
@@ -928,6 +938,9 @@ void SaveVTask(TNEFStruct TNEF) {
     } else {
         sprintf(ifilename, "%s/%s.vcf", filepath, vl->data);
     }
+    for(i=0; i<strlen(ifilename); i++) 
+        if (ifilename[i] == ' ') 
+            ifilename[i] = '_';
     if ((listonly == 1) && (filenameonly == 0)) 
         printf("%s.vcf\n", vl->data);
     if (listonly == 0) 

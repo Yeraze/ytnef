@@ -1,3 +1,6 @@
+v1.15
+Made a change to fill spaces in filenames with underscores.
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 v1.14
 Made a change to save vCard entries with a .vcard extension instead of a .vcf
 extension.  This way I can detect it in ytnefprocess.pl and mark it as a type
