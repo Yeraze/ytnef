@@ -1127,7 +1127,7 @@ int MAPISysTimetoDTR(BYTE *data, dtr *thedate)
     // So now calculate the Month, & Day of month
     if ((thedate->wYear % 4) == 0) {
         // 29 days in february in a leap year
-        months[2] = 29;
+        months[1] = 29;
     }
 
     tmp_date = (int)ddword_tmp;
