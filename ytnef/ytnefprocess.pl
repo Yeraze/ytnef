@@ -61,16 +61,13 @@ sub processParts {
                 closedir DIR;
 
                 for my $file ( @files ) {
-                    #$ent = MIME::Entity->build( Path => $file,
-                    #        Type => "application/binary",
-                    #        Disposition => "attachment",
-                    #        Encoding => "base64",
-                    #        Top => 0);
-                    #$entity->add_part($ent,-1);
-                    $entity->attach( Path => $file,
-                            Type => "application/binary",
+                    my $mimetype = application/binary";
+                    $mimetype = "text/calendar" if ($file =~ m/\.vcf$/);
+                    $entity->attach(
+                            Path => $file,
+                            Type => $mimetype,
                             Disposition => "attachment",
-                            Encoding => "base64",
+                            Encoding => "-SUGGEST",
                             Top => 0);
                 }
             }
