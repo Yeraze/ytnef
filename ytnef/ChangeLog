@@ -1,3 +1,6 @@
+v2.5
+Implemented Recurrence support, using patches & information from Viraj Alankar
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 v2.4
 Rearranged the ATTENDEE field adding the RSVP & PARTSTAT entries.
 Removed the opening & trailing curly braces from the description.
