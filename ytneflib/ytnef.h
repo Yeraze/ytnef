@@ -29,6 +29,7 @@ DWORD SwapDWord(BYTE *p);
 DDWORD SwapDDWord(BYTE *p);
 variableLength *MAPIFindUserProp(MAPIProps *p, unsigned int ID);
 variableLength *MAPIFindProperty(MAPIProps *p, unsigned int ID);
+unsigned char * DecompressRTF(variableLength *p, int *size);
 
 /* ------------------------------------- */ 
 /* TNEF Down-level Attributes/Properties */
