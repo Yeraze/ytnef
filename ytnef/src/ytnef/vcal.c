@@ -71,7 +71,7 @@ void SaveVCalendar(TNEFStruct TNEF) {
                 charptr2 = charptr;
             else
                 charptr2++;
-            fprintf(fptr, "ORGANIZER:CN=\"%s\":MAILTO:%s\n", charptr2, charptr2);
+            fprintf(fptr, "ORGANIZER;CN=\"%s\":MAILTO:%s\n", charptr2, charptr2);
         }
 
         // Required Attendees
