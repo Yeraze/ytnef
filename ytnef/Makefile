@@ -3,8 +3,8 @@
 ## SUN CC Compiler
 #CC = g++
 ## Linux CC Compiler
-CC = gcc
-LINK = gcc
+CC = cc
+LINK = cc
 
 DEBUG = -g
 CFLAGS = $(DEBUG) $(DEFINES)

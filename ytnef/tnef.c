@@ -816,6 +816,7 @@ int TNEFParseFile(char *filename, TNEFStruct *TNEF) {
                 free(data);
                 return -1;
             }
+	    checksum = SwapWord((BYTE*)&checksum);
             if (checksum != header_checksum) {
                 printf("CHECKSUM ERROR:\n");
                 fclose(fptr);
