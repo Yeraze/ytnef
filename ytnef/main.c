@@ -91,7 +91,7 @@ int main(int argc, char ** argv) {
 
 void PrintTNEF(TNEFStruct TNEF) {
     int index,i;
-    int j;
+    int j, object;
     int count;
     FILE *fptr;
     char ifilename[256];
@@ -102,6 +102,7 @@ void PrintTNEF(TNEFStruct TNEF) {
     variableLength *filename;
     Attachment *p;
     dtr thedate;
+    TNEFStruct emb_tnef;
 
     printf("---> In %s format\n", TNEF.version);
     if (TNEF.from.size > 0) 
@@ -400,13 +401,33 @@ void PrintTNEF(TNEFStruct TNEF) {
                 if ((fptr = fopen(ifilename, "wb"))==NULL) {
                         printf("Error writing file to disk!");
                 } else {
+                    object = 1;           
                     if((filename = MAPIFindProperty(&(p->MAPI), PROP_TAG(PT_OBJECT, PR_ATTACH_DATA_OBJ))) == (variableLength*)-1) {
                         if((filename = MAPIFindProperty(&(p->MAPI), PROP_TAG(PT_BINARY, PR_ATTACH_DATA_OBJ))) == (variableLength*)-1) {
                             filename = &(p->FileData);
+                            object = 0;
                         }
                     }
-                    fwrite(filename->data, sizeof(BYTE), filename->size, fptr);
+                    if (object == 1) {
+                        fwrite(filename->data + 16, sizeof(BYTE), filename->size - 16, fptr);
+                    } else {
+                        fwrite(filename->data, sizeof(BYTE), filename->size, fptr);
+                    }
                     fclose(fptr);
+                    if (object == 1) {
+                        printf("Attempting to parse embedded TNEF stream\n");
+                        TNEFInitialize(&emb_tnef);
+                        if (TNEFParseFile(ifilename, &emb_tnef) == -1) {
+                            printf(">>> ERROR processing file\n");
+                        } else {
+                            
+                            printf("---> File %s\n", ifilename );
+
+                            PrintTNEF(emb_tnef);
+                        }
+                        TNEFFree(&emb_tnef);
+                    }
+
                 }
             }
         }
