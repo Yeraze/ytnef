@@ -31,7 +31,6 @@ rm -rf $RPM_BUILD_ROOT
 %doc AUTHORS COPYING README 
 /usr/bin/ytnef
 /usr/bin/ytnefprint
-/usr/bin/ytnefprocess.pl
 
 %changelog
 * Fri Mar 12 2004 Patrick <rpms@puzzled.xs4all.nl>
