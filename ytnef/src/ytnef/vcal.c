@@ -137,6 +137,22 @@ void SaveVCalendar(TNEFStruct TNEF) {
             Cstylefprint(fptr, filename);
             fprintf(fptr, "\n");
         }
+
+        // Description
+        if ((filename=MAPIFindProperty(&(TNEF.MapiProperties),
+                                PROP_TAG(PT_BINARY, PR_RTF_COMPRESSED)))
+                != MAPI_UNDEFINED) {
+            int size;
+            variableLength buf;
+            if ((buf.data = DecompressRTF(filename, &(buf.size))) != NULL) {
+                fprintf(fptr, "DESCRIPTION:");
+                Cstylefprint(fptr, &buf);
+                fprintf(fptr, "\n");
+                free(buf.data);
+            }
+            
+        } 
+
         // Location
         filename = NULL;
         if ((filename=MAPIFindUserProp(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, 0x0002))) == MAPI_UNDEFINED) {

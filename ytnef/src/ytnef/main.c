@@ -148,23 +148,6 @@ void ProcessTNEF(TNEFStruct TNEF) {
             }
         }
     }
-    if ((saveRTF == 1) && (filedata=MAPIFindProperty(&(TNEF.MapiProperties),
-                            PROP_TAG(PT_BINARY, PR_RTF_COMPRESSED)))
-            != MAPI_UNDEFINED) {
-        int size;
-        char *buf;
-        if ((buf = DecompressRTF(filedata, &size)) != NULL) {
-            printf("%i bytes\n", size);
-            for (i=0; i< size; i++) {
-                printf("%c", buf[i]);
-            }
-            printf("\n");
-            free(buf);
-        } else {
-            printf("Error");
-        }
-        
-    } 
 
 // Now process each attachment
     p = TNEF.starting_attach.next;
@@ -281,8 +264,6 @@ unsigned char *DecompressRTF(variableLength *p, int *size) {
     comp_Prebuf.data = calloc(comp_Prebuf.size, 1);
     strcpy(comp_Prebuf.data, RTF_PREBUF);
 
-    printf("Found an RTF Stream: %i bytes\n", p->size);
-
     src = p->data;
     in = 0;
 
@@ -295,10 +276,6 @@ unsigned char *DecompressRTF(variableLength *p, int *size) {
     DWORD crc32 = SwapDWord(src+in);
     in += 4;
 
-    printf(" compressedSize = %i\n", compressedSize);
-    printf(" uncompressedSize = %i\n", uncompressedSize);
-    printf(" magic = %x\n", magic);
-    printf(" crc32 = %x\n", crc32);
     // check size excluding the size field itself
     if (compressedSize != p->size - 4) {
         printf(" Size Mismatch: %i != %i\n", compressedSize, p->size-4);
