@@ -1,8 +1,10 @@
-v1.03 
+v1.03 1-5-2003
 More endian fixes, now finally works on PowerPC.
 Modified the main.c to place the printing in a separate file.
 Added support for embedded TNEF streams.
 Moved the vCalendar to a separate procedure (for readability)
+Added the vCard 2.1 code, with the special X-EVOLUTION extensions
+        for the extra properties.
 -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 v1.02 12-27-2002
 More fixes for the Endian problem, additions to the file-reading routines.
