@@ -21,7 +21,7 @@ void SaveVTask(TNEFStruct TNEF);
 
 
 void PrintHelp(void) {
-    printf("Yerase TNEF Exporter v1.11\n");
+    printf("Yerase TNEF Exporter v1.12\n");
     printf("\n");
     printf("  usage: ytnef [-+vhf] <filenames>\n");
     printf("\n");
