@@ -24,11 +24,6 @@ processParts($entity);
 print STDOUT "From process.pl\n";
 $entity->print( \*STDOUT );
 
-#open (FPTR, ">/home/randall/temp.out");
-#print FPTR "From process.pl\n";
-#$entity->print( \*FPTR);
-#close (FPTR);
-
 for my $file ( @files ) {
     `rm -f $file`;
 }
