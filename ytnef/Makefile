@@ -17,7 +17,7 @@ ytnef: $(OBJS)
 	$(LINK) -o $@ $(OBJS) $(INVLIBS)
 
 
-main.o: main.c *.h
+main.o: main.c *.h vcal.c vcard.c vtask.c
 tnef.o: tnef.c *.h
 
 .c.o:

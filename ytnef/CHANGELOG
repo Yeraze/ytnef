@@ -1,5 +1,6 @@
 v1.15
 Made a change to fill spaces in filenames with underscores.
+Split the vcard/vcal/vtask code into separate files for better readability.
 -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 v1.14
 Made a change to save vCard entries with a .vcard extension instead of a .vcf
