@@ -443,11 +443,9 @@ void SaveVCalendar(TNEFStruct TNEF) {
         }
         // Date End
         filename = NULL;
-        if ((filename=MAPIFindUserProp(&(TNEF.MapiProperties), PROP_TAG(PT_SYSTIME, 0x8236))) == (variableLength*)-1) {
-            if ((filename=MAPIFindUserProp(&(TNEF.MapiProperties), PROP_TAG(PT_SYSTIME, 0x820e))) == (variableLength*)-1) {
-                if ((filename=MAPIFindUserProp(&(TNEF.MapiProperties), PROP_TAG(PT_SYSTIME, 0x8517))) == (variableLength*)-1) {
-                    filename=NULL;
-                }
+        if ((filename=MAPIFindUserProp(&(TNEF.MapiProperties), PROP_TAG(PT_SYSTIME, 0x820e))) == (variableLength*)-1) {
+            if ((filename=MAPIFindUserProp(&(TNEF.MapiProperties), PROP_TAG(PT_SYSTIME, 0x8517))) == (variableLength*)-1) {
+                filename=NULL;
             }
         }
         if (filename != NULL) {
