@@ -6,6 +6,9 @@
 #include "mapi.h"
 #include "mapidefs.h"
 
+#define VERSION "1.15"
+#define PRODID "PRODID:-//The Gauntlet//yTNEF v1.15//EN\n"
+
 TNEFStruct TNEF;
 int verbose = 0;
 int savefiles = 0;
@@ -13,7 +16,6 @@ int saveRTF = 0;
 int listonly = 0;
 int filenameonly = 0;
 char *filepath = NULL;
-
 void PrintTNEF(TNEFStruct TNEF);
 void SaveVCalendar(TNEFStruct TNEF);
 void SaveVCard(TNEFStruct TNEF);
@@ -21,7 +23,9 @@ void SaveVTask(TNEFStruct TNEF);
 
 
 void PrintHelp(void) {
-    printf("Yerase TNEF Exporter v1.13\n");
+    printf("Yerase TNEF Exporter v");
+            printf(VERSION);
+            printf("\n");
     printf("\n");
     printf("  usage: ytnef [-+vhf] <filenames>\n");
     printf("\n");
@@ -451,7 +455,7 @@ void SaveVCalendar(TNEFStruct TNEF) {
         } else {
             fprintf(fptr, "METHOD:REQUEST\n");
         }
-        fprintf(fptr, "PRODID:-//The Gauntlet//Reader v1.0//EN\n");
+        fprintf(fptr, PRODID);
         fprintf(fptr, "VERSION:2.0\n");
         fprintf(fptr, "BEGIN:VEVENT\n");
 
@@ -949,7 +953,7 @@ void SaveVTask(TNEFStruct TNEF) {
             printf("Error writing file to disk!");
     } else {
         fprintf(fptr, "BEGIN:VCALENDAR\n");
-        fprintf(fptr, "PRODID:-//The Gauntlet//Reader v1.0//EN\n");
+        fprintf(fptr, PRODID);
         fprintf(fptr, "VERSION:2.0\n");
         fprintf(fptr, "METHOD:PUBLISH\n");
         filename = NULL;
