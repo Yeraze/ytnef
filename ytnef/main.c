@@ -1013,10 +1013,8 @@ void SaveVTask(TNEFStruct TNEF) {
         filename = MAPIFindUserProp(&(TNEF.MapiProperties), \
                     PROP_TAG(PT_SYSTIME, 0x8517));
         if (filename != MAPI_UNDEFINED) {
-            printf("Found Due\n");
             fprintf(fptr, "DUE:");
             MAPISysTimetoDTR(filename->data, &thedate);
-            printf("Convertinf\n");
             fprintf(fptr,"%04i%02i%02iT%02i%02i%02iZ\n", 
                     thedate.wYear, thedate.wMonth, thedate.wDay,
                     thedate.wHour, thedate.wMinute, thedate.wSecond);
