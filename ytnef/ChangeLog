@@ -1,5 +1,6 @@
 v2.7
 Mark Paulus -- Better processing of filenames, to eliminate problem-causing characters.
+Hilmar - Update to the autoconf scripts to check for a valid ytneflib install during the configuration.
 -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 v2.6
 Minor Documentation changes.
