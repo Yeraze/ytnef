@@ -351,6 +351,8 @@ void TNEFFillMapi(BYTE *data, DWORD size, MAPIProps *p) {
     DWORD temp_dword;
     DDWORD temp_ddword;
     int count=-1;
+    int offset;
+    
     
 
     d = data;
@@ -394,7 +396,6 @@ void TNEFFillMapi(BYTE *data, DWORD size, MAPIProps *p) {
                     d+=sizeof(DWORD);
                     mp->id = PROP_TAG(PROP_TYPE(mp->id), type);
                 }
-    
                 mp->custom = 1;
             }
             
@@ -410,10 +411,7 @@ void TNEFFillMapi(BYTE *data, DWORD size, MAPIProps *p) {
         } else {
             i--;
             count++;
-            vl = &(mp->data[count]);
-            if (count == (mp->count-1)) {
-                count = -1;
-            }
+            vl = mp->data+1;
         }
 
         switch (PROP_TYPE(mp->id)) {
@@ -426,7 +424,6 @@ void TNEFFillMapi(BYTE *data, DWORD size, MAPIProps *p) {
                     vl->size = SwapDWord(d);
                     d+=4;
                 }
-
                 // now size of object
                 vl->size = SwapDWord(d);
                 d+=4;
@@ -442,6 +439,7 @@ void TNEFFillMapi(BYTE *data, DWORD size, MAPIProps *p) {
 
                 // Make sure to read in a multiple of 4
                 num = vl->size;
+                offset = ((num % 4) ? (4 - num%4) : 0);
                 d += num + ((num % 4) ? (4 - num%4) : 0);
                 break;
 
