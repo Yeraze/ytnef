@@ -20,7 +20,7 @@ void SaveVCard(TNEFStruct TNEF);
 
 
 void PrintHelp(void) {
-    printf("Yerase TNEF Exporter v1.07\n");
+    printf("Yerase TNEF Exporter v1.08\n");
     printf("\n");
     printf("  usage: ytnef [-+vhf] <filenames>\n");
     printf("\n");
