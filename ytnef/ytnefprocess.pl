@@ -62,11 +62,14 @@ sub processParts {
 
                 for my $file ( @files ) {
                     my $mimetype = "application/binary";
+                    my $disposition = "attachment";
+
                     $mimetype = "text/calendar" if ($file =~ m/\.vcf$/);
+                    $disposition = "inline"     if ($file =~ m/\.vcf$/);
                     $entity->attach(
                             Path => $file,
                             Type => $mimetype,
-                            Disposition => "attachment",
+                            Disposition => $disposition,
                             Encoding => "-SUGGEST",
                             Top => 0);
                 }
