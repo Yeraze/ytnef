@@ -10,6 +10,7 @@ TNEFStruct TNEF;
 int verbose = 0;
 int savefiles = 0;
 int saveRTF = 0;
+int saveintermediate = 0;
 char *filepath = NULL;
 void ProcessTNEF(TNEFStruct TNEF);
 void SaveVCalendar(TNEFStruct TNEF);
@@ -28,6 +29,7 @@ void PrintHelp(void) {
     printf("          Multiple -v's increase the level of output\n");
     printf("   -/+f - Enables/Disables saving of attachments\n");
     printf("   -/+F - Enables/Disables saving of the message body as RTF\n");
+    printf("   -/+a - Enables/Disables saving of intermediate files\n");
     printf("   -h   - Displays this help message\n");
     printf("\n");
     printf("Example:\n");
@@ -61,6 +63,8 @@ int main(int argc, char ** argv) {
     for(i=1; i<argc; i++) {
         if (argv[i][0] == '-') {
             switch (argv[i][1]) {
+                case 'a': saveintermediate = 1;
+                          break;
                 case 'v': verbose++;
                           break;
                 case 'h': PrintHelp();
@@ -79,6 +83,8 @@ int main(int argc, char ** argv) {
         }
         if (argv[i][0] == '+') {
             switch (argv[i][1]) {
+                case 'a': saveintermediate = 0;
+                          break;
                 case 'v': verbose--;
                           break;
                 case 'f': savefiles = 0;
@@ -187,7 +193,7 @@ void ProcessTNEF(TNEFStruct TNEF) {
                     TNEFFree(&emb_tnef);
                 }
             }
-            if (RealAttachment == 1) {
+            if ((RealAttachment == 1) || (saveintermediate == 1)) {
                 // Ok, it's not an embedded stream, so now we
                 // process it.
                 if ((filename = MAPIFindProperty(&(p->MAPI), 
