@@ -11,6 +11,7 @@ int verbose = 0;
 int savefiles = 0;
 int saveRTF = 0;
 int listonly = 0;
+int filenameonly = 0;
 char *filepath = NULL;
 
 void PrintTNEF(TNEFStruct TNEF);
@@ -19,11 +20,12 @@ void SaveVCard(TNEFStruct TNEF);
 
 
 void PrintHelp(void) {
-    printf("Yerase TNEF Exporter v1.06\n");
+    printf("Yerase TNEF Exporter v1.07\n");
     printf("\n");
     printf("  usage: ytnef [-+vhf] <filenames>\n");
     printf("\n");
     printf("   -l   - Enables List-Only mode (for tnefclean)\n");
+    printf("   -L   - Enables List-Only mode (filenames only)\n");
     printf("   -/+v - Enables/Disables verbose printing of MAPI Properties\n");
     printf("   -/+f - Enables/Disables saving of attachments\n");
     printf("   -/+F - Enables/Disables saving of inline message text as\n");
@@ -68,6 +70,9 @@ int main(int argc, char ** argv) {
                           i++;
                           break;
                 case 'l': listonly = 1;
+                          break;
+                case 'L': listonly = 1;
+                          filenameonly = 1;
                           break;
                 case 'F': saveRTF = 1;
                           break;
@@ -198,14 +203,16 @@ void PrintTNEF(TNEFStruct TNEF) {
                    PROP_TAG(PT_BINARY,PR_RTF_COMPRESSED))) == (variableLength*)-1) {
 
         } else if ((savefiles == 1) && (saveRTF == 1)) {
+            if ((listonly == 1) && (filenameonly == 1)) 
+                printf("message.rtf\n");
+
             if (filepath == NULL) {
                 sprintf(ifilename, "message.rtf");
             } else {
                 sprintf(ifilename, "%s/message.rtf", filepath);
             }
-            if (listonly == 1) 
+            if ((listonly == 1) && (filenameonly == 0)) 
                 printf("%s\n", ifilename);
-
             if ((fptr = fopen(ifilename, "wb"))==NULL) {
                 printf("Error writing file to disk!");
             } else {
@@ -293,12 +300,14 @@ void PrintTNEF(TNEFStruct TNEF) {
                 printf("    File saves as [%s]\n", filename->data);
 
             if (savefiles == 1) {
+                if ((listonly == 1) && (filenameonly == 1)) 
+                    printf("%s\n", filename->data);
                 if (filepath == NULL) {
                     sprintf(ifilename, "%s", filename->data);
                 } else {
                     sprintf(ifilename, "%s/%s", filepath, filename->data);
                 }
-                if (listonly == 1) 
+                if ((listonly == 1) && (filenameonly == 0)) 
                     printf("%s\n", ifilename);
                 if ((fptr = fopen(ifilename, "wb"))==NULL) {
                     printf("Error writing file to disk!");
@@ -351,12 +360,14 @@ void SaveVCalendar(TNEFStruct TNEF) {
 
     if (listonly == 0) 
         printf("-> Creating an icalendar attachment\n");
+    if ((listonly == 1) && (filenameonly == 1)) 
+        printf("calendar.vcf\n");
     if (filepath == NULL) {
         sprintf(ifilename, "calendar.vcf");
     } else {
         sprintf(ifilename, "%s/calendar.vcf", filepath);
     }
-    if (listonly == 1) 
+    if ((listonly == 1) && (filenameonly == 0)) 
         printf("%s\n", ifilename);
 
     if ((fptr = fopen(ifilename, "wb"))==NULL) {
@@ -530,12 +541,17 @@ void SaveVCard(TNEFStruct TNEF) {
             printf("\n-> Contact has no name. Aborting\n");
         return;
     }
+    if ((listonly == 1) && (filenameonly == 1)) 
+        printf("%s.vcf\n", vl->data);
     if (filepath == NULL) {
         sprintf(ifilename, "%s.vcf", vl->data);
     } else {
         sprintf(ifilename, "%s/%s.vcf", filepath, vl->data);
     }
-    printf("%s\n", ifilename);
+    if ((listonly == 1) && (filenameonly == 0)) 
+        printf("%s.vcf\n", vl->data);
+    if (listonly == 0) 
+        printf("%s\n", ifilename);
     if ((fptr = fopen(ifilename, "wb"))==NULL) {
             printf("Error writing file to disk!");
     } else {
