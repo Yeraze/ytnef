@@ -3,7 +3,6 @@ UD:8208,0002 - Location
 UD:8234 - String for Time Zone
 UD:8235,820d,8516,8502 - Start time, in GMT
 UD:820e,8517 - End time, in GMT
-UD:8236 - End date of a recurrance
 
 UD:8560 - Time zone, encoded as time
 UD:8238 - list of attendees, separated by semicolons
@@ -12,10 +11,15 @@ UD:823c - Optional attendees
 UD:0024 - IPM.Appointment, indicates a calendar entry
 UD:8506 - boolean, if true then private
 
-UD:8202 - DAte the original appointment was scheduled?
+UD:8503 - Reminder, boolean
+UD:8202 - Date the original appointment was scheduled?
+
 UD:8223 - Recurring, boolean
 UD:8232 - Repetition, as  a string
 UD:8231 - Recurrence Pattern
-UD:8503 - Reminder, boolean
+        2 - weekly?
+UD:8236 - End date of a recurrance
+UD:000d - maybe recurrence?
+        - set to 52 on a weekly recurrence
 
 
