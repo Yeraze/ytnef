@@ -252,7 +252,6 @@ void ProcessTNEF(TNEFStruct TNEF) {
                         filename = &(p->Title);
                     }
                 }
-                printf("Size = %i\n", filename->size);
                 if (filename->size == 1) {
                     filename = (variableLength*)malloc(sizeof(variableLength));
                     filename->size = 20;
