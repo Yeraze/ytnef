@@ -2,6 +2,8 @@
 #define _TNEF_PROCS_H_
 
 #include "tnef-types.h"
+#include "mapi.h"
+#include "mapidefs.h"
 #define STD_ARGLIST (TNEFStruct *TNEF, int id, unsigned char *data, int size)
 DWORD SwapDWord(BYTE *p);
 WORD SwapWord(BYTE *p);
