@@ -2,6 +2,8 @@
 #define _TNEF_PROCS_H_
 
 #include "tnef-types.h"
+#include "mapi.h"
+#include "mapidefs.h"
 #define STD_ARGLIST (TNEFStruct *TNEF, int id, unsigned char *data, int size)
 DWORD SwapDWord(BYTE *p);
 WORD SwapWord(BYTE *p);
@@ -13,7 +15,10 @@ void TNEFInitialize(TNEFStruct *TNEF);
 void TNEFFree(TNEFStruct *TNEF);
 void TNEFFreeAttachment(Attachment *p);
 void TNEFFreeMapiProps(MAPIProps *p);
+int TNEFCheckForSignature(DWORD sig);
+int TNEFParseMemory(BYTE *memory, long size, TNEFStruct *TNEF);
 int TNEFParseFile(char *filename, TNEFStruct *TNEF);
+int TNEFParse(TNEFStruct *TNEF);
 variableLength *MAPIFindUserProp(MAPIProps *p, unsigned int ID);
 variableLength *MAPIFindProperty(MAPIProps *p, unsigned int ID);
 int MAPISysTimetoDTR(BYTE *data, dtr *thedate);

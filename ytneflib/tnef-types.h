@@ -66,6 +66,29 @@ typedef struct Attachment
     variableLength IconData;
 } Attachment;
 
+typedef struct _TNEFIOStruct
+{
+    int (*InitProc) (struct _TNEFIOStruct *IO);
+    int (*ReadProc) (struct _TNEFIOStruct *IO, int size, int count, void *dest);
+    int (*CloseProc) (struct _TNEFIOStruct *IO);
+    void *data;
+} TNEFIOStruct;
+
+typedef struct 
+{
+    char *filename;
+    FILE *fptr;
+    int Debug;
+} TNEFFileInfo;
+
+typedef struct 
+{
+    BYTE *dataStart;
+    BYTE *ptr;
+    long size;
+    int Debug;
+} TNEFMemInfo;
+
 typedef struct 
 {
     char version[10];
@@ -92,6 +115,8 @@ typedef struct
     dtr DateEnd;
     variableLength AidOwner;
     int RequestRes;
+    int Debug;
+    TNEFIOStruct IO;
 } TNEFStruct;
 
 #endif
