@@ -591,7 +591,7 @@ void SaveVCalendar(TNEFStruct TNEF) {
         // Date Stamp
         filename = NULL;
         if ((filename=MAPIFindUserProp(&(TNEF.MapiProperties), PROP_TAG(PT_SYSTIME, 0x8202))) != (variableLength*)-1) {
-            fprintf(fptr, "DCREATED:");
+            fprintf(fptr, "CREATED:");
             MAPISysTimetoDTR(filename->data, &thedate);
             fprintf(fptr,"%04i%02i%02iT%02i%02i%02iZ\n", 
                     thedate.wYear, thedate.wMonth, thedate.wDay,
