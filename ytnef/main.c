@@ -855,4 +855,77 @@ void SaveVCard(TNEFStruct TNEF) {
 }
 
 void SaveVTask(TNEFStruct TNEF) {
+    variableLength *vl;
+    variableLength *filename;
+    int index;
+    char ifilename[256];
+    dtr thedate;
+    FILE *fptr;
+    
+    vl = MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, PR_CONVERSATION_TOPIC));
+    if (vl == (variableLength*)-1) {
+        return;
+    }
+    if (listonly == 0) 
+        printf("-> Creating a vCalendar Task attachment: ");
+
+    if ((listonly == 1) && (filenameonly == 1)) 
+        printf("%s.vcf\n", vl->data);
+
+    if (filepath == NULL) {
+        sprintf(ifilename, "%s.vcf", vl->data);
+    } else {
+        sprintf(ifilename, "%s/%s.vcf", filepath, vl->data);
+    }
+    if ((listonly == 1) && (filenameonly == 0)) 
+        printf("%s.vcf\n", vl->data);
+    if (listonly == 0) 
+        printf("%s\n", ifilename);
+    if ((fptr = fopen(ifilename, "wb"))==NULL) {
+            printf("Error writing file to disk!");
+    } else {
+        fprintf(fptr, "BEGIN:VCALENDAR\n");
+        fprintf(fptr, "PRODID:-//The Gauntlet//Reader v1.0//EN\n");
+        fprintf(fptr, "VERSION:2.0\n");
+        fprintf(fptr, "METHOD:PUBLISH\n");
+        filename = NULL;
+
+        fprintf(fptr, "BEGIN:VTODO\n");
+
+        if (TNEF.subject.size > 0) {
+            fprintf(fptr,"SUMMARY;QUOTED-PRINTABLE:");
+            quotedfprint(fptr,&(TNEF.subject));
+            fprintf(fptr,"\n");
+        }
+
+        if (TNEF.body.size > 0) {
+            fprintf(fptr,"DESCRIPTION;QUOTED-PRINTABLE:");
+            quotedfprint(fptr,&(TNEF.body));
+            fprintf(fptr,"\n");
+        }
+
+        filename = MAPIFindProperty(&(TNEF.MapiProperties), \
+                    PROP_TAG(PT_SYSTIME, PR_CREATION_TIME));
+        if (filename != NULL) {
+            fprintf(fptr, "DTSTAMP:");
+            MAPISysTimetoDTR(filename->data, &thedate);
+            fprintf(fptr,"%04i%02i%02iT%02i%02i%02iZ\n", 
+                    thedate.wYear, thedate.wMonth, thedate.wDay,
+                    thedate.wHour, thedate.wMinute, thedate.wSecond);
+        }
+
+        filename = MAPIFindProperty(&(TNEF.MapiProperties), \
+                    PROP_TAG(PT_SYSTIME, PR_LAST_MODIFICATION_TIME));
+        if (filename != NULL) {
+            fprintf(fptr, "LAST-MODIFIED:");
+            MAPISysTimetoDTR(filename->data, &thedate);
+            fprintf(fptr,"%04i%02i%02iT%02i%02i%02iZ\n", 
+                    thedate.wYear, thedate.wMonth, thedate.wDay,
+                    thedate.wHour, thedate.wMinute, thedate.wSecond);
+        }
+        fprintf(fptr, "END:VTODO\n");
+        fprintf(fptr, "END:VCALENDAR\n");
+        fclose(fptr);
+    }
+
 }
