@@ -1,5 +1,6 @@
 v2.4
 Rearranged the ATTENDEE field adding the RSVP & PARTSTAT entries.
+Removed the opening & trailing curly braces from the description.
 Made the UID uppercase.
 Added both CN & MAILTO to ORGANIZER field.
 -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
