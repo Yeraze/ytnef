@@ -1,7 +1,7 @@
 UD:8554 - Version (9.0, 10.0)
 UD:8208,0002 - Location
 UD:8234 - String for Time Zone
-UD:8235,820d,8516,8502 - Start time, in GMT
+UD:820d,8516 - Start time, in GMT
 UD:820e,8517 - End time, in GMT
 
 UD:8560 - Time zone, encoded as time
@@ -14,6 +14,8 @@ UD:8506 - boolean, if true then private
 UD:8503 - Reminder, boolean
 UD:8202 - Date the original appointment was scheduled?
 
+UD:8235,8502 - Something like start time, but not quite. Possibly related to
+recurring.
 UD:8223 - Recurring, boolean
 UD:8232 - Repetition, as  a string
 UD:8231 - Recurrence Pattern

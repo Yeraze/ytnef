@@ -1,3 +1,7 @@
+v1.12
+Fixed a problem with recurring calendar entries, occasionally have incorrect
+start dates.
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 v1.11
 Fixed a problem with vCalendar entries using C-Style strings instead of
 quoted-printable strings.

@@ -21,7 +21,7 @@ void SaveVTask(TNEFStruct TNEF);
 
 
 void PrintHelp(void) {
-    printf("Yerase TNEF Exporter v1.10\n");
+    printf("Yerase TNEF Exporter v1.11\n");
     printf("\n");
     printf("  usage: ytnef [-+vhf] <filenames>\n");
     printf("\n");
@@ -558,13 +558,9 @@ void SaveVCalendar(TNEFStruct TNEF) {
         }
         // Date Start
         filename = NULL;
-        if ((filename=MAPIFindUserProp(&(TNEF.MapiProperties), PROP_TAG(PT_SYSTIME, 0x8235))) == (variableLength*)-1) {
-            if ((filename=MAPIFindUserProp(&(TNEF.MapiProperties), PROP_TAG(PT_SYSTIME, 0x820d))) == (variableLength*)-1) {
-                if ((filename=MAPIFindUserProp(&(TNEF.MapiProperties), PROP_TAG(PT_SYSTIME, 0x8516))) == (variableLength*)-1) {
-                    if ((filename=MAPIFindUserProp(&(TNEF.MapiProperties), PROP_TAG(PT_SYSTIME, 0x8502))) == (variableLength*)-1) {
-                        filename=NULL;
-                    }
-                }
+        if ((filename=MAPIFindUserProp(&(TNEF.MapiProperties), PROP_TAG(PT_SYSTIME, 0x820d))) == (variableLength*)-1) {
+            if ((filename=MAPIFindUserProp(&(TNEF.MapiProperties), PROP_TAG(PT_SYSTIME, 0x8516))) == (variableLength*)-1) {
+                filename=NULL;
             }
         }
         if (filename != NULL) {
