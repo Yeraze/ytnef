@@ -13,7 +13,6 @@ int saveRTF = 0;
 int listonly = 0;
 int filenameonly = 0;
 char *filepath = NULL;
-void PrintTNEF(TNEFStruct TNEF);
 void ProcessTNEF(TNEFStruct TNEF);
 void SaveVCalendar(TNEFStruct TNEF);
 void SaveVCard(TNEFStruct TNEF);
@@ -105,11 +104,7 @@ int main(int argc, char ** argv) {
             printf("ERROR processing file\n");
             continue;
         }
-        if (TNEF.Debug >= 9) {
-            PrintTNEF(TNEF);
-        } else {
-            ProcessTNEF(TNEF);
-        }
+        ProcessTNEF(TNEF);
         TNEFFree(&TNEF);
     }
 }
