@@ -347,6 +347,40 @@ void PrintTNEF(TNEFStruct TNEF) {
     }
 }
 
+void fprintProperty(FILE *FPTR, DWORD PROPTYPE, DWORD PROPID, char TEXT[]) {
+    variableLength *vl;
+    if ((vl=MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PROPTYPE, PROPID))) != (variableLength*)-1) { 
+        if (vl->size > 0)  
+            if ((vl->size == 1) && (vl->data[0] == 0)) {
+            } else { 
+                fprintf(FPTR, TEXT, vl->data); 
+            } 
+    }
+}
+
+void fprintUserProp(FILE *FPTR, DWORD PROPTYPE, DWORD PROPID, char TEXT[]) {
+    variableLength *vl;
+    if ((vl=MAPIFindUserProp(&(TNEF.MapiProperties), PROP_TAG(PROPTYPE, PROPID))) != (variableLength*)-1) { 
+        if (vl->size > 0)  
+            if ((vl->size == 1) && (vl->data[0] == 0)) {
+            } else { 
+                fprintf(FPTR, TEXT, vl->data); 
+            } 
+    }
+}
+
+void quotedfprint(FILE *FPTR, variableLength *VL) {
+    int index;
+
+    for (index=0;index<VL->size-1; index++) { 
+        if (VL->data[index] == '\n') { 
+            fprintf(FPTR, "=0A"); 
+        } else if (VL->data[index] == '\r') { 
+        } else { 
+            fprintf(FPTR, "%c", VL->data[index]); 
+        } 
+    }
+}
 
 void SaveVCalendar(TNEFStruct TNEF) {
     char ifilename[256];
@@ -425,7 +459,7 @@ void SaveVCalendar(TNEFStruct TNEF) {
                     }
                     while (*charptr == ' ') 
                         charptr++;
-                    fprintf(fptr, "ATTENDEE;ROLE=REQ-PARTICIPANT;CN=%s\n", charptr);
+                    fprintf(fptr, "ATTENDEE;CN=%s;ROLE=REQ-PARTICIPANT\n", charptr);
                     charptr = charptr2;
                 }
             }
@@ -444,7 +478,7 @@ void SaveVCalendar(TNEFStruct TNEF) {
                     }
                     while (*charptr == ' ') 
                         charptr++;
-                    fprintf(fptr, "ATTENDEE;ROLE=OPT-PARTICIPANT;CN=%s\n", charptr);
+                    fprintf(fptr, "ATTENDEE;CN=%s;ROLE=OPT-PARTICIPANT\n", charptr);
                     charptr = charptr2;
                 }
             }
@@ -558,54 +592,32 @@ void SaveVCard(TNEFStruct TNEF) {
         fprintf(fptr, "BEGIN:VCARD\n");
         fprintf(fptr, "VERSION:2.1\n");
         fprintf(fptr, "FN:%s\n", vl->data);
-        if ((vl=MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, PR_NICKNAME))) != (variableLength*)-1) {
-            fprintf(fptr, "NICKNAME:%s\n", vl->data);
-        }
 
-        // Mailer
-        if ((vl=MAPIFindUserProp(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, 0x8554))) != (variableLength*)-1) {
-            fprintf(fptr, "MAILER:Microsoft Outlook %s\n", vl->data);
-        }
-        
-        // Spouse
-        if ((vl=MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, PR_SPOUSE_NAME))) != (variableLength*)-1) {
-            fprintf(fptr,"X-EVOLUTION-SPOUSE:%s\n", vl->data);
-        }
+        fprintProperty(fptr, PT_STRING8, PR_NICKNAME, "NICKNAME:%s\n");
+        fprintUserProp(fptr, PT_STRING8, 0x8554, "MAILER:Microsoft Outlook %s\n");
+        fprintProperty(fptr, PT_STRING8, PR_SPOUSE_NAME, "X-EVOLUTION-SPOUSE:%s\n");
+        fprintProperty(fptr, PT_STRING8, PR_MANAGER_NAME, "X-EVOLUTION-MANAGER:%s\n");       
+        fprintProperty(fptr, PT_STRING8, PR_ASSISTANT, "X-EVOLUTION-ASSISTANT:%s\n");
 
-        // Manager
-        if ((vl=MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, PR_MANAGER_NAME))) != (variableLength*)-1) {
-            fprintf(fptr,"X-EVOLUTION-MANAGER:%s\n", vl->data);
-        }
-
-        // Assistant
-        if ((vl=MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, PR_ASSISTANT))) != (variableLength*)-1) {
-            fprintf(fptr,"X-EVOLUTION-ASSISTANT:%s\n", vl->data);
-        }
         // Organizational
         if ((vl=MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, PR_COMPANY_NAME))) != (variableLength*)-1) {
-            fprintf(fptr,"ORG:%s", vl->data);
-            if ((vl=MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, PR_DEPARTMENT_NAME))) != (variableLength*)-1) {
-                fprintf(fptr,";%s", vl->data);
+            if (vl->size > 0) {
+                if ((vl->size == 1) && (vl->data[0] == 0)) {
+                } else {
+                    fprintf(fptr,"ORG:%s", vl->data);
+                    if ((vl=MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, PR_DEPARTMENT_NAME))) != (variableLength*)-1) {
+                        fprintf(fptr,";%s", vl->data);
+                    }
+                    fprintf(fptr, "\n");
+                }
             }
-            fprintf(fptr, "\n");
-        }
-        if ((vl=MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, PR_OFFICE_LOCATION))) != (variableLength*)-1) {
-            fprintf(fptr,"X-EVOLUTION-OFFICE:%s\n", vl->data);
-        }
-        
-        // Job Title
-        if ((vl=MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, PR_TITLE))) != (variableLength*)-1) {
-            fprintf(fptr,"TITLE:%s\n", vl->data);
-        }
-        // Profession
-        if ((vl=MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, PR_PROFESSION))) != (variableLength*)-1) {
-            fprintf(fptr,"ROLE:%s\n", vl->data);
         }
 
-        // Note
-        if ((vl=MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, PR_BODY))) != (variableLength*)-1) {
-            fprintf(fptr, "NOTE:%s\n", vl->data);
-        }
+        fprintProperty(fptr, PT_STRING8, PR_OFFICE_LOCATION, "X-EVOLUTION-OFFICE:%s\n");
+        fprintProperty(fptr, PT_STRING8, PR_TITLE, "TITLE:%s\n");
+        fprintProperty(fptr, PT_STRING8, PR_PROFESSION, "ROLE:%s\n");
+        fprintProperty(fptr, PT_STRING8, PR_BODY, "NOTE:%s\n");
+
 
         // Business Address
         boolean = 0;
@@ -628,41 +640,34 @@ void SaveVCard(TNEFStruct TNEF) {
             boolean = 1;
         }
         if (boolean == 1) {
-            fprintf(fptr, "ADR;WORK:");
+            fprintf(fptr, "ADR;QUOTED-PRINTABLE;WORK:");
             if (pobox != (variableLength*)-1) {
-                fprintf(fptr, "%s", pobox->data);
+                quotedfprint(fptr, pobox);
             }
             fprintf(fptr, ";;");
             if (street != (variableLength*)-1) {
-                fprintf(fptr, "%s", street->data);
+                quotedfprint(fptr, street);
             }
             fprintf(fptr, ";");
             if (city != (variableLength*)-1) {
-                fprintf(fptr, "%s", city->data);
+                quotedfprint(fptr, city);
             }
             fprintf(fptr, ";");
             if (state != (variableLength*)-1) {
-                fprintf(fptr, "%s", state->data);
+                quotedfprint(fptr, state);
             }
             fprintf(fptr, ";");
             if (zip != (variableLength*)-1) {
-                fprintf(fptr, "%s", zip->data);
+                quotedfprint(fptr, zip);
             }
             fprintf(fptr, ";");
             if (country != (variableLength*)-1) {
-                fprintf(fptr, "%s", country->data);
+                quotedfprint(fptr, country);
             }
             fprintf(fptr,"\n");
             if ((vl = MAPIFindUserProp(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, 0x801b))) != (variableLength*)-1) {
                 fprintf(fptr, "LABEL;QUOTED-PRINTABLE;WORK:");
-                for (index=0;index<vl->size; index++) {
-                    if (vl->data[index] == '\n') {
-                        fprintf(fptr, "=0A");
-                    } else if (vl->data[index] == '\r') {
-                    } else {
-                        fprintf(fptr, "%c", vl->data[index]);
-                    }
-                }
+                quotedfprint(fptr, vl);
                 fprintf(fptr,"\n");
             }
         }
@@ -688,42 +693,34 @@ void SaveVCard(TNEFStruct TNEF) {
             boolean = 1;
         }
         if (boolean == 1) {
-            fprintf(fptr, "ADR;HOME:");
+            fprintf(fptr, "ADR;QUOTED-PRINTABLE;HOME:");
             if (pobox != (variableLength*)-1) {
-                fprintf(fptr, "%s", pobox->data);
+                quotedfprint(fptr, pobox);
             }
             fprintf(fptr, ";;");
             if (street != (variableLength*)-1) {
-                fprintf(fptr, "%s", street->data);
+                quotedfprint(fptr, street);
             }
             fprintf(fptr, ";");
             if (city != (variableLength*)-1) {
-                fprintf(fptr, "%s", city->data);
+                quotedfprint(fptr, city);
             }
             fprintf(fptr, ";");
             if (state != (variableLength*)-1) {
-                fprintf(fptr, "%s", state->data);
+                quotedfprint(fptr, state);
             }
             fprintf(fptr, ";");
             if (zip != (variableLength*)-1) {
-                fprintf(fptr, "%s", zip->data);
+                quotedfprint(fptr, zip);
             }
             fprintf(fptr, ";");
             if (country != (variableLength*)-1) {
-                fprintf(fptr, "%s", country->data);
+                quotedfprint(fptr, country);
             }
             fprintf(fptr,"\n");
             if ((vl = MAPIFindUserProp(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, 0x801a))) != (variableLength*)-1) {
-                fprintf(fptr, "LABEL;QUOTED-PRINTABLE;HOME:");
-                for (index=0;index<vl->size; index++) {
-                    if (vl->data[index] == '\n') {
-                        fprintf(fptr, "=0A");
-                    } else if (vl->data[index] == '\r') {
-                        fprintf(fptr, "=0D");
-                    } else {
-                        fprintf(fptr, "%c", vl->data[index]);
-                    }
-                }
+                fprintf(fptr, "LABEL;QUOTED-PRINTABLE;WORK:");
+                quotedfprint(fptr, vl);
                 fprintf(fptr,"\n");
             }
         }
@@ -749,120 +746,81 @@ void SaveVCard(TNEFStruct TNEF) {
             boolean = 1;
         }
         if (boolean == 1) {
-            fprintf(fptr, "ADR;OTHER:");
+            fprintf(fptr, "ADR;QUOTED-PRINTABLE;OTHER:");
             if (pobox != (variableLength*)-1) {
-                fprintf(fptr, "%s", pobox->data);
+                quotedfprint(fptr, pobox);
             }
             fprintf(fptr, ";;");
             if (street != (variableLength*)-1) {
-                fprintf(fptr, "%s", street->data);
+                quotedfprint(fptr, street);
             }
             fprintf(fptr, ";");
             if (city != (variableLength*)-1) {
-                fprintf(fptr, "%s", city->data);
+                quotedfprint(fptr, city);
             }
             fprintf(fptr, ";");
             if (state != (variableLength*)-1) {
-                fprintf(fptr, "%s", state->data);
+                quotedfprint(fptr, state);
             }
             fprintf(fptr, ";");
             if (zip != (variableLength*)-1) {
-                fprintf(fptr, "%s", zip->data);
+                quotedfprint(fptr, zip);
             }
             fprintf(fptr, ";");
             if (country != (variableLength*)-1) {
-                fprintf(fptr, "%s", country->data);
+                quotedfprint(fptr, country);
             }
             fprintf(fptr,"\n");
         }
 
 
-        // Telephone #'s
-        if ((vl=MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, PR_CALLBACK_TELEPHONE_NUMBER))) != (variableLength*)-1) {
-            fprintf(fptr, "TEL;X-EVOLUTION-CALLBACK:%s\n", vl->data);
-        }
-        if ((vl=MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, PR_PRIMARY_TELEPHONE_NUMBER))) != (variableLength*)-1) {
-            fprintf(fptr, "TEL;PREF:%s\n", vl->data);
-        }
-        if ((vl=MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, PR_MOBILE_TELEPHONE_NUMBER))) != (variableLength*)-1) {
-            fprintf(fptr, "TEL;CELL:%s\n", vl->data);
-        }
-        if ((vl=MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, PR_RADIO_TELEPHONE_NUMBER))) != (variableLength*)-1) {
-            fprintf(fptr, "TEL;X-EVOLUTION-RADIO:%s\n", vl->data);
-        }
-        if ((vl=MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, PR_CAR_TELEPHONE_NUMBER))) != (variableLength*)-1) {
-            fprintf(fptr, "TEL;CAR:%s\n", vl->data);
-        }
-        if ((vl=MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, PR_OTHER_TELEPHONE_NUMBER))) != (variableLength*)-1) {
-            fprintf(fptr, "TEL;VOICE:%s\n", vl->data);
-        }
-        if ((vl=MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, PR_PAGER_TELEPHONE_NUMBER))) != (variableLength*)-1) {
-            fprintf(fptr, "TEL;PAGER:%s\n", vl->data);
-        }
-        if ((vl=MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, PR_TELEX_NUMBER))) != (variableLength*)-1) {
-            fprintf(fptr, "TEL;X-EVOLUTION-TELEX:%s\n", vl->data);
-        }
-        if ((vl=MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, PR_ISDN_NUMBER))) != (variableLength*)-1) {
-            fprintf(fptr, "TEL;ISDN:%s\n", vl->data);
-        }
-        if ((vl=MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, PR_HOME2_TELEPHONE_NUMBER))) != (variableLength*)-1) {
-            fprintf(fptr, "TEL;HOME:%s\n", vl->data); 
-        }
-        if ((vl=MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, PR_HOME_TELEPHONE_NUMBER))) != (variableLength*)-1) {
-            fprintf(fptr, "TEL;HOME;VOICE:%s\n", vl->data); 
-        }
-        if ((vl=MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, PR_TTYTDD_PHONE_NUMBER))) != (variableLength*)-1) {
-            fprintf(fptr, "TEL;X-EVOLUTION-TTYTDD:%s\n", vl->data);
-        }
-        if ((vl=MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, PR_ASSISTANT_TELEPHONE_NUMBER))) != (variableLength*)-1) {
-            fprintf(fptr, "TEL;X-EVOLUTION-ASSISTANT:%s\n", vl->data);
-        }
-        if ((vl=MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, PR_COMPANY_MAIN_PHONE_NUMBER))) != (variableLength*)-1) {
-            fprintf(fptr, "TEL;WORK:%s\n", vl->data);
-        }
-        if ((vl=MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, PR_BUSINESS2_TELEPHONE_NUMBER))) != (variableLength*)-1) {
-            fprintf(fptr, "TEL;WORK;VOICE:%s\n", vl->data);
-        }
-        // Fax #'s
-        if ((vl=MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, PR_PRIMARY_FAX_NUMBER))) != (variableLength*)-1) {
-            fprintf(fptr, "TEL;PREF;FAX:%s\n", vl->data);
-        }
-        if ((vl=MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, PR_BUSINESS_FAX_NUMBER))) != (variableLength*)-1) {
-            fprintf(fptr, "TEL;WORK;FAX:%s\n", vl->data);
-        }
-        if ((vl=MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, PR_HOME_FAX_NUMBER))) != (variableLength*)-1) {
-            fprintf(fptr, "TEL;HOME;FAX:%s\n", vl->data);
-        }
+        fprintProperty(fptr, PT_STRING8, PR_CALLBACK_TELEPHONE_NUMBER, "TEL;X-EVOLUTION-CALLBACK:%s\n");
+        fprintProperty(fptr, PT_STRING8, PR_PRIMARY_TELEPHONE_NUMBER, "TEL;PREF:%s\n");
+        fprintProperty(fptr, PT_STRING8, PR_MOBILE_TELEPHONE_NUMBER, "TEL;CELL:%s\n");
+        fprintProperty(fptr, PT_STRING8, PR_RADIO_TELEPHONE_NUMBER, "TEL;X-EVOLUTION-RADIO:%s\n");
+        fprintProperty(fptr, PT_STRING8, PR_CAR_TELEPHONE_NUMBER, "TEL;CAR:%s\n");
+        fprintProperty(fptr, PT_STRING8, PR_OTHER_TELEPHONE_NUMBER, "TEL;VOICE:%s\n");
+        fprintProperty(fptr, PT_STRING8, PR_PAGER_TELEPHONE_NUMBER, "TEL;PAGER:%s\n");
+        fprintProperty(fptr, PT_STRING8, PR_TELEX_NUMBER, "TEL;X-EVOLUTION-TELEX:%s\n");
+        fprintProperty(fptr, PT_STRING8, PR_ISDN_NUMBER, "TEL;ISDN:%s\n");
+        fprintProperty(fptr, PT_STRING8, PR_HOME2_TELEPHONE_NUMBER, "TEL;HOME:%s\n");
+        fprintProperty(fptr, PT_STRING8, PR_TTYTDD_PHONE_NUMBER, "TEL;X-EVOLUTION-TTYTDD:%s\n");
+        fprintProperty(fptr, PT_STRING8, PR_HOME_TELEPHONE_NUMBER, "TEL;HOME;VOICE:%s\n");
+        fprintProperty(fptr, PT_STRING8, PR_ASSISTANT_TELEPHONE_NUMBER, "TEL;X-EVOLUTION-ASSISTANT:%s\n");
+        fprintProperty(fptr, PT_STRING8, PR_COMPANY_MAIN_PHONE_NUMBER, "TEL;WORK:%s\n");
+        fprintProperty(fptr, PT_STRING8, PR_BUSINESS2_TELEPHONE_NUMBER, "TEL;WORK;VOICE:%s\n");
+        fprintProperty(fptr, PT_STRING8, PR_PRIMARY_FAX_NUMBER, "TEL;PREF;FAX:%s\n");
+        fprintProperty(fptr, PT_STRING8, PR_BUSINESS_FAX_NUMBER, "TEL;WORK;FAX:%s\n");
+        fprintProperty(fptr, PT_STRING8, PR_HOME_FAX_NUMBER, "TEL;HOME;FAX:%s\n");
+
 
         // Email addresses
         if ((vl=MAPIFindUserProp(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, 0x8083))) == (variableLength*)-1) {
             vl=MAPIFindUserProp(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, 0x8084));
         }
         if (vl != (variableLength*)-1) {
-            fprintf(fptr, "EMAIL:%s\n", vl->data);
+            if (vl->size > 0) 
+                fprintf(fptr, "EMAIL:%s\n", vl->data);
         }
         if ((vl=MAPIFindUserProp(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, 0x8093))) == (variableLength*)-1) {
             vl=MAPIFindUserProp(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, 0x8094));
         }
         if (vl != (variableLength*)-1) {
-            fprintf(fptr, "EMAIL:%s\n", vl->data);
+            if (vl->size > 0) 
+                fprintf(fptr, "EMAIL:%s\n", vl->data);
         }
         if ((vl=MAPIFindUserProp(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, 0x80a3))) == (variableLength*)-1) {
             vl=MAPIFindUserProp(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, 0x80a4));
         }
         if (vl != (variableLength*)-1) {
-            fprintf(fptr, "EMAIL:%s\n", vl->data);
+            if (vl->size > 0) 
+                fprintf(fptr, "EMAIL:%s\n", vl->data);
         }
 
-        //URL
-        if ((vl=MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, PR_BUSINESS_HOME_PAGE))) != (variableLength*)-1) {
-            fprintf(fptr, "URL:%s\n", vl->data);
-        }
+        fprintProperty(fptr, PT_STRING8, PR_BUSINESS_HOME_PAGE, "URL:%s\n");
+        fprintUserProp(fptr, PT_STRING8, 0x80d8, "FBURL:%s\n");
 
-        //fbURL
-        if ((vl=MAPIFindUserProp(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, 0x80d8))) != (variableLength*)-1) {
-            fprintf(fptr, "FBURL:%s\n", vl->data);
-        }
+
 
         //Birthday
         if ((vl=MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_SYSTIME, PR_BIRTHDAY))) != (variableLength*)-1) {
