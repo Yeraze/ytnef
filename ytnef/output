@@ -2,7 +2,9 @@ UD:8554 - Version (9.0, 10.0)
 UD:8208,0002 - Location
 UD:8234 - String for Time Zone
 UD:8235,820d,8516,8502 - Start time, in GMT
-UD:8236,820e,8517 - End time, in GMT
+UD:820e,8517 - End time, in GMT
+UD:8236 - End date of a recurrance
+
 UD:8560 - Time zone, encoded as time
 UD:8238 - list of attendees, separated by semicolons
 UD:823b - Required attendees

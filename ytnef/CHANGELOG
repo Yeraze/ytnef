@@ -1,3 +1,7 @@
+v1.06
+Fix for the CN & ROLE being reversed in required participants of meetings.
+
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 v1.05 
 Added the -F option to enable/disable the RTF attachments.
 Integrated patch #666566: Unicode to UTF8 conversion.

@@ -384,7 +384,7 @@ void SaveVCalendar(TNEFStruct TNEF) {
                     }
                     while (*charptr == ' ') 
                         charptr++;
-                    fprintf(fptr, "ATTENDEE;CN=%s;ROLE=REQ-PARTICIPANT\n", charptr);
+                    fprintf(fptr, "ATTENDEE;ROLE=REQ-PARTICIPANT;CN=%s\n", charptr);
                     charptr = charptr2;
                 }
             }
