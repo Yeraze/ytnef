@@ -15,6 +15,7 @@ int TNEFAttachmentFilename STD_ARGLIST;
 int TNEFAttachmentSave STD_ARGLIST;
 int TNEFDetailedPrint STD_ARGLIST;
 int TNEFHexBreakdown STD_ARGLIST;
+int TNEFBody STD_ARGLIST;
 int TNEFRendData STD_ARGLIST;
 int TNEFDateHandler STD_ARGLIST;
 int TNEFPriority  STD_ARGLIST;
@@ -49,7 +50,7 @@ TNEFHandler TNEFList[] = {
         {attMessageID,               "Message ID",                  TNEFMessageID},
         {attParentID,                "Parent ID",                   TNEFParentID},
         {attConversationID,          "Conversation ID",             TNEFDefaultHandler},
-        {attBody,                    "Body",                        TNEFHexBreakdown},
+        {attBody,                    "Body",                        TNEFBody},
         {attPriority,                "Priority",                    TNEFPriority},
         {attAttachData,              "Attach Data",                 TNEFAttachmentSave},
         {attAttachTitle,             "Attach Title",                TNEFAttachmentFilename},
@@ -181,6 +182,13 @@ int TNEFParentID STD_ARGLIST {
 // -----------------------------------------------------------------------------
 int TNEFMessageID STD_ARGLIST {
     memcpy(TNEF->messageID, data, MIN(size,sizeof(TNEF->messageID)));
+    return 0;
+}
+// -----------------------------------------------------------------------------
+int TNEFBody STD_ARGLIST {
+    TNEF->body.size = size;
+    TNEF->body.data = calloc(size, sizeof(BYTE));
+    memcpy(TNEF->body.data, data, size);
     return 0;
 }
 // -----------------------------------------------------------------------------
