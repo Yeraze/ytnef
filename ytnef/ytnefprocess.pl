@@ -5,7 +5,7 @@ use Mail::Mailer;
 use Mail::Mailer::test;
 
 my $mail_dir = "$ENV{HOME}/.ytnef";
-my $reader = "/usr/bin/ytnef";
+my $reader = "/usr/local/bin/ytnef";
 my $output_dir = "$mail_dir/output";
 
 my $parser = new MIME::Parser;
@@ -69,6 +69,13 @@ sub processParts {
 
                     $disposition = "inline"     if ($file =~ m/\.vcf$/);
                     $disposition = "inline"     if ($file =~ m/\.vcard$/);
+
+                    if ($mimetype eq "application/binary") {
+                        $qfile = quotemeta $file;
+                        $filetype = `file -bi $qfile`;
+                        chomp $filetype;
+                        $mimetype = $filetype if ($filetype ne "");
+                    }
                     $entity->attach(
                             Path => $file,
                             Type => $mimetype,
