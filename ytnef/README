@@ -1,0 +1,37 @@
+Yerase's TNEF Stream Reader
+-------------------------------
+
+INSTALLATION:
+
+Simply run make, and copy the binary (ytnef) to somewhere in your path.
+On some systems you may need to edit the Makefile to change the CC= &
+LINK= lines to use cc instead of gcc.
+
+
+USAGE:
+
+ytnef filename.dat - parse the file & print some basic information.
+ytnef -v filename.dat - parse the file & print EVERYTHING.  good for
+        debugging.
+ytnef -f . filename.dat - parse the file and save all of the attachments
+        to the local directory.
+
+HELP:
+
+If you want additional information exported (to the vCalendar or vCard
+information), then use the -v option to try & find out where the information
+is.  Then send the winmail.dat file, along with the -v listing to me 
+(yerase@yerot.com) along with some information & justifications.  It works 
+best if you send several data files, showing the option in various states 
+to back up your claim.  For example, if you want me to parse recurrence
+patterns encoded in the TNEF stream, then send yourself several meeting
+requests with almost identical information, and several different recurrence
+patterns, and (hopefully) the only fields that change will the the UID & the
+recurrence information.
+
+
+SUPPORT:
+Don't hesitate to send support requests to me at yerase@yerot.com. I'll do 
+what I can to help.  Also don't hesitate to post bug reports or
+support/feature requests to http://sourceforge.net/tracker/?group_id=70352
+
