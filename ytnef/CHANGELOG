@@ -1,3 +1,8 @@
+v1.09
+Made the Notes field of vCard's & the summary field of vCalendar entries
+quoted-printable.
+Added a : to the end of meeting attendees.
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 v1.08
 Code refactoring in the vCard section to improve readability.
 Made the addresses in vCards quoted printable to better support user input.

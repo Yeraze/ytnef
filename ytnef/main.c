@@ -20,7 +20,7 @@ void SaveVCard(TNEFStruct TNEF);
 
 
 void PrintHelp(void) {
-    printf("Yerase TNEF Exporter v1.08\n");
+    printf("Yerase TNEF Exporter v1.09\n");
     printf("\n");
     printf("  usage: ytnef [-+vhf] <filenames>\n");
     printf("\n");
@@ -459,7 +459,7 @@ void SaveVCalendar(TNEFStruct TNEF) {
                     }
                     while (*charptr == ' ') 
                         charptr++;
-                    fprintf(fptr, "ATTENDEE;CN=%s;ROLE=REQ-PARTICIPANT\n", charptr);
+                    fprintf(fptr, "ATTENDEE;CN=%s;ROLE=REQ-PARTICIPANT:\n", charptr);
                     charptr = charptr2;
                 }
             }
@@ -478,7 +478,7 @@ void SaveVCalendar(TNEFStruct TNEF) {
                     }
                     while (*charptr == ' ') 
                         charptr++;
-                    fprintf(fptr, "ATTENDEE;CN=%s;ROLE=OPT-PARTICIPANT\n", charptr);
+                    fprintf(fptr, "ATTENDEE;CN=%s;ROLE=OPT-PARTICIPANT:\n", charptr);
                     charptr = charptr2;
                 }
             }
@@ -486,7 +486,9 @@ void SaveVCalendar(TNEFStruct TNEF) {
         // Summary
         filename = NULL;
         if((filename=MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, PR_CONVERSATION_TOPIC)))!=(variableLength*)-1) {
-            fprintf(fptr, "SUMMARY:%s\n", filename->data);
+            fprintf(fptr, "SUMMARY;QUOTED-PRINTABLE:");
+            quotedfprint(fptr, filename);
+            fprintf(fptr, "\n");
         }
         // Location
         filename = NULL;
