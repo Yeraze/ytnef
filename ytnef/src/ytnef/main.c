@@ -118,7 +118,7 @@ void ProcessTNEF(TNEFStruct TNEF) {
     int RealAttachment;
     int object;
     char ifilename[256];
-    int i;
+    int i, count;
     int foundCal=0;
 
     FILE *fptr;
@@ -184,7 +184,9 @@ void ProcessTNEF(TNEFStruct TNEF) {
 
 // Now process each attachment
     p = TNEF.starting_attach.next;
+    count = 0;
     while (p != NULL) {
+        count++;
         // Make sure it has a size.
         if (p->FileData.size > 0) {
             object = 1;           
@@ -249,6 +251,13 @@ void ProcessTNEF(TNEFStruct TNEF) {
                             == MAPI_UNDEFINED) {
                         filename = &(p->Title);
                     }
+                }
+                printf("Size = %i\n", filename->size);
+                if (filename->size == 1) {
+                    filename = (variableLength*)malloc(sizeof(variableLength));
+                    filename->size = 20;
+                    filename->data = (char*)malloc(20);
+                    sprintf(filename->data, "file_%03i.dat", count);
                 }
                 if (filepath == NULL) {
                     sprintf(ifilename, "%s", filename->data);
