@@ -61,7 +61,7 @@ sub processParts {
                 closedir DIR;
 
                 for my $file ( @files ) {
-                    my $mimetype = application/binary";
+                    my $mimetype = "application/binary";
                     $mimetype = "text/calendar" if ($file =~ m/\.vcf$/);
                     $entity->attach(
                             Path => $file,
