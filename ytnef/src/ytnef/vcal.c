@@ -146,8 +146,7 @@ void SaveVCalendar(TNEFStruct TNEF) {
             variableLength buf;
             if ((buf.data = DecompressRTF(filename, &(buf.size))) != NULL) {
                 fprintf(fptr, "DESCRIPTION:");
-                Cstylefprint(fptr, &buf);
-                fprintf(fptr, "\n");
+                PrintRTF(fptr, &buf);
                 free(buf.data);
             }
             

@@ -53,3 +53,46 @@ void Cstylefprint(FILE *FPTR, variableLength *VL) {
     }
 }
 
+void PrintRTF(FILE *fptr, variableLength *VL) {
+    int index;
+    char *byte;
+    int brace_ct;
+    int key;
+
+    key = 0;
+    brace_ct = 0;
+
+    for(index = 0, byte=VL->data; index < VL->size; index++, byte++) {
+        if (*byte == '{') {
+            brace_ct++;
+        }
+        if (*byte == '\\') {
+            key = 1;
+        }
+        if (isspace(*byte)) {
+            key = 0;
+        }
+        if ((brace_ct == 1) && (key == 0)) {
+            if (*byte == '\n') { 
+                fprintf(fptr, "\\n"); 
+            } else if (*byte == '\r') { 
+                // Print nothing.
+            } else if (*byte == ';') {
+                fprintf(fptr, "\\;");
+            } else if (*byte == ',') {
+                fprintf(fptr, "\\,");
+            } else if (*byte == '\\') {
+                fprintf(fptr, "\\");
+            } else { 
+                fprintf(fptr, "%c", *byte );
+            } 
+        }
+        if (*byte == '}') {
+            brace_ct--;
+            key = 0;
+        }
+    }
+    fprintf(fptr, "\n");
+
+}
+
