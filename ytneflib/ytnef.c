@@ -233,6 +233,10 @@ int TNEFFromHandler STD_ARGLIST {
 }
 // -----------------------------------------------------------------------------
 int TNEFSubjectHandler STD_ARGLIST {
+    if  (TNEF->subject.data)
+      free(TNEF->subject.data);
+
+    puts ("Setting a subject line");
     TNEF->subject.data = calloc(size, sizeof(BYTE));
     TNEF->subject.size = size;
     memcpy(TNEF->subject.data, data,size);
@@ -320,6 +324,9 @@ int TNEFAttachmentMAPI STD_ARGLIST {
 // -----------------------------------------------------------------------------
 int TNEFMapiProperties STD_ARGLIST {
     TNEFFillMapi(TNEF, data, size, &(TNEF->MapiProperties));
+    if (TNEF->Debug >= 3) { 
+      MAPIPrint(&(TNEF->MapiProperties));
+    }
     return 0;
 }
 
@@ -382,7 +389,7 @@ void TNEFFillMapi(TNEFStruct *TNEF, BYTE *data, DWORD size, MAPIProps *p) {
                 mp->custom = 1;
             }
             
-            //printf("Type id = %04x\n", PROP_TYPE(mp->id));
+            DEBUG2(TNEF->Debug, 3, "Type id = %04x, Prop id = %04x", PROP_TYPE(mp->id), PROP_ID(mp->id));
             if (PROP_TYPE(mp->id) & MV_FLAG) {
                 mp->id = PROP_TAG(PROP_TYPE(mp->id) - MV_FLAG, PROP_ID(mp->id));
                 mp->count = SwapDWord(d);
@@ -456,12 +463,42 @@ void TNEFFillMapi(TNEFStruct *TNEF, BYTE *data, DWORD size, MAPIProps *p) {
                 d+=8;
                 break;
         }
+
+        switch (PROP_ID(mp->id)) {
+          case PR_SUBJECT:
+          case PR_SUBJECT_IPM:
+          case PR_ORIGINAL_SUBJECT:
+          case PR_NORMALIZED_SUBJECT:
+          case PR_CONVERSATION_TOPIC:
+            DEBUG(TNEF->Debug, 3, "Got a Subject");
+            if  (TNEF->subject.size == 0) {
+              int i;
+              DEBUG(TNEF->Debug, 3, "Assigning a Subject");
+              TNEF->subject.data = calloc(size, sizeof(BYTE));
+              TNEF->subject.size = vl->size;
+              memcpy(TNEF->subject.data, vl->data,vl->size);
+              //  Unfortunately, we have to normalize out some invalid 
+              //  characters, or else the file won't write
+              for (i = 0; i != TNEF->subject.size; i++) {
+                switch (TNEF->subject.data[i]) {
+                  case '\\':
+                  case '/':
+                  case '\0':
+                    TNEF->subject.data[i]='_';
+                    break;
+                }
+              }
+            }
+            break;
+        }
+
         if (count == (mp->count-1)) {
             count = -1;
         }
         if (count == -1) {
             mp++;
         }
+
     }
     if ((d-data) < size) {
         if (TNEF->Debug >= 1)  {
@@ -661,6 +698,7 @@ int TNEFGetKey(TNEFStruct *TNEF, WORD *key) {
     }
     *key = SwapWord((BYTE*)key);
 
+    DEBUG1(TNEF->Debug, 2, "Key = 0x%X", *key);
     DEBUG1(TNEF->Debug, 2, "Key = %i", *key);
     return 0;
 }
@@ -684,6 +722,7 @@ int TNEFGetHeader(TNEFStruct *TNEF, DWORD *type, DWORD *size) {
             printf("ERROR: Error reading type\n");
         return YTNEF_ERROR_READING_DATA;
     }
+    DEBUG1(TNEF->Debug, 2, "Type = 0x%X", *type);
     DEBUG1(TNEF->Debug, 2, "Type = %i", *type);
 
 
@@ -992,6 +1031,7 @@ int TNEFParse(TNEFStruct *TNEF) {
     DEBUG(TNEF->Debug, 2, "Starting Full Processing.");
 
     while (TNEFGetHeader(TNEF, &type, &size) == 0) {
+        DEBUG2(TNEF->Debug, 2, "Header says type=0x%X, size=%i", type, size);
         DEBUG2(TNEF->Debug, 2, "Header says type=%i, size=%i", type, size);
         if (size > 0) {
             data = calloc(size, sizeof(BYTE));
@@ -1029,6 +1069,9 @@ int TNEFParse(TNEFStruct *TNEF) {
                                 TNEF->IO.CloseProc (&TNEF->IO);
                             }
                             return YTNEF_ERROR_IN_HANDLER;
+                        } else {
+                          //  Found our handler and processed it.  now time to get out
+                          break;
                         }
                     } else {
                         DEBUG2(TNEF->Debug, 1, "No handler for %s: %i bytes",
@@ -1145,8 +1188,9 @@ int MAPISysTimetoDTR(BYTE *data, dtr *thedate)
 
 void MAPIPrint(MAPIProps *p)
 {
-    int j, i,index, h;
+    int j, i,index, h, x;
     DDWORD *ddword_ptr;
+    DDWORD ddword_tmp;
     dtr thedate;
     MAPIProperty *mapi;
     variableLength *mapidata;
@@ -1228,8 +1272,13 @@ void MAPIPrint(MAPIProps *p)
                 case PT_SYSTIME:
                     MAPISysTimetoDTR(mapidata->data, &thedate);
                     printf("    Value: ");
+                    ddword_tmp = *((DDWORD*)mapidata->data);
                     TNEFPrintDate(thedate);
-                    printf("\n");
+                    printf(" [HEX: ");
+                    for(x=0; x< sizeof(ddword_tmp); x++) {
+                        printf(" %02x", (BYTE)mapidata->data[x]);
+                    }
+                    printf("] (%llu)\n", ddword_tmp);
                     break;
                 case PT_LONG:
                     printf("    Value: %li\n", *(mapidata->data));
@@ -1260,10 +1309,11 @@ void MAPIPrint(MAPIProps *p)
                     } else {
                         printf("    Value: [");
                         for(h=0; h< mapidata->size; h++) {
-                            if (isprint(mapidata->data[h])) 
+                            if (isprint(mapidata->data[h])) {
                                 printf("%c", mapidata->data[h]);
-                            else 
+                            } else {
                                 printf(".");
+                            }
 
                         }
                         printf("]\n");
@@ -1274,10 +1324,11 @@ void MAPIPrint(MAPIProps *p)
                     if (strlen(mapidata->data) != mapidata->size-1) {
                         printf("Detected Hidden data: [");
                         for(h=0; h< mapidata->size; h++) {
-                            if (isprint(mapidata->data[h])) 
+                            if (isprint(mapidata->data[h])) {
                                 printf("%c", mapidata->data[h]);
-                            else 
+                            } else {
                                 printf(".");
+                            }
 
                         }
                         printf("]\n");
