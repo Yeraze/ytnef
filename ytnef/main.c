@@ -69,7 +69,7 @@ int main(int argc, char ** argv) {
     for(i=1; i<argc; i++) {
         if (argv[i][0] == '-') {
             switch (argv[i][1]) {
-                case 'v': verbose = 1;
+                case 'v': verbose++;
                           break;
                 case 'h': PrintHelp();
                           return;
@@ -92,7 +92,7 @@ int main(int argc, char ** argv) {
         }
         if (argv[i][0] == '+') {
             switch (argv[i][1]) {
-                case 'v': verbose = 0;
+                case 'v': verbose--;
                           break;
                 case 'f': savefiles = 0;
                           filepath = NULL;
@@ -107,6 +107,7 @@ int main(int argc, char ** argv) {
         }
 
         TNEFInitialize(&TNEF);
+        TNEF.Debug = verbose;
         if (TNEFParseFile(argv[i], &TNEF) == -1) {
             printf(">>> ERROR processing file\n");
             continue;

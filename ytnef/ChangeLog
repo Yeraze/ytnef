@@ -4,6 +4,7 @@ Split the vcard/vcal/vtask code into separate files for better readability.
 Converted to automake (Autoconf, etc)
 Removed the run-time "endian" detection, in favor of WORD_BIGENDIAN
 Placed version information to be automatically generated into config.h
+Added an abstraction layer on IO
 -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 v1.14
 Made a change to save vCard entries with a .vcard extension instead of a .vcf
