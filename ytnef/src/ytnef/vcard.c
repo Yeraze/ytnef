@@ -7,14 +7,25 @@ void SaveVCard(TNEFStruct TNEF) {
     int boolean,index,i;
 
     if ((vl = MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, PR_DISPLAY_NAME))) == MAPI_UNDEFINED) {
-        printf("\n-> Contact has no name. Aborting\n");
-        return;
-    }
-    
-    if (filepath == NULL) {
-        sprintf(ifilename, "%s.vcard", vl->data);
+        if (TNEF.subject.size > 0) {
+            if (filepath == NULL) {
+                sprintf(ifilename, "%s.vcard", TNEF.subject.data);
+            } else {
+                sprintf(ifilename, "%s/%s.vcard", filepath, TNEF.subject.data);
+            }
+        } else {
+            if (filepath == NULL) {
+                sprintf(ifilename, "unknown.vcard");
+            } else {
+                sprintf(ifilename, "%s/unknown.vcard", filepath);
+            }
+        }
     } else {
-        sprintf(ifilename, "%s/%s.vcard", filepath, vl->data);
+        if (filepath == NULL) {
+            sprintf(ifilename, "%s.vcard", vl->data);
+        } else {
+            sprintf(ifilename, "%s/%s.vcard", filepath, vl->data);
+        }
     }
     for(i=0; i<strlen(ifilename); i++) 
         if (ifilename[i] == ' ') 
