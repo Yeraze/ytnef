@@ -173,9 +173,9 @@ int main(int argc, char ** argv) {
                 if (savefiles == 1) {
                     printf("-> Creating an icalendar attachment\n");
                     if (filepath == NULL) {
-                        sprintf(ifilename, "calendar.vcal");
+                        sprintf(ifilename, "calendar.vcf");
                     } else {
-                        sprintf(ifilename, "%s/calendar.vcal", filepath, filename->data);
+                        sprintf(ifilename, "%s/calendar.vcf", filepath, filename->data);
                     }
                     if ((fptr = fopen(ifilename, "wb"))==NULL) {
                             printf("Error writing file to disk!");
