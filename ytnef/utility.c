@@ -43,6 +43,8 @@ void Cstylefprint(FILE *FPTR, variableLength *VL) {
             // Print nothing.
         } else if (VL->data[index] == ',') {
             fprintf(FPTR, "\\,");
+        } else if (VL->data[index] == '\\') {
+            fprintf(FPTR, "\\");
         } else { 
             fprintf(FPTR, "%c", VL->data[index]); 
         } 
