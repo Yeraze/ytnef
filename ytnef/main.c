@@ -941,6 +941,9 @@ void SaveVTask(TNEFStruct TNEF) {
         filename = NULL;
 
         fprintf(fptr, "BEGIN:VTODO\n");
+        if (TNEF.messageID[0] != 0) {
+            fprintf(fptr,"UID:%s\n", TNEF.messageID);
+        }
         filename = MAPIFindUserProp(&(TNEF.MapiProperties), \
                         PROP_TAG(PT_STRING8, 0x8122));
         if (filename != NULL) {
@@ -989,6 +992,25 @@ void SaveVTask(TNEFStruct TNEF) {
                     thedate.wHour, thedate.wMinute, thedate.wSecond);
         }
 
+        filename = MAPIFindUserProp(&(TNEF.MapiProperties), \
+                    PROP_TAG(PT_SYSTIME, 0x8516));
+        if (filename != NULL) {
+            fprintf(fptr, "DTSTART:");
+            MAPISysTimetoDTR(filename->data, &thedate);
+            fprintf(fptr,"%04i%02i%02iT%02i%02i%02iZ\n", 
+                    thedate.wYear, thedate.wMonth, thedate.wDay,
+                    thedate.wHour, thedate.wMinute, thedate.wSecond);
+        }
+
+        filename = MAPIFindUserProp(&(TNEF.MapiProperties), \
+                    PROP_TAG(PT_SYSTIME, 0x8517));
+        if (filename != NULL) {
+            fprintf(fptr, "DUE:");
+            MAPISysTimetoDTR(filename->data, &thedate);
+            fprintf(fptr,"%04i%02i%02iT%02i%02i%02iZ\n", 
+                    thedate.wYear, thedate.wMonth, thedate.wDay,
+                    thedate.wHour, thedate.wMinute, thedate.wSecond);
+        }
         filename = MAPIFindProperty(&(TNEF.MapiProperties), \
                     PROP_TAG(PT_SYSTIME, PR_LAST_MODIFICATION_TIME));
         if (filename != NULL) {

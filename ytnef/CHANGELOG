@@ -2,6 +2,7 @@ v1.11
 Fixed a problem with vCalendar entries using C-Style strings instead of
 quoted-printable strings.
 Fixed a mis-spelled field name in vCalendar entries (DCREATED vs CREATED)
+Added support for Start/Due date on Task entries, and added a UID.
 -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 v1.10
 Added attendee & organizer fields to Task Entries.
