@@ -1,5 +1,6 @@
 v1.06
 Fix for the CN & ROLE being reversed in required participants of meetings.
+Added the -l option for tnefclean.
 
 -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 v1.05 

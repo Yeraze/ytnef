@@ -10,6 +10,7 @@ TNEFStruct TNEF;
 int verbose = 0;
 int savefiles = 0;
 int saveRTF = 0;
+int listonly = 0;
 char *filepath = NULL;
 
 void PrintTNEF(TNEFStruct TNEF);
@@ -18,10 +19,11 @@ void SaveVCard(TNEFStruct TNEF);
 
 
 void PrintHelp(void) {
-    printf("Yerase TNEF Exporter v1.05\n");
+    printf("Yerase TNEF Exporter v1.06\n");
     printf("\n");
     printf("  usage: ytnef [-+vhf] <filenames>\n");
     printf("\n");
+    printf("   -l   - Enables List-Only mode (for tnefclean)\n");
     printf("   -/+v - Enables/Disables verbose printing of MAPI Properties\n");
     printf("   -/+f - Enables/Disables saving of attachments\n");
     printf("   -/+F - Enables/Disables saving of inline message text as\n");
@@ -65,6 +67,8 @@ int main(int argc, char ** argv) {
                           filepath = argv[i+1];
                           i++;
                           break;
+                case 'l': listonly = 1;
+                          break;
                 case 'F': saveRTF = 1;
                           break;
                 default: 
@@ -94,8 +98,8 @@ int main(int argc, char ** argv) {
             printf(">>> ERROR processing file\n");
             continue;
         }
-        
-        printf("---> File %s\n", argv[i]);
+        if (listonly == 0) 
+            printf("---> File %s\n", argv[i]);
 
         PrintTNEF(TNEF);
         TNEFFree(&TNEF);
@@ -120,70 +124,78 @@ void PrintTNEF(TNEFStruct TNEF) {
     Attachment *p;
     TNEFStruct emb_tnef;
 
-    printf("---> In %s format\n", TNEF.version);
-    if (TNEF.from.size > 0) 
-        printf("From: %s\n", TNEF.from.data);
-    if (TNEF.subject.size > 0) 
-        printf("Subject: %s\n", TNEF.subject.data);
-    if (TNEF.priority[0] != 0) 
-        printf("Message Priority: %s\n", TNEF.priority);
-    if (TNEF.dateSent.wYear >0) {
-        printf("Date Sent: ");
-        TNEFPrintDate(TNEF.dateSent);
-        printf("\n");
+    if (listonly == 0) {
+        printf("---> In %s format\n", TNEF.version);
+        if (TNEF.from.size > 0) 
+            printf("From: %s\n", TNEF.from.data);
+        if (TNEF.subject.size > 0) 
+            printf("Subject: %s\n", TNEF.subject.data);
+        if (TNEF.priority[0] != 0) 
+            printf("Message Priority: %s\n", TNEF.priority);
+        if (TNEF.dateSent.wYear >0) {
+            printf("Date Sent: ");
+            TNEFPrintDate(TNEF.dateSent);
+            printf("\n");
+        }
+        if (TNEF.dateReceived.wYear >0) {
+            printf("Date Received: ");
+            TNEFPrintDate(TNEF.dateReceived);
+            printf("\n");
+        }
+        if (TNEF.messageStatus[0] != 0) 
+            printf("Message Status: %s\n", TNEF.messageStatus);
     }
-    if (TNEF.dateReceived.wYear >0) {
-        printf("Date Received: ");
-        TNEFPrintDate(TNEF.dateReceived);
-        printf("\n");
-    }
-    if (TNEF.messageStatus[0] != 0) 
-        printf("Message Status: %s\n", TNEF.messageStatus);
     if (TNEF.messageClass[0] != 0)  {
-        printf("Message Class: %s\n", TNEF.messageClass);
+        if (listonly == 0) 
+            printf("Message Class: %s\n", TNEF.messageClass);
         if (strcmp(TNEF.messageClass, "IPM.Contact") == 0) {
-            printf("Found a contact card\n");
-            if (savefiles == 1) {
+            if (listonly == 0) 
+                printf("Found a contact card\n");
+            if (savefiles == 1) 
                 SaveVCard(TNEF);
-            }
         }
     }
-    if (TNEF.OriginalMessageClass.size >0) 
-        printf("Original Message Class: %s\n", 
-                    TNEF.OriginalMessageClass.data);
-    if (TNEF.messageID[0] != 0) 
-        printf("Message ID: %s\n", TNEF.messageID);
-    if (TNEF.parentID[0] != 0) 
-        printf("Parent ID: %s\n", TNEF.parentID);
-    if (TNEF.conversationID[0] != 0) 
-        printf("Conversation ID: %s\n", TNEF.conversationID);
-    if (TNEF.DateStart.wYear >0) {
-        printf("Start Date: ");
-        TNEFPrintDate(TNEF.DateStart);
-        printf("\n");
+
+    if (listonly == 0) {
+        if (TNEF.OriginalMessageClass.size >0) 
+            printf("Original Message Class: %s\n", 
+                        TNEF.OriginalMessageClass.data);
+        if (TNEF.messageID[0] != 0) 
+            printf("Message ID: %s\n", TNEF.messageID);
+        if (TNEF.parentID[0] != 0) 
+            printf("Parent ID: %s\n", TNEF.parentID);
+        if (TNEF.conversationID[0] != 0) 
+            printf("Conversation ID: %s\n", TNEF.conversationID);
+        if (TNEF.DateStart.wYear >0) {
+            printf("Start Date: ");
+            TNEFPrintDate(TNEF.DateStart);
+            printf("\n");
+        }
+        if (TNEF.DateEnd.wYear > 0) {
+            printf("End Date: ");
+            TNEFPrintDate(TNEF.DateEnd);
+            printf("\n");
+        }
+        if (TNEF.Owner.size > 0 ) 
+            printf("Owner: %s\n", TNEF.Owner.data);
+
+        if (TNEF.Delegate.size > 0) 
+            printf("Delegate: %s\n", TNEF.Delegate.data);
+
+        if (TNEF.AidOwner.size > 0) 
+            printf("Aid Owner: %s\n", TNEF.AidOwner.data);
+
+
+        if (TNEF.body.size>0) 
+            printf("-- Message Body (%i bytes) --\n%s\n-- End Body --\n", 
+                    TNEF.body.size, TNEF.body.data); 
     }
-    if (TNEF.DateEnd.wYear > 0) {
-        printf("End Date: ");
-        TNEFPrintDate(TNEF.DateEnd);
-        printf("\n");
-    }
-    if (TNEF.Owner.size > 0 ) 
-        printf("Owner: %s\n", TNEF.Owner.data);
-
-    if (TNEF.Delegate.size > 0) 
-        printf("Delegate: %s\n", TNEF.Delegate.data);
-
-    if (TNEF.AidOwner.size > 0) 
-        printf("Aid Owner: %s\n", TNEF.AidOwner.data);
-
-
-    if (TNEF.body.size>0) 
-        printf("-- Message Body (%i bytes) --\n%s\n-- End Body --\n", 
-                TNEF.body.size, TNEF.body.data); 
-    
+        
     if (TNEF.MapiProperties.count > 0) {
-        printf("    MAPI Properties: %i\n", TNEF.MapiProperties.count);
-        if ((filename = MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_BINARY,PR_RTF_COMPRESSED))) == (variableLength*)-1) {
+        if (listonly == 0) 
+            printf("    MAPI Properties: %i\n", TNEF.MapiProperties.count);
+        if ((filename = MAPIFindProperty(&(TNEF.MapiProperties), 
+                   PROP_TAG(PT_BINARY,PR_RTF_COMPRESSED))) == (variableLength*)-1) {
 
         } else if ((savefiles == 1) && (saveRTF == 1)) {
             if (filepath == NULL) {
@@ -191,6 +203,9 @@ void PrintTNEF(TNEFStruct TNEF) {
             } else {
                 sprintf(ifilename, "%s/message.rtf", filepath);
             }
+            if (listonly == 1) 
+                printf("%s\n", ifilename);
+
             if ((fptr = fopen(ifilename, "wb"))==NULL) {
                 printf("Error writing file to disk!");
             } else {
@@ -204,9 +219,11 @@ void PrintTNEF(TNEFStruct TNEF) {
         }
     }
 
-    if ((filename = MAPIFindUserProp(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8,0x24))) != (variableLength*)-1) {
+    if ((filename = MAPIFindUserProp(&(TNEF.MapiProperties), 
+                        PROP_TAG(PT_STRING8,0x24))) != (variableLength*)-1) {
         if (strcmp(filename->data, "IPM.Appointment") == 0) {
-            printf("Found an appointment entry\n");
+            if (listonly == 0) 
+                printf("Found an appointment entry\n");
             if (savefiles == 1) {
                 SaveVCalendar(TNEF);
             }
@@ -218,58 +235,62 @@ void PrintTNEF(TNEFStruct TNEF) {
     count = 0;
     while (p != NULL) {
         count++;
-        printf("[%i] [", count);
-        switch (p->RenderData.atyp) {
-            case 0: printf("NULL      "); break;
-            case 1: printf("File      "); break;
-            case 2: printf("OLE Object"); break;
-            case 3: printf("Picture   "); break;
-            case 4: printf("Max       "); break;
-            default:printf("Unknown   "); 
-        }
-        printf("] ");
-        if (p->Title.size > 0) 
-            printf("%s", p->Title.data);
-        printf("\n");
-        if (p->RenderData.dwFlags == 0x00000001) 
-            printf("     MAC Binary Encoding\n");
-
-        if (p->TransportFilename.size >0) 
-            printf("     Transported under the name %s\n", 
-                    p->TransportFilename.data);
-
-        if (p->Date.wYear >0 ) {
-            printf("    Date: ");
-            TNEFPrintDate(p->Date);
+        if (listonly == 0) {
+            printf("[%i] [", count);
+            switch (p->RenderData.atyp) {
+                case 0: printf("NULL      "); break;
+                case 1: printf("File      "); break;
+                case 2: printf("OLE Object"); break;
+                case 3: printf("Picture   "); break;
+                case 4: printf("Max       "); break;
+                default:printf("Unknown   "); 
+            }
+            printf("] ");
+            if (p->Title.size > 0) 
+                printf("%s", p->Title.data);
             printf("\n");
-        }
-        if (p->CreateDate.wYear > 0) {
-            printf("    Creation Date: ");
-            TNEFPrintDate(p->CreateDate);
-            printf("\n");
-        }
-        if (p->ModifyDate.wYear > 0) {
-            printf("    Modified on: ");
-            TNEFPrintDate(p->ModifyDate);
-            printf("\n");
-        }
+            if (p->RenderData.dwFlags == 0x00000001) 
+                printf("     MAC Binary Encoding\n");
 
-        if (p->MAPI.count>0) {
-            printf("    MAPI Properties: %i\n", p->MAPI.count);
-            if (verbose == 1) {
-                MAPIPrint(&p->MAPI);
+            if (p->TransportFilename.size >0) 
+                printf("     Transported under the name %s\n", 
+                        p->TransportFilename.data);
+
+            if (p->Date.wYear >0 ) {
+                printf("    Date: ");
+                TNEFPrintDate(p->Date);
+                printf("\n");
+            }
+            if (p->CreateDate.wYear > 0) {
+                printf("    Creation Date: ");
+                TNEFPrintDate(p->CreateDate);
+                printf("\n");
+            }
+            if (p->ModifyDate.wYear > 0) {
+                printf("    Modified on: ");
+                TNEFPrintDate(p->ModifyDate);
+                printf("\n");
+            }
+
+            if (p->MAPI.count>0) {
+                printf("    MAPI Properties: %i\n", p->MAPI.count);
+                if (verbose == 1) {
+                    MAPIPrint(&p->MAPI);
+                }
             }
         }
 
         if (p->FileData.size > 0) {
-            printf("    Attachment Size:  %ib\n", p->FileData.size);
+            if (listonly == 0) 
+                printf("    Attachment Size:  %ib\n", p->FileData.size);
             
             if ((filename = MAPIFindProperty(&(p->MAPI), PROP_TAG(30,0x3707))) == (variableLength*)-1) {
                 if ((filename = MAPIFindProperty(&(p->MAPI), PROP_TAG(30,0x3001))) == (variableLength*)-1) {
                     filename = &(p->Title);
                 }
             }
-            printf("    File saves as [%s]\n", filename->data);
+            if (listonly == 0) 
+                printf("    File saves as [%s]\n", filename->data);
 
             if (savefiles == 1) {
                 if (filepath == NULL) {
@@ -277,6 +298,8 @@ void PrintTNEF(TNEFStruct TNEF) {
                 } else {
                     sprintf(ifilename, "%s/%s", filepath, filename->data);
                 }
+                if (listonly == 1) 
+                    printf("%s\n", ifilename);
                 if ((fptr = fopen(ifilename, "wb"))==NULL) {
                     printf("Error writing file to disk!");
                 } else {
@@ -294,12 +317,15 @@ void PrintTNEF(TNEFStruct TNEF) {
                     }
                     fclose(fptr);
                     if (object == 1) {
-                        printf("Attempting to parse embedded TNEF stream\n");
+                        if(listonly == 0) 
+                            printf("Attempting to parse embedded TNEF stream\n");
                         TNEFInitialize(&emb_tnef);
                         if (TNEFParseFile(ifilename, &emb_tnef) == -1) {
-                            printf(">>> ERROR processing file\n");
+                            if (listonly == 0) 
+                                printf(">>> ERROR processing file\n");
                         } else {
-                            printf("---> File %s\n", ifilename );
+                            if(listonly == 0) 
+                                printf("---> File %s\n", ifilename );
                             PrintTNEF(emb_tnef);
                         }
                         TNEFFree(&emb_tnef);
@@ -323,12 +349,16 @@ void SaveVCalendar(TNEFStruct TNEF) {
     DDWORD ddword_val;
     dtr thedate;
 
-    printf("-> Creating an icalendar attachment\n");
+    if (listonly == 0) 
+        printf("-> Creating an icalendar attachment\n");
     if (filepath == NULL) {
         sprintf(ifilename, "calendar.vcf");
     } else {
         sprintf(ifilename, "%s/calendar.vcf", filepath);
     }
+    if (listonly == 1) 
+        printf("%s\n", ifilename);
+
     if ((fptr = fopen(ifilename, "wb"))==NULL) {
             printf("Error writing file to disk!");
     } else {
@@ -493,9 +523,11 @@ void SaveVCard(TNEFStruct TNEF) {
     dtr thedate;
     int boolean,index;
 
-    printf("-> Creating a vCard attachment: ");
+    if (listonly == 0) 
+        printf("-> Creating a vCard attachment: ");
     if ((vl = MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, PR_DISPLAY_NAME))) == (variableLength*)-1) {
-        printf("\n-> Contact has no name. Aborting\n");
+        if (listonly == 0) 
+            printf("\n-> Contact has no name. Aborting\n");
         return;
     }
     if (filepath == NULL) {
