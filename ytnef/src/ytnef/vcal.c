@@ -53,7 +53,7 @@ void SaveVCalendar(TNEFStruct TNEF) {
         if (filename!=NULL) {
             fprintf(fptr, "UID:");
             for(index=0;index<filename->size;index++) {
-                fprintf(fptr,"%02x", (unsigned char)filename->data[index]);
+                fprintf(fptr,"%02X", (unsigned char)filename->data[index]);
             }
             fprintf(fptr,"\n");
         }
@@ -71,7 +71,7 @@ void SaveVCalendar(TNEFStruct TNEF) {
                 charptr2 = charptr;
             else
                 charptr2++;
-            fprintf(fptr, "ORGANIZER:MAILTO:%s\n", charptr2);
+            fprintf(fptr, "ORGANIZER:CN=\"%s\":MAILTO:%s\n", charptr2, charptr2);
         }
 
         // Required Attendees
@@ -89,8 +89,10 @@ void SaveVCalendar(TNEFStruct TNEF) {
                     }
                     while (*charptr == ' ') 
                         charptr++;
-                    fprintf(fptr, "ATTENDEE;CN=%s;ROLE=REQ-PARTICIPANT:%s;RSVP=TRUE\n", 
-                            charptr, charptr);
+                    fprintf(fptr, "ATTENDEE;PARTSTAT=NEEDS-ACTION;");
+                    fprintf(fptr, "ROLE=REQ-PARTICIPANT;RSVP=TRUE;");
+                    fprintf(fptr, "CN=\"%s\":MAILTO:%s\n",
+                                charptr, charptr);
                     charptr = charptr2;
                 }
             }
@@ -108,7 +110,9 @@ void SaveVCalendar(TNEFStruct TNEF) {
                         }
                         while (*charptr == ' ') 
                             charptr++;
-                        fprintf(fptr, "ATTENDEE;CN=%s;ROLE=OPT-PARTICIPANT:%s;RSVP=TRUE\n", 
+                        fprintf(fptr, "ATTENDEE;PARTSTAT=NEEDS-ACTION;");
+                        fprintf(fptr, "ROLE=OPT-PARTICIPANT;RSVP=TRUE;");
+                        fprintf(fptr, "CN=\"%s\":MAILTO:%s\n",
                                 charptr, charptr);
                         charptr = charptr2;
                     }
@@ -126,8 +130,10 @@ void SaveVCalendar(TNEFStruct TNEF) {
                     }
                     while (*charptr == ' ') 
                         charptr++;
-                    fprintf(fptr, "ATTENDEE;CN=%s;ROLE=REQ-PARTICIPANT:%s;RSVP=TRUE\n", 
-                            charptr, charptr);
+                    fprintf(fptr, "ATTENDEE;PARTSTAT=NEEDS-ACTION;");
+                    fprintf(fptr, "ROLE=REQ-PARTICIPANT;RSVP=TRUE;");
+                    fprintf(fptr, "CN=\"%s\":MAILTO:%s\n",
+                                charptr, charptr);
                     charptr = charptr2;
                 }
             }
