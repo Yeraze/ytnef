@@ -1,0 +1,5 @@
+1.1 - Nov 20th, 2003
+ * Fixed a bug in the way the Multi-valued Mapi properties were handled
+        Previously only the first 2 values were read, leaving the others
+        uninitialized, leading to segfaults.
+ 
