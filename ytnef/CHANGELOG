@@ -1,4 +1,4 @@
-v1.04 
+v1.04 1-11-2003
 Added code to use the PR_SENDER_SEARCH_KEY as the organizer
         of vcalendar objects.
 Fixed glitch with the From handler & the Message Class handler both
