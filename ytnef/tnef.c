@@ -1040,6 +1040,7 @@ void MAPIPrint(MAPIProps *p)
                     }
                     break;
                 case PT_OBJECT:
+                    printf("\n");
                     break;
                 default:
                     printf("    Value: [%s]\n", mapidata->data);
