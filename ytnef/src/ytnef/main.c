@@ -15,7 +15,6 @@ void ProcessTNEF(TNEFStruct TNEF);
 void SaveVCalendar(TNEFStruct TNEF);
 void SaveVCard(TNEFStruct TNEF);
 void SaveVTask(TNEFStruct TNEF);
-unsigned char * DecompressRTF(variableLength *p, int *size);
 
 
 void PrintHelp(void) {
@@ -250,87 +249,6 @@ void ProcessTNEF(TNEFStruct TNEF) {
     } // while p!= null
 }
 
-#define RTF_PREBUF "{\\rtf1\\ansi\\mac\\deff0\\deftab720{\\fonttbl;}{\\f0\\fnil \\froman \\fswiss \\fmodern \\fscript \\fdecor MS Sans SerifSymbolArialTimes New RomanCourier{\\colortbl\\red0\\green0\\blue0\n\r\\par \\pard\\plain\\f0\\fs20\\b\\i\\u\\tab\\tx"
-
-unsigned char *DecompressRTF(variableLength *p, int *size) {
-    unsigned char *dst; // destination for uncompressed bytes
-    unsigned char *src;
-    unsigned int in;
-    unsigned int out;
-    int i;
-    variableLength comp_Prebuf;
-
-    comp_Prebuf.size = strlen(RTF_PREBUF);
-    comp_Prebuf.data = calloc(comp_Prebuf.size, 1);
-    strcpy(comp_Prebuf.data, RTF_PREBUF);
-
-    src = p->data;
-    in = 0;
-
-    ULONG compressedSize = (ULONG)SwapDWord(src+in);
-    in += 4;
-    ULONG uncompressedSize = (ULONG)SwapDWord(src+in);
-    in += 4;
-    DWORD magic = SwapDWord(src+in);
-    in += 4;
-    DWORD crc32 = SwapDWord(src+in);
-    in += 4;
-
-    // check size excluding the size field itself
-    if (compressedSize != p->size - 4) {
-        printf(" Size Mismatch: %i != %i\n", compressedSize, p->size-4);
-        return NULL;
-    }
-
-    // process the data
-    if (magic == 0x414c454d) { 
-        // magic number that identifies the stream as a uncompressed stream
-        dst = calloc(uncompressedSize,1);
-        memcpy(dst, src+4, uncompressedSize);
-    } else if (magic == 0x75465a4c) { 
-        // magic number that identifies the stream as a compressed stream
-        dst = calloc(comp_Prebuf.size + uncompressedSize,1);
-        memcpy(dst, comp_Prebuf.data, comp_Prebuf.size);
-        out = comp_Prebuf.size;
-        int flagCount = 0;
-        int flags = 0;
-        while (out < (comp_Prebuf.size+uncompressedSize)) {
-            // each flag byte flags 8 literals/references, 1 per bit
-            flags = (flagCount++ % 8 == 0) ? src[in++] : flags >> 1;
-            if ((flags & 1) == 1) { // each flag bit is 1 for reference, 0 for literal
-                int offset = src[in++];
-                int length = src[in++];
-                offset = (offset << 4) | (length >> 4); // the offset relative to block start
-                length = (length & 0xF) + 2; // the number of bytes to copy
-                // the decompression buffer is supposed to wrap around back
-                // to the beginning when the end is reached. we save the
-                // need for such a buffer by pointing straight into the data
-                // buffer, and simulating this behaviour by modifying the
-                // pointers appropriately.
-                offset = (out / 4096) * 4096 + offset; 
-                if (offset >= out) // take from previous block
-	                offset -= 4096;
-                // note: can't use System.arraycopy, because the referenced
-                // bytes can cross through the current out position.
-                int end = offset + length;
-                while (offset < end)
-	                dst[out++] = dst[offset++];
-            } else { // literal
-                dst[out++] = src[in++];
-            }
-        }
-        // copy it back without the prebuffered data
-        src = dst;
-        dst = calloc(uncompressedSize,1);
-        memcpy(dst, src + comp_Prebuf.size, uncompressedSize);
-        free(src);
-        *size = uncompressedSize;
-        return dst;
-    } else { // unknown magic number
-        printf("Unknown compression type (magic number %x)\n", magic );
-        return NULL;
-    }
-}
 
 #include "utility.c"
 #include "vcal.c"
