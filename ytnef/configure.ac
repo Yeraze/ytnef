@@ -1,6 +1,6 @@
 # Process this file with autoconf to produce a configure script.
 AC_INIT(ytnef, 1.13, yerase@yeraze.com)
-AM_INIT_AUTOMAKE(ytnef, 1.13)
+AM_INIT_AUTOMAKE
 AC_CONFIG_SRCDIR([main.c])
 AC_CONFIG_HEADER([config.h])
 
