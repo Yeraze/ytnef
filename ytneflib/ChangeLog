@@ -1,4 +1,4 @@
--- CVS
+1.5 - Sep 14, 2004
  * Implemented a change suggested by "Larry Jones" to allow the Compressed RTF
         stuff to compile on older compilers.  Basically just pre-declaring
         variables.
