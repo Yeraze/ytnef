@@ -1,5 +1,6 @@
 v1.02 12-27-2002
 More fixes for the Endian problem, additions to the file-reading routines.
+Fixed warnings.
 -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 v1.01 12-27-2002
 Makefile cleanup - Removed references to openGL, Glut, & X libraries.
