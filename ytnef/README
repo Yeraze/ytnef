@@ -3,6 +3,9 @@ Yerase's TNEF Stream Reader
 
 INSTALLATION:
 
+NOTE: This *requires* that you've already installed libytnef (also available
+at ytnef.sourceforge.net)
+
 Simply run make, and copy the binary (ytnef) to somewhere in your path.
 On some systems you may need to edit the Makefile to change the CC= &
 LINK= lines to use cc instead of gcc.
