@@ -1020,6 +1020,18 @@ void SaveVTask(TNEFStruct TNEF) {
                     thedate.wYear, thedate.wMonth, thedate.wDay,
                     thedate.wHour, thedate.wMinute, thedate.wSecond);
         }
+        // Class
+        filename = NULL;
+        if ((filename=MAPIFindUserProp(&(TNEF.MapiProperties), PROP_TAG(PT_BOOLEAN, 0x8506))) != (variableLength*)-1) {
+            ddword_ptr = (DDWORD*)filename->data;
+            ddword_val = SwapDDWord((BYTE*)ddword_ptr);
+            fprintf(fptr, "CLASS:" );
+            if (*ddword_ptr == 1) {
+                fprintf(fptr,"PRIVATE\n");
+            } else {
+                fprintf(fptr,"PUBLIC\n");
+            }
+        }
         fprintf(fptr, "END:VTODO\n");
         fprintf(fptr, "END:VCALENDAR\n");
         fclose(fptr);
