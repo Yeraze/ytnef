@@ -118,18 +118,19 @@ void PrintRrule(FILE *fptr, char *recur_data, int size, TNEFStruct TNEF) {
     if (recur_data[0x04] == 0x0A) {
         fprintf(fptr, "DAILY");
 
-        if (recur_data[0x16] == 0x23 || recur_data[0x16] == 0x22) {
+        if (recur_data[0x16] == 0x23 || recur_data[0x16] == 0x22 ||
+                recur_data[0x16] == 0x21) {
             if ((filename=MAPIFindUserProp(&(TNEF.MapiProperties),
                     PROP_TAG(PT_I2, 0x0011))) != MAPI_UNDEFINED) {
                 fprintf(fptr, ";INTERVAL=%d", *(filename->data));
             }
-            if (recur_data[0x16] == 0x22) {
+            if (recur_data[0x16] == 0x22 || recur_data[0x16] == 0x21) {
                 fprintf(fptr, ";COUNT=%d", 
                     GetRruleCount(recur_data[0x1B], recur_data[0x1A]));
             }
         } else if (recur_data[0x16] == 0x3E) {
             fprintf(fptr, ";BYDAY=MO,TU,WE,TH,FR");
-            if (recur_data[0x1A] == 0x22) {
+            if (recur_data[0x1A] == 0x22 || recur_data[0x1A] == 0x21) {
                 fprintf(fptr, ";COUNT=%d", 
                     GetRruleCount(recur_data[0x1F], recur_data[0x1E]));
             }
@@ -137,7 +138,7 @@ void PrintRrule(FILE *fptr, char *recur_data, int size, TNEFStruct TNEF) {
     } else if (recur_data[0x04] == 0x0B) {
         fprintf(fptr, "WEEKLY;INTERVAL=%d;BYDAY=%s", 
             recur_data[0x0E], GetRruleDayname(recur_data[0x16]));
-        if (recur_data[0x1A] == 0x22) {
+        if (recur_data[0x1A] == 0x22 || recur_data[0x1A] == 0x21) {
             fprintf(fptr, ";COUNT=%d", 
                 GetRruleCount(recur_data[0x1F], recur_data[0x1E]));
         }
@@ -146,7 +147,7 @@ void PrintRrule(FILE *fptr, char *recur_data, int size, TNEFStruct TNEF) {
         if (recur_data[0x06] == 0x02) {
             fprintf(fptr, ";INTERVAL=%d;BYMONTHDAY=%d", recur_data[0x0E],
                 recur_data[0x16]);
-            if (recur_data[0x1A] == 0x22) {
+            if (recur_data[0x1A] == 0x22 || recur_data[0x1A] == 0x21) {
                 fprintf(fptr, ";COUNT=%d", GetRruleCount(recur_data[0x1F], 
                     recur_data[0x1E]));
             }
@@ -155,7 +156,7 @@ void PrintRrule(FILE *fptr, char *recur_data, int size, TNEFStruct TNEF) {
                 GetRruleDayname(recur_data[0x16]),
                 recur_data[0x1A] == 0x05 ? -1 : recur_data[0x1A],
                 recur_data[0x0E]);
-            if (recur_data[0x1E] == 0x22) {
+            if (recur_data[0x1E] == 0x22 || recur_data[0x1E] == 0x21) {
                 fprintf(fptr, ";COUNT=%d", GetRruleCount(recur_data[0x23],
                     recur_data[0x22]));
             }
@@ -170,7 +171,7 @@ void PrintRrule(FILE *fptr, char *recur_data, int size, TNEFStruct TNEF) {
                 GetRruleDayname(recur_data[0x16]),
                 recur_data[0x1A] == 0x05 ? -1 : recur_data[0x1A]);
         }
-        if (recur_data[0x1E] == 0x22) {
+        if (recur_data[0x1E] == 0x22 || recur_data[0x1E] == 0x21) {
             fprintf(fptr, ";COUNT=%d", GetRruleCount(recur_data[0x23],
                 recur_data[0x22]));
         }
