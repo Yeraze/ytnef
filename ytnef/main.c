@@ -346,6 +346,15 @@ void SaveVCalendar(TNEFStruct TNEF) {
             ddword_ptr = (DDWORD*)filename->data;
             fprintf(fptr, "SEQUENCE:%i\n", *ddword_ptr);
         }
+        if ((filename=MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_BINARY, PR_SENDER_SEARCH_KEY))) != (variableLength*)-1) {
+            charptr = filename->data;
+            charptr2 = strstr(charptr, ":");
+            if (charptr2 == NULL) 
+                charptr2 = charptr;
+            else
+                charptr2++;
+            fprintf(fptr, "ORGANIZER:MAILTO:%s\n", charptr2);
+        }
 
         // Required Attendees
         if ((filename = MAPIFindUserProp(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, 0x823b))) != (variableLength*)-1) {
@@ -353,7 +362,7 @@ void SaveVCalendar(TNEFStruct TNEF) {
                 // write them out.
             if (filename->size > 1) {
                 charptr = filename->data-1;
-                charptr2=(strstr, charptr+1, ";");
+                charptr2=strstr(charptr+1, ";");
                 while (charptr != NULL) {
                     charptr++;
                     charptr2 = strstr(charptr, ";");
@@ -372,7 +381,7 @@ void SaveVCalendar(TNEFStruct TNEF) {
                 // The list of optional participants
             if (filename->size > 1) {
                 charptr = filename->data-1;
-                charptr2=(strstr, charptr+1, ";");
+                charptr2=strstr(charptr+1, ";");
                 while (charptr != NULL) {
                     charptr++;
                     charptr2 = strstr(charptr, ";");
