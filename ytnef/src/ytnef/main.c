@@ -119,6 +119,8 @@ void ProcessTNEF(TNEFStruct TNEF) {
     int object;
     char ifilename[256];
     int i;
+    int foundCal=0;
+
     FILE *fptr;
 
 // First see if this requires special processing.
@@ -126,17 +128,23 @@ void ProcessTNEF(TNEFStruct TNEF) {
     if (TNEF.messageClass[0] != 0)  {
         if (strcmp(TNEF.messageClass, "IPM.Contact") == 0) {
             SaveVCard(TNEF );
-            return;
         }
         if (strcmp(TNEF.messageClass, "IPM.Task") == 0) {
             SaveVTask(TNEF);
-            return;
+        }
+        if (strcmp(TNEF.messageClass, "IPM.Appointment") == 0) {
+            SaveVCalendar(TNEF);
+            foundCal = 1;
         }
     }
     if ((filename = MAPIFindUserProp(&(TNEF.MapiProperties), 
                         PROP_TAG(PT_STRING8,0x24))) != MAPI_UNDEFINED) {
         if (strcmp(filename->data, "IPM.Appointment") == 0) {
-            SaveVCalendar(TNEF);
+            // If it's "indicated" twice, we don't want to save 2 calendar
+            // entries.
+            if (foundCal == 0) {
+                SaveVCalendar(TNEF);
+            }
         }
     }
 
