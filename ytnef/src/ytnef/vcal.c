@@ -44,6 +44,12 @@ void SaveVCalendar(TNEFStruct TNEF) {
         fprintf(fptr, "BEGIN:VEVENT\n");
 
         // UID
+        // After alot of comparisons, I'm reasonably sure this is totally
+        // wrong.  But it's not really necessary.
+        //
+        // I think it only exists to connect future modification entries to
+        // this entry. so as long as it's incorrectly interpreted the same way
+        // every time, it should be ok :)
         filename = NULL;
         if ((filename=MAPIFindUserProp(&(TNEF.MapiProperties), 
                         PROP_TAG(PT_BINARY, 0x3))) == MAPI_UNDEFINED) {
