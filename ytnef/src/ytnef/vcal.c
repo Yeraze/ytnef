@@ -89,7 +89,8 @@ void SaveVCalendar(TNEFStruct TNEF) {
                     }
                     while (*charptr == ' ') 
                         charptr++;
-                    fprintf(fptr, "ATTENDEE;CN=%s;ROLE=REQ-PARTICIPANT:%s\n", charptr, charptr);
+                    fprintf(fptr, "ATTENDEE;CN=%s;ROLE=REQ-PARTICIPANT:%s;RSVP=TRUE\n", 
+                            charptr, charptr);
                     charptr = charptr2;
                 }
             }
@@ -107,7 +108,8 @@ void SaveVCalendar(TNEFStruct TNEF) {
                         }
                         while (*charptr == ' ') 
                             charptr++;
-                        fprintf(fptr, "ATTENDEE;CN=%s;ROLE=OPT-PARTICIPANT:%s\n", charptr, charptr);
+                        fprintf(fptr, "ATTENDEE;CN=%s;ROLE=OPT-PARTICIPANT:%s;RSVP=TRUE\n", 
+                                charptr, charptr);
                         charptr = charptr2;
                     }
                 }
@@ -124,7 +126,8 @@ void SaveVCalendar(TNEFStruct TNEF) {
                     }
                     while (*charptr == ' ') 
                         charptr++;
-                    fprintf(fptr, "ATTENDEE;CN=%s;ROLE=REQ-PARTICIPANT:%s\n", charptr, charptr);
+                    fprintf(fptr, "ATTENDEE;CN=%s;ROLE=REQ-PARTICIPANT:%s;RSVP=TRUE\n", 
+                            charptr, charptr);
                     charptr = charptr2;
                 }
             }
