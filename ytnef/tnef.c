@@ -195,7 +195,7 @@ int TNEFBody STD_ARGLIST {
 int TNEFOriginalMsgClass STD_ARGLIST {
     TNEF->OriginalMessageClass.size = size;
     TNEF->OriginalMessageClass.data = calloc(size, sizeof(BYTE));
-    memcpy(TNEF->from.data, data, size);
+    memcpy(TNEF->OriginalMessageClass.data, data, size);
     return 0;
 }
 // -----------------------------------------------------------------------------
