@@ -7,17 +7,25 @@ void SaveVCard(TNEFStruct TNEF) {
     int boolean,index,i;
 
     if ((vl = MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, PR_DISPLAY_NAME))) == MAPI_UNDEFINED) {
-        if (TNEF.subject.size > 0) {
-            if (filepath == NULL) {
-                sprintf(ifilename, "%s.vcard", TNEF.subject.data);
+        if ((vl=MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, PR_COMPANY_NAME))) == MAPI_UNDEFINED) {
+            if (TNEF.subject.size > 0) {
+                if (filepath == NULL) {
+                    sprintf(ifilename, "%s.vcard", TNEF.subject.data);
+                } else {
+                    sprintf(ifilename, "%s/%s.vcard", filepath, TNEF.subject.data);
+                }
             } else {
-                sprintf(ifilename, "%s/%s.vcard", filepath, TNEF.subject.data);
+                if (filepath == NULL) {
+                    sprintf(ifilename, "unknown.vcard");
+                } else {
+                    sprintf(ifilename, "%s/unknown.vcard", filepath);
+                }
             }
         } else {
             if (filepath == NULL) {
-                sprintf(ifilename, "unknown.vcard");
+                sprintf(ifilename, "%s.vcard", vl->data);
             } else {
-                sprintf(ifilename, "%s/unknown.vcard", filepath);
+                sprintf(ifilename, "%s/%s.vcard", filepath, vl->data);
             }
         }
     } else {
@@ -39,8 +47,9 @@ void SaveVCard(TNEFStruct TNEF) {
     } else {
         fprintf(fptr, "BEGIN:VCARD\n");
         fprintf(fptr, "VERSION:2.1\n");
-        fprintf(fptr, "FN:%s\n", vl->data);
-
+        if (vl != MAPI_UNDEFINED) {
+            fprintf(fptr, "FN:%s\n", vl->data);
+        }
         fprintProperty(TNEF, fptr, PT_STRING8, PR_NICKNAME, "NICKNAME:%s\n");
         fprintUserProp(TNEF, fptr, PT_STRING8, 0x8554, "MAILER:Microsoft Outlook %s\n");
         fprintProperty(TNEF, fptr, PT_STRING8, PR_SPOUSE_NAME, "X-EVOLUTION-SPOUSE:%s\n");
