@@ -823,7 +823,8 @@ void TNEFFreeMapiProps(MAPIProps *p)
 int TNEFFile_Open (TNEFIOStruct *IO) {
     TNEFFileInfo *finfo;
     finfo = (TNEFFileInfo*)IO->data;
-    printf("DEBUG: Opening File: %s\n", finfo->filename);
+    if (finfo->Debug >= 3) 
+        printf("DEBUG: Opening %s\n", finfo->filename);
     if ((finfo->fptr = fopen(finfo->filename, "rb")) == NULL) {
         return -1;
     } else {
@@ -834,7 +835,8 @@ int TNEFFile_Open (TNEFIOStruct *IO) {
 int TNEFFile_Read (TNEFIOStruct *IO, int size, int count, void *dest) {
     TNEFFileInfo *finfo;
     finfo = (TNEFFileInfo*)IO->data;
-    printf("DEBUG: reading %i bytes\n", size);
+    if (finfo->Debug >= 3) 
+        printf("DEBUG: Reading %i blocks of %i size\n", count, size);
     if (finfo->fptr != NULL) {
         return fread((BYTE*)dest, size, count, finfo->fptr);
     } else {
@@ -846,6 +848,8 @@ int TNEFFile_Close (TNEFIOStruct *IO) {
     TNEFFileInfo *finfo;
     finfo = (TNEFFileInfo*)IO->data;
 
+    if (finfo->Debug >= 3) 
+        printf("DEBUG: Closing file %s\n", finfo->filename);
     if (finfo->fptr != NULL) {
         fclose(finfo->fptr);
         finfo->fptr = NULL;
@@ -853,10 +857,8 @@ int TNEFFile_Close (TNEFIOStruct *IO) {
     return 0;
 }
 
-// -----------------------------------------------------------------------------
 int TNEFParseFile(char *filename, TNEFStruct *TNEF) {
     TNEFFileInfo finfo;
-
 
     if (TNEF->Debug >= 1) 
         printf("Attempting to parse %s...\n", filename);
@@ -864,10 +866,52 @@ int TNEFParseFile(char *filename, TNEFStruct *TNEF) {
 
     finfo.filename = filename;
     finfo.fptr = NULL;
+    finfo.Debug = TNEF->Debug;
     TNEF->IO.data = (void*)&finfo;
     TNEF->IO.InitProc = TNEFFile_Open;
     TNEF->IO.ReadProc = TNEFFile_Read;
     TNEF->IO.CloseProc = TNEFFile_Close;
+    return TNEFParse(TNEF);
+}
+//-------------------------------------------------------------
+// Procedures to handle Memory IO
+int TNEFMemory_Open (TNEFIOStruct *IO) {
+    TNEFMemInfo *minfo;
+    minfo = (TNEFMemInfo*)IO->data;
+
+    minfo->ptr = minfo->dataStart;
+}
+
+int TNEFMemory_Read (TNEFIOStruct *IO, int size, int count, void *dest) {
+    TNEFMemInfo *minfo;
+    int length;
+    minfo = (TNEFMemInfo*)IO->data;
+
+    length = count*size;
+    if (minfo->Debug >= 3) 
+        printf("DEBUG: Copying %i bytes\n", length);
+
+    memcpy(dest, minfo->ptr, length);
+    minfo->ptr+=length;
+}
+
+int TNEFMemory_Close (TNEFIOStruct *IO) {
+    // Do nothing, really...
+}
+
+int TNEFParseMemory(BYTE *memory, TNEFStruct *TNEF) {
+    TNEFMemInfo minfo;
+
+    if (TNEF->Debug >= 1) 
+        printf("Attempting to parse memory block...\n");
+
+    minfo.dataStart = memory;
+    minfo.ptr = memory;
+    minfo.Debug = TNEF->Debug;
+    TNEF->IO.data = (void*)&minfo;
+    TNEF->IO.InitProc = TNEFMemory_Open;
+    TNEF->IO.ReadProc = TNEFMemory_Read;
+    TNEF->IO.CloseProc = TNEFMemory_Close;
     return TNEFParse(TNEF);
 }
 

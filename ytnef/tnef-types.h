@@ -78,7 +78,15 @@ typedef struct
 {
     char *filename;
     FILE *fptr;
+    int Debug;
 } TNEFFileInfo;
+
+typedef struct 
+{
+    BYTE *dataStart;
+    BYTE *ptr;
+    int Debug;
+} TNEFMemInfo;
 
 typedef struct 
 {

@@ -13,6 +13,7 @@ void TNEFInitialize(TNEFStruct *TNEF);
 void TNEFFree(TNEFStruct *TNEF);
 void TNEFFreeAttachment(Attachment *p);
 void TNEFFreeMapiProps(MAPIProps *p);
+int TNEFParseMemory(BYTE *memory, TNEFStruct *TNEF);
 int TNEFParseFile(char *filename, TNEFStruct *TNEF);
 int TNEFParse(TNEFStruct *TNEF);
 variableLength *MAPIFindUserProp(MAPIProps *p, unsigned int ID);
