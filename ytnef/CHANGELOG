@@ -1,3 +1,9 @@
+v1.04 
+Added code to use the PR_SENDER_SEARCH_KEY as the organizer
+        of vcalendar objects.
+Fixed glitch with the From handler & the Message Class handler both
+        storing in the same namespace.
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 v1.03 1-5-2003
 More endian fixes, now finally works on PowerPC.
 Modified the main.c to place the printing in a separate file.
