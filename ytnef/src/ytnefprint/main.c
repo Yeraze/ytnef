@@ -20,9 +20,12 @@ void PrintHelp(void) {
             printf(VERSION);
             printf("\n");
     printf("\n");
-    printf("  usage: ytnefprint <filenames>\n");
+    printf("  usage: ytnefprint <options> <filenames>\n");
     printf("\n");
+    printf("Options:\n");
     printf("   -h   - Displays this help message\n");
+    printf("   -v   - Verbose output (multiple -v's increase \n");
+    printf("                   the level of output.\n");
     printf("\n");
     printf("Send bug reports to ");
         printf(PACKAGE_BUGREPORT);
