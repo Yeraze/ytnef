@@ -50,7 +50,7 @@ sub processParts {
                 close(FPTR);
                 $io->close;
 
-                `$reader -f $output_dir -F $output_dir/winmail.dat`;
+                `$reader -f $output_dir +F $output_dir/winmail.dat`;
                 `rm -f $output_dir/winmail.dat`;
 
                 opendir(DIR, $output_dir) 
