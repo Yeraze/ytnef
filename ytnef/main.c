@@ -542,8 +542,8 @@ void SaveVCalendar(TNEFStruct TNEF) {
         // Summary
         filename = NULL;
         if((filename=MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, PR_CONVERSATION_TOPIC)))!=(variableLength*)-1) {
-            fprintf(fptr, "SUMMARY;QUOTED-PRINTABLE:");
-            quotedfprint(fptr, filename);
+            fprintf(fptr, "SUMMARY:");
+            Cstylefprint(fptr, filename);
             fprintf(fptr, "\n");
         }
         // Location

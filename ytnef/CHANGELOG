@@ -1,4 +1,6 @@
 v1.11
+Fixed a problem with vCalendar entries using C-Style strings instead of
+quoted-printable strings.
 Fixed a mis-spelled field name in vCalendar entries (DCREATED vs CREATED)
 -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 v1.10
