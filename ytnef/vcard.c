@@ -6,16 +6,11 @@ void SaveVCard(TNEFStruct TNEF) {
     dtr thedate;
     int boolean,index,i;
 
-    if (listonly == 0) 
-        printf("-> Creating a vCard attachment: ");
     if ((vl = MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, PR_DISPLAY_NAME))) == MAPI_UNDEFINED) {
-        if (listonly == 0) 
-            printf("\n-> Contact has no name. Aborting\n");
+        printf("\n-> Contact has no name. Aborting\n");
         return;
     }
     
-    if ((listonly == 1) && (filenameonly == 1)) 
-        printf("%s.vcard\n", vl->data);
     if (filepath == NULL) {
         sprintf(ifilename, "%s.vcard", vl->data);
     } else {
@@ -24,10 +19,10 @@ void SaveVCard(TNEFStruct TNEF) {
     for(i=0; i<strlen(ifilename); i++) 
         if (ifilename[i] == ' ') 
             ifilename[i] = '_';
-    if ((listonly == 1) && (filenameonly == 0)) 
-        printf("%s.vcard\n", vl->data);
-    if (listonly == 0) 
-        printf("%s\n", ifilename);
+    printf("%s\n", ifilename);
+
+    if (savefiles == 0) return;
+
     if ((fptr = fopen(ifilename, "wb"))==NULL) {
             printf("Error writing file to disk!");
     } else {

@@ -12,18 +12,12 @@ void SaveVTask(TNEFStruct TNEF) {
     vl = MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, PR_CONVERSATION_TOPIC));
 
     if (vl == MAPI_UNDEFINED) {
-        if (listonly == 0) 
-            printf("No Conversation Topic\n");
         return;
     }
-    if (listonly == 0) 
-        printf("-> Creating a vCalendar Task attachment: ");
 
     index = strlen(vl->data);
     while (vl->data[index] == ' ') 
             vl->data[index--] = 0;
-    if ((listonly == 1) && (filenameonly == 1)) 
-        printf("%s.vcf\n", vl->data);
 
     if (filepath == NULL) {
         sprintf(ifilename, "%s.vcf", vl->data);
@@ -33,10 +27,10 @@ void SaveVTask(TNEFStruct TNEF) {
     for(i=0; i<strlen(ifilename); i++) 
         if (ifilename[i] == ' ') 
             ifilename[i] = '_';
-    if ((listonly == 1) && (filenameonly == 0)) 
-        printf("%s.vcf\n", vl->data);
-    if (listonly == 0) 
-        printf("%s\n", ifilename);
+    printf("%s\n", ifilename);
+
+    if (savefiles == 0) return;
+
     if ((fptr = fopen(ifilename, "wb"))==NULL) {
             printf("Error writing file to disk!");
     } else {

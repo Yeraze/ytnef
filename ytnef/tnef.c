@@ -8,6 +8,28 @@
 #include "mapitags.h"
 #include "config.h"
 
+#define DEBUG(lvl, curlvl, msg) \
+        if ((lvl) >= (curlvl)) \
+            printf("DEBUG(%i/%i): %s\n", curlvl, lvl,  msg);
+#define DEBUG1(lvl, curlvl, msg, var1) \
+        if ((lvl) >= (curlvl)) { \
+            printf("DEBUG(%i/%i):", curlvl, lvl,  msg); \
+            printf(msg, var1); \
+            printf("\n"); \
+        }
+#define DEBUG2(lvl, curlvl, msg, var1, var2) \
+        if ((lvl) >= (curlvl)) { \
+            printf("DEBUG(%i/%i):", curlvl, lvl,  msg); \
+            printf(msg, var1, var2); \
+            printf("\n"); \
+        }
+#define DEBUG3(lvl, curlvl, msg, var1, var2, var3) \
+        if ((lvl) >= (curlvl)) { \
+            printf("DEBUG(%i/%i):", curlvl, lvl,  msg); \
+            printf(msg, var1, var2,var3); \
+            printf("\n"); \
+        }
+
 #define MIN(x,y) (((x)<(y))?(x):(y))
 void TNEFFillMapi(TNEFStruct *TNEF, BYTE *data, DWORD size, MAPIProps *p);
 void SetFlip(void);
@@ -637,9 +659,8 @@ int TNEFGetKey(TNEFStruct *TNEF, WORD *key) {
         return YTNEF_ERROR_READING_DATA;
     }
     *key = SwapWord((BYTE*)key);
-    if (TNEF->Debug >= 2) {
-        printf("DEBUG: Key = %i\n", *key);
-    }
+
+    DEBUG1(TNEF->Debug, 2, "Key = %i", *key);
     return 0;
 }
 
@@ -650,35 +671,30 @@ int TNEFGetHeader(TNEFStruct *TNEF, DWORD *type, DWORD *size) {
     int i;
     WORD wtemp;
 
-    if (TNEF->Debug >= 2) 
-        printf("DEBUG: About to read Component\n");
+    DEBUG(TNEF->Debug, 2, "About to read Component");
     if (TNEF->IO.ReadProc(&(TNEF->IO), sizeof(BYTE),1, &component) < 1) {
-        if (TNEF->Debug >= 1) 
-            printf("ERROR: Error reading component\n");
         return YTNEF_ERROR_READING_DATA;
     }
 
 
-    if (TNEF->Debug >= 2) 
-        printf("DEBUG: About to read type\n");
+    DEBUG(TNEF->Debug, 2, "About to read type");
     if (TNEF->IO.ReadProc(&(TNEF->IO), sizeof(DWORD), 1, type)  < 1) {
         if (TNEF->Debug >= 1) 
             printf("ERROR: Error reading type\n");
         return YTNEF_ERROR_READING_DATA;
     }
-    if (TNEF->Debug >= 2) 
-        printf("DEBUG: Type = %i\n", *type);
+    DEBUG1(TNEF->Debug, 2, "Type = %i", *type);
 
 
-    if (TNEF->Debug >= 2) 
-        printf("DEBUG: About to read size\n");
+    DEBUG(TNEF->Debug, 2, "About to read size");
     if (TNEF->IO.ReadProc(&(TNEF->IO), sizeof(DWORD), 1, size) < 1) {
         if (TNEF->Debug >= 1) 
             printf("ERROR: Error reading size\n");
         return YTNEF_ERROR_READING_DATA;
     }
-    if (TNEF->Debug >= 2) 
-        printf("DEBUG: Size = %i\n", *size);
+
+
+    DEBUG1(TNEF->Debug, 2, "Size = %i", *size);
 
     *type = SwapDWord((BYTE*)type);
     *size = SwapDWord((BYTE*)size);
@@ -823,8 +839,8 @@ void TNEFFreeMapiProps(MAPIProps *p)
 int TNEFFile_Open (TNEFIOStruct *IO) {
     TNEFFileInfo *finfo;
     finfo = (TNEFFileInfo*)IO->data;
-    if (finfo->Debug >= 3) 
-        printf("DEBUG: Opening %s\n", finfo->filename);
+
+    DEBUG1(finfo->Debug, 3, "Opening %s", finfo->filename);
     if ((finfo->fptr = fopen(finfo->filename, "rb")) == NULL) {
         return -1;
     } else {
@@ -835,8 +851,8 @@ int TNEFFile_Open (TNEFIOStruct *IO) {
 int TNEFFile_Read (TNEFIOStruct *IO, int size, int count, void *dest) {
     TNEFFileInfo *finfo;
     finfo = (TNEFFileInfo*)IO->data;
-    if (finfo->Debug >= 3) 
-        printf("DEBUG: Reading %i blocks of %i size\n", count, size);
+
+    DEBUG2(finfo->Debug, 3, "Reading %i blocks of %i size", count, size);
     if (finfo->fptr != NULL) {
         return fread((BYTE*)dest, size, count, finfo->fptr);
     } else {
@@ -848,8 +864,7 @@ int TNEFFile_Close (TNEFIOStruct *IO) {
     TNEFFileInfo *finfo;
     finfo = (TNEFFileInfo*)IO->data;
 
-    if (finfo->Debug >= 3) 
-        printf("DEBUG: Closing file %s\n", finfo->filename);
+    DEBUG1(finfo->Debug, 3, "Closing file %s", finfo->filename);
     if (finfo->fptr != NULL) {
         fclose(finfo->fptr);
         finfo->fptr = NULL;
@@ -880,6 +895,7 @@ int TNEFMemory_Open (TNEFIOStruct *IO) {
     minfo = (TNEFMemInfo*)IO->data;
 
     minfo->ptr = minfo->dataStart;
+    return 0;
 }
 
 int TNEFMemory_Read (TNEFIOStruct *IO, int size, int count, void *dest) {
@@ -890,15 +906,15 @@ int TNEFMemory_Read (TNEFIOStruct *IO, int size, int count, void *dest) {
 
     length = count*size;
     max = (minfo->dataStart + minfo->size) - (minfo->ptr);
-    if (max > length) {
+    if (length > max) {
         return -1;
     }
 
-    if (minfo->Debug >= 3) 
-        printf("DEBUG: Copying %i bytes\n", length);
+    DEBUG1(minfo->Debug, 3, "Copying %i bytes", length);
 
     memcpy(dest, minfo->ptr, length);
     minfo->ptr+=length;
+    return count;
 }
 
 int TNEFMemory_Close (TNEFIOStruct *IO) {
@@ -908,8 +924,7 @@ int TNEFMemory_Close (TNEFIOStruct *IO) {
 int TNEFParseMemory(BYTE *memory, long size, TNEFStruct *TNEF) {
     TNEFMemInfo minfo;
 
-    if (TNEF->Debug >= 1) 
-        printf("Attempting to parse memory block...\n");
+    DEBUG(TNEF->Debug, 1, "Attempting to parse memory block...\n");
 
     minfo.dataStart = memory;
     minfo.ptr = memory;
@@ -933,66 +948,54 @@ int TNEFParse(TNEFStruct *TNEF) {
     int i;
 
     if (TNEF->IO.ReadProc == NULL) {
-        if (TNEF->Debug >= 1) 
-            printf("ERROR: Setup incorrectly: No ReadProc\n");
+        printf("ERROR: Setup incorrectly: No ReadProc\n");
         return YTNEF_INCORRECT_SETUP;
     }
 
     if (TNEF->IO.InitProc != NULL) {
-        if (TNEF->Debug >= 2) 
-            printf("DEBUG: About to initialize\n");
+        DEBUG(TNEF->Debug, 2, "About to initialize");
         if (TNEF->IO.InitProc (&TNEF->IO) != 0) {
             return YTNEF_CANNOT_INIT_DATA;
         }
-        if (TNEF->Debug >= 2) 
-            printf("DEBUG: Done.\n");
+        DEBUG(TNEF->Debug, 2, "Initialization finished");
     }
    
-    if (TNEF->Debug >= 2) 
-        printf("DEBUG: Reading Signature.\n");
+    DEBUG(TNEF->Debug, 2, "Reading Signature");
     if (TNEF->IO.ReadProc (&TNEF->IO, sizeof(DWORD), 1, &signature) < 1) {
-        if (TNEF->Debug >= 1) 
-            printf("ERROR: Error reading signature\n");
+        printf("ERROR: Error reading signature\n");
         if (TNEF->IO.CloseProc != NULL) {
             TNEF->IO.CloseProc (&TNEF->IO);
         }
         return YTNEF_ERROR_READING_DATA;
     }
 
-    if (TNEF->Debug >= 2) 
-        printf("DEBUG: checking Signature.\n");
+    DEBUG(TNEF->Debug, 2, "Checking Signature");
     if (TNEFCheckForSignature(signature) < 0) {
-        if (TNEF->Debug >= 1) 
-            printf("ERROR: Signature does not match. Not a TNEF file.\n");
+        printf("ERROR: Signature does not match. Not TNEF.\n");
         if (TNEF->IO.CloseProc != NULL) {
             TNEF->IO.CloseProc (&TNEF->IO);
         }
         return YTNEF_NOT_TNEF_STREAM;
     }
 
-    if (TNEF->Debug >= 2) 
-        printf("DEBUG: Reading Key.\n");
+    DEBUG(TNEF->Debug, 2, "Reading Key.");
 
     if (TNEFGetKey(TNEF, &key) < 0) {
-        if (TNEF->Debug >= 1)
-            printf("ERROR: Unable to retrieve key.\n");
+        printf("ERROR: Unable to retrieve key.\n");
         if (TNEF->IO.CloseProc != NULL) {
             TNEF->IO.CloseProc (&TNEF->IO);
         }
         return YTNEF_NO_KEY;
     }
 
-    if (TNEF->Debug >= 2) 
-        printf("DEBUG: Starting full-processing.\n");
+    DEBUG(TNEF->Debug, 2, "Starting Full Processing.");
 
     while (TNEFGetHeader(TNEF, &type, &size) == 0) {
-        if (TNEF->Debug >= 2) 
-            printf("DEBUG: Header says type=%i, size=%i.\n", type, size);
+        DEBUG2(TNEF->Debug, 2, "Header says type=%i, size=%i", type, size);
         if (size > 0) {
             data = calloc(size, sizeof(BYTE));
             if (TNEFRawRead(TNEF, data, size, &header_checksum)< 0) {
-                if (TNEF->Debug >= 1) 
-                    printf("ERROR: Unable to read data.\n");
+                printf("ERROR: Unable to read data.\n");
                 if (TNEF->IO.CloseProc != NULL) {
                     TNEF->IO.CloseProc (&TNEF->IO);
                 }
@@ -1000,8 +1003,7 @@ int TNEFParse(TNEFStruct *TNEF) {
                 return YTNEF_ERROR_READING_DATA;
             }
             if (TNEFRawRead(TNEF, (BYTE *)&checksum, 2, NULL) < 0) {
-                if (TNEF->Debug >= 1) 
-                    printf("ERROR: Unable to read checksum.\n");
+                printf("ERROR: Unable to read checksum.\n");
                 if (TNEF->IO.CloseProc != NULL) {
                     TNEF->IO.CloseProc (&TNEF->IO);
                 }
@@ -1010,8 +1012,7 @@ int TNEFParse(TNEFStruct *TNEF) {
             }
 	    checksum = SwapWord((BYTE*)&checksum);
             if (checksum != header_checksum) {
-                if (TNEF->Debug >= 1)
-                    printf("ERROR: Checksum mismatch. Data corruption?:\n");
+                printf("ERROR: Checksum mismatch. Data corruption?:\n");
                 if (TNEF->IO.CloseProc != NULL) {
                     TNEF->IO.CloseProc (&TNEF->IO);
                 }
@@ -1029,9 +1030,8 @@ int TNEFParse(TNEFStruct *TNEF) {
                             return YTNEF_ERROR_IN_HANDLER;
                         }
                     } else {
-                        if (TNEF->Debug >= 1)
-                            printf("No handler for %s: %i bytes\n", 
-                                TNEFList[i].name, size);
+                        DEBUG2(TNEF->Debug, 1, "No handler for %s: %i bytes",
+                                    TNEFList[i].name, size);
                     }
                 }
             }

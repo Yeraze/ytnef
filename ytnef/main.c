@@ -17,6 +17,7 @@ int listonly = 0;
 int filenameonly = 0;
 char *filepath = NULL;
 void PrintTNEF(TNEFStruct TNEF);
+void ProcessTNEF(TNEFStruct TNEF);
 void SaveVCalendar(TNEFStruct TNEF);
 void SaveVCard(TNEFStruct TNEF);
 void SaveVTask(TNEFStruct TNEF);
@@ -29,13 +30,8 @@ void PrintHelp(void) {
     printf("\n");
     printf("  usage: ytnef [-+vhf] <filenames>\n");
     printf("\n");
-    printf("   -l   - Enables List-Only mode (for tnefclean)\n");
-    printf("   -L   - Enables List-Only mode (filenames only)\n");
-    printf("   -/+v - Enables/Disables verbose printing of MAPI Properties\n");
+    printf("   -/+v - Enables/Disables verbose output\n");
     printf("   -/+f - Enables/Disables saving of attachments\n");
-    printf("   -/+F - Enables/Disables saving of inline message text as\n");
-    printf("          compressed RTF (not very *nix-friendly\n");
-    printf("           (requires -f option)\n");
     printf("   -h   - Displays this help message\n");
     printf("\n");
     printf("Example:\n");
@@ -109,21 +105,150 @@ int main(int argc, char ** argv) {
         TNEFInitialize(&TNEF);
         TNEF.Debug = verbose;
         if (TNEFParseFile(argv[i], &TNEF) == -1) {
-            printf(">>> ERROR processing file\n");
+            printf("ERROR processing file\n");
             continue;
         }
-        if (listonly == 0) 
-            printf("---> File %s\n", argv[i]);
-
-        PrintTNEF(TNEF);
+        if (TNEF.Debug >= 9) {
+            PrintTNEF(TNEF);
+        } else {
+            ProcessTNEF(TNEF);
+        }
         TNEFFree(&TNEF);
     }
 }
 
+void ProcessTNEF(TNEFStruct TNEF) {
+    char *astring;
+    variableLength *filename;
+    variableLength *filedata;
+    Attachment *p;
+    TNEFStruct emb_tnef;
+    int RealAttachment;
+    int object;
+    char ifilename[256];
+    int i;
+    FILE *fptr;
+
+// First see if this requires special processing.
+// ie: it's a Contact Card, Task, or Meeting request (vCal/vCard)
+    if (TNEF.messageClass[0] != 0)  {
+        if (strcmp(TNEF.messageClass, "IPM.Contact") == 0) {
+            SaveVCard(TNEF );
+            return;
+        }
+        if (strcmp(TNEF.messageClass, "IPM.Task") == 0) {
+            SaveVTask(TNEF);
+            return;
+        }
+    }
+    if ((filename = MAPIFindUserProp(&(TNEF.MapiProperties), 
+                        PROP_TAG(PT_STRING8,0x24))) != MAPI_UNDEFINED) {
+        if (strcmp(filename->data, "IPM.Appointment") == 0) {
+            SaveVCalendar(TNEF);
+        }
+    }
+
+// Now process each attachment
+    p = TNEF.starting_attach.next;
+    while (p != NULL) {
+        // Make sure it has a size.
+        if (p->FileData.size > 0) {
+            object = 1;           
+            // See if the contents are stored as "attached data"
+            //  Inside the MAPI blocks.
+            if((filedata = MAPIFindProperty(&(p->MAPI), 
+                                    PROP_TAG(PT_OBJECT, PR_ATTACH_DATA_OBJ))) 
+                    == MAPI_UNDEFINED) {
+                if((filedata = MAPIFindProperty(&(p->MAPI), 
+                                    PROP_TAG(PT_BINARY, PR_ATTACH_DATA_OBJ))) 
+                        == MAPI_UNDEFINED) {
+                    // Nope, standard TNEF stuff.
+                    filedata = &(p->FileData);
+                    object = 0;
+                }
+            }
+            // See if this is an embedded TNEF stream.
+            RealAttachment = 1;
+            if (object == 1) {
+                // This is an "embedded object", so skip the
+                // 16-byte identifier first.
+                DWORD signature;
+                memcpy(&signature, filedata->data+16, sizeof(DWORD));
+                if (TNEFCheckForSignature(signature) == 0) {
+                    // Has a TNEF signature, so process it.
+                    TNEFInitialize(&emb_tnef);
+                    emb_tnef.Debug = TNEF.Debug;
+                    if (TNEFParseMemory(filedata->data+16, 
+                            filedata->size-16, &emb_tnef) != -1) {
+                        ProcessTNEF(emb_tnef);
+                        RealAttachment = 0;
+                    }
+                    TNEFFree(&emb_tnef);
+                }
+            } else {
+                DWORD signature;
+                memcpy(&signature, filedata->data, sizeof(DWORD));
+                if (TNEFCheckForSignature(signature) == 0) {
+                    // Has a TNEF signature, so process it.
+                    TNEFInitialize(&emb_tnef);
+                    emb_tnef.Debug = TNEF.Debug;
+                    if (TNEFParseMemory(filedata->data, 
+                            filedata->size, &emb_tnef) != -1) {
+                        ProcessTNEF(emb_tnef);
+                        RealAttachment = 0;
+                    }
+                    TNEFFree(&emb_tnef);
+                }
+            }
+            if (RealAttachment == 1) {
+                // Ok, it's not an embedded stream, so now we
+                // process it.
+                if ((filename = MAPIFindProperty(&(p->MAPI), 
+                                        PROP_TAG(30,0x3707))) 
+                        == MAPI_UNDEFINED) {
+                    if ((filename = MAPIFindProperty(&(p->MAPI), 
+                                        PROP_TAG(30,0x3001))) 
+                            == MAPI_UNDEFINED) {
+                        filename = &(p->Title);
+                    }
+                }
+                if (filepath == NULL) {
+                    sprintf(ifilename, "%s", filename->data);
+                } else {
+                    sprintf(ifilename, "%s/%s", filepath, filename->data);
+                }
+                for(i=0; i<strlen(ifilename); i++) 
+                    if (ifilename[i] == ' ') 
+                        ifilename[i] = '_';
+                printf("%s\n", ifilename);
+                if (savefiles == 1) {
+                    if ((fptr = fopen(ifilename, "wb"))==NULL) {
+                        printf("ERROR: Error writing file to disk!");
+                    } else {
+                        if (object == 1) {
+                            fwrite(filedata->data + 16, 
+                                    sizeof(BYTE), 
+                                    filedata->size - 16, 
+                                    fptr);
+                        } else {
+                            fwrite(filedata->data, 
+                                    sizeof(BYTE), 
+                                    filedata->size, 
+                                    fptr);
+                        }
+                        fclose(fptr);
+                    } // if we opened successfully
+                } // if savefiles == 1
+            } // if RealAttachment == 1
+        } // if size>0
+        p=p->next;
+    } // while p!= null
+}
 
 
 
-
+/// This is old, & pretty messy.
+//   Really only useful now for debugging.
 void PrintTNEF(TNEFStruct TNEF) {
     int index,i;
     int j, object;
@@ -132,9 +257,11 @@ void PrintTNEF(TNEFStruct TNEF) {
     char ifilename[256];
     char *charptr, *charptr2;
     DDWORD ddword_tmp;
+    int SaveFile;
     DDWORD *ddword_ptr;
     MAPIProps mapip;
     variableLength *filename;
+    variableLength *filedata;
     Attachment *p;
     TNEFStruct emb_tnef;
 
@@ -310,12 +437,48 @@ void PrintTNEF(TNEFStruct TNEF) {
                     filename = &(p->Title);
                 }
             }
-            if (listonly == 0) 
-                printf("    File saves as [%s]\n", filename->data);
 
-            if (savefiles == 1) {
-                if ((listonly == 1) && (filenameonly == 1)) 
-                    printf("%s\n", filename->data);
+
+            object = 1;           
+            if((filedata = MAPIFindProperty(&(p->MAPI), 
+                                    PROP_TAG(PT_OBJECT, PR_ATTACH_DATA_OBJ))) 
+                    == MAPI_UNDEFINED) {
+                if((filedata = MAPIFindProperty(&(p->MAPI), 
+                                    PROP_TAG(PT_BINARY, PR_ATTACH_DATA_OBJ))) 
+                        == MAPI_UNDEFINED) {
+                    filedata = &(p->FileData);
+                    object = 0;
+                }
+            }
+            SaveFile = 1;
+            if (object == 1) {
+                DWORD signature;
+                memcpy(&signature, filedata->data+16, sizeof(DWORD));
+                if (TNEFCheckForSignature(signature) == 0) {
+                    TNEFInitialize(&emb_tnef);
+                    emb_tnef.Debug = TNEF.Debug;
+                    if (TNEFParseMemory(filedata->data+16, 
+                            filedata->size-16, &emb_tnef) != -1) {
+                        PrintTNEF(emb_tnef);
+                        SaveFile = 0;
+                    }
+                    TNEFFree(&emb_tnef);
+                }
+            } else {
+                DWORD signature;
+                memcpy(&signature, filedata->data, sizeof(DWORD));
+                if (TNEFCheckForSignature(signature) == 0) {
+                    TNEFInitialize(&emb_tnef);
+                    emb_tnef.Debug = TNEF.Debug;
+                    if (TNEFParseMemory(filedata->data, 
+                            filedata->size, &emb_tnef) != -1) {
+                        PrintTNEF(emb_tnef);
+                        SaveFile = 0;
+                    }
+                    TNEFFree(&emb_tnef);
+                }
+            }
+            if (SaveFile == 1) {
                 if (filepath == NULL) {
                     sprintf(ifilename, "%s", filename->data);
                 } else {
@@ -324,39 +487,26 @@ void PrintTNEF(TNEFStruct TNEF) {
                 for(i=0; i<strlen(ifilename); i++) 
                     if (ifilename[i] == ' ') 
                         ifilename[i] = '_';
+
+                if (listonly == 0) 
+                    printf("    File saves as [%s]\n", ifilename);
+                if ((listonly == 1) && (filenameonly == 1)) 
+                    printf("%s\n", ifilename);
                 if ((listonly == 1) && (filenameonly == 0)) 
                     printf("%s\n", ifilename);
-                if ((fptr = fopen(ifilename, "wb"))==NULL) {
-                    printf("Error writing file to disk!");
-                } else {
-                    object = 1;           
-                    if((filename = MAPIFindProperty(&(p->MAPI), PROP_TAG(PT_OBJECT, PR_ATTACH_DATA_OBJ))) == MAPI_UNDEFINED) {
-                        if((filename = MAPIFindProperty(&(p->MAPI), PROP_TAG(PT_BINARY, PR_ATTACH_DATA_OBJ))) == MAPI_UNDEFINED) {
-                            filename = &(p->FileData);
-                            object = 0;
-                        }
-                    }
-                    if (object == 1) {
-                        fwrite(filename->data + 16, sizeof(BYTE), filename->size - 16, fptr);
+            }
+            if (savefiles == 1) {
+                if (SaveFile == 1) {
+                    if ((fptr = fopen(ifilename, "wb"))==NULL) {
+                        printf("Error writing file to disk!");
                     } else {
-                        fwrite(filename->data, sizeof(BYTE), filename->size, fptr);
-                    }
-                    fclose(fptr);
-                    if (object == 1) {
-                        if(listonly == 0) 
-                            printf("Attempting to parse embedded TNEF stream\n");
-                        TNEFInitialize(&emb_tnef);
-                        if (TNEFParseFile(ifilename, &emb_tnef) == -1) {
-                            if (listonly == 0) 
-                                printf(">>> ERROR processing file\n");
+                        if (object == 1) {
+                            fwrite(filedata->data + 16, sizeof(BYTE), filedata->size - 16, fptr);
                         } else {
-                            if(listonly == 0) 
-                                printf("---> File %s\n", ifilename );
-                            PrintTNEF(emb_tnef);
+                            fwrite(filedata->data, sizeof(BYTE), filedata->size, fptr);
                         }
-                        TNEFFree(&emb_tnef);
+                        fclose(fptr);
                     }
-
                 }
             }
         }

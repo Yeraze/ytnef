@@ -9,17 +9,14 @@ void SaveVCalendar(TNEFStruct TNEF) {
     dtr thedate;
     int i;
 
-    if (listonly == 0) 
-        printf("-> Creating an icalendar attachment\n");
-    if ((listonly == 1) && (filenameonly == 1)) 
-        printf("calendar.vcf\n");
     if (filepath == NULL) {
         sprintf(ifilename, "calendar.vcf");
     } else {
         sprintf(ifilename, "%s/calendar.vcf", filepath);
     }
-    if ((listonly == 1) && (filenameonly == 0)) 
-        printf("%s\n", ifilename);
+    printf("%s\n", ifilename);
+    if (savefiles == 0) 
+        return;
 
     if ((fptr = fopen(ifilename, "wb"))==NULL) {
             printf("Error writing file to disk!");

@@ -13,6 +13,7 @@ void TNEFInitialize(TNEFStruct *TNEF);
 void TNEFFree(TNEFStruct *TNEF);
 void TNEFFreeAttachment(Attachment *p);
 void TNEFFreeMapiProps(MAPIProps *p);
+int TNEFCheckForSignature(DWORD sig);
 int TNEFParseMemory(BYTE *memory, long size, TNEFStruct *TNEF);
 int TNEFParseFile(char *filename, TNEFStruct *TNEF);
 int TNEFParse(TNEFStruct *TNEF);
