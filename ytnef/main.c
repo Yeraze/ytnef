@@ -44,7 +44,6 @@ int main(int argc, char ** argv) {
 
     printf("Size of WORD is %i\n", sizeof(WORD));
     printf("Size of DWORD is %i\n", sizeof(DWORD));
-    printf("Size of ULONG is %i\n", sizeof(ULONG));
     printf("Size of DDWORD is %i\n", sizeof(DDWORD));
 
     if (argc == 1) {
@@ -147,7 +146,7 @@ int main(int argc, char ** argv) {
         
         if (TNEF.MapiProperties.count > 0) {
             printf("    MAPI Properties: %i\n", TNEF.MapiProperties.count);
-            if ((filename = MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_BINARY,PR_RTF_COMPRESSED))) == -1) {
+            if ((filename = MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_BINARY,PR_RTF_COMPRESSED))) == (variableLength*)-1) {
 
             } else if (savefiles == 1) {
                 if (filepath == NULL) {
@@ -168,7 +167,7 @@ int main(int argc, char ** argv) {
             }
         }
 
-        if ((filename = MAPIFindUserProp(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8,0x24))) != -1) {
+        if ((filename = MAPIFindUserProp(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8,0x24))) != (variableLength*)-1) {
             if (strcmp(filename->data, "IPM.Appointment") == 0) {
                 printf("Found an appointment entry\n");
                 if (savefiles == 1) {
@@ -187,7 +186,7 @@ int main(int argc, char ** argv) {
                         fprintf(fptr, "BEGIN:VEVENT\n");
 
                         // Required Attendees
-                        if ((filename = MAPIFindUserProp(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, 0x823b))) != -1) {
+                        if ((filename = MAPIFindUserProp(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, 0x823b))) != (variableLength*)-1) {
                                 // We have a list of required participants, so
                                 // write them out.
                             if (filename->size > 1) {
@@ -205,7 +204,7 @@ int main(int argc, char ** argv) {
                             }
                         }
                         // Optional attendees
-                        if ((filename = MAPIFindUserProp(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, 0x823c))) != -1) {
+                        if ((filename = MAPIFindUserProp(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, 0x823c))) != (variableLength*)-1) {
                                 // The list of optional participants
                             if (filename->size > 1) {
                                 charptr = filename->data-1;
@@ -223,13 +222,13 @@ int main(int argc, char ** argv) {
                         }
                         // Summary
                         filename = NULL;
-                        if((filename=MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, PR_CONVERSATION_TOPIC)))!=-1) {
+                        if((filename=MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, PR_CONVERSATION_TOPIC)))!=(variableLength*)-1) {
                             fprintf(fptr, "SUMMARY:%s\n", filename->data);
                         }
                         // Location
                         filename = NULL;
-                        if ((filename=MAPIFindUserProp(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, 0x0002))) == -1) {
-                            if ((filename=MAPIFindUserProp(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, 0x8208))) == -1) {
+                        if ((filename=MAPIFindUserProp(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, 0x0002))) == (variableLength*)-1) {
+                            if ((filename=MAPIFindUserProp(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, 0x8208))) == (variableLength*)-1) {
                                 filename = NULL;
                             }
                         }
@@ -238,8 +237,8 @@ int main(int argc, char ** argv) {
                         }
                         // UID
                         filename = NULL;
-                        if ((filename=MAPIFindUserProp(&(TNEF.MapiProperties), PROP_TAG(PT_BINARY, 0x3))) == -1) {
-                            if ((filename=MAPIFindUserProp(&(TNEF.MapiProperties), PROP_TAG(PT_BINARY, 0x23))) == -1) {
+                        if ((filename=MAPIFindUserProp(&(TNEF.MapiProperties), PROP_TAG(PT_BINARY, 0x3))) == (variableLength*)-1) {
+                            if ((filename=MAPIFindUserProp(&(TNEF.MapiProperties), PROP_TAG(PT_BINARY, 0x23))) == (variableLength*)-1) {
                                 filename = NULL;
                             }
                         }
@@ -252,10 +251,10 @@ int main(int argc, char ** argv) {
                         }
                         // Date Start
                         filename = NULL;
-                        if ((filename=MAPIFindUserProp(&(TNEF.MapiProperties), PROP_TAG(PT_SYSTIME, 0x8235))) == -1) {
-                            if ((filename=MAPIFindUserProp(&(TNEF.MapiProperties), PROP_TAG(PT_SYSTIME, 0x820d))) == -1) {
-                                if ((filename=MAPIFindUserProp(&(TNEF.MapiProperties), PROP_TAG(PT_SYSTIME, 0x8516))) == -1) {
-                                    if ((filename=MAPIFindUserProp(&(TNEF.MapiProperties), PROP_TAG(PT_SYSTIME, 0x8502))) == -1) {
+                        if ((filename=MAPIFindUserProp(&(TNEF.MapiProperties), PROP_TAG(PT_SYSTIME, 0x8235))) == (variableLength*)-1) {
+                            if ((filename=MAPIFindUserProp(&(TNEF.MapiProperties), PROP_TAG(PT_SYSTIME, 0x820d))) == (variableLength*)-1) {
+                                if ((filename=MAPIFindUserProp(&(TNEF.MapiProperties), PROP_TAG(PT_SYSTIME, 0x8516))) == (variableLength*)-1) {
+                                    if ((filename=MAPIFindUserProp(&(TNEF.MapiProperties), PROP_TAG(PT_SYSTIME, 0x8502))) == (variableLength*)-1) {
                                         filename=NULL;
                                     }
                                 }
@@ -263,50 +262,47 @@ int main(int argc, char ** argv) {
                         }
                         if (filename != NULL) {
                             fprintf(fptr, "DTSTART:");
-                            ddword_ptr = filename->data;
-                            MAPISysTimetoDTR(*ddword_ptr, &thedate);
+                            MAPISysTimetoDTR(filename->data, &thedate);
                             fprintf(fptr,"%04i%02i%02iT%02i%02i%02iZ\n", 
                                     thedate.wYear, thedate.wMonth, thedate.wDay,
                                     thedate.wHour, thedate.wMinute, thedate.wSecond);
                         }
                         // Date End
                         filename = NULL;
-                        if ((filename=MAPIFindUserProp(&(TNEF.MapiProperties), PROP_TAG(PT_SYSTIME, 0x8236))) == -1) {
-                            if ((filename=MAPIFindUserProp(&(TNEF.MapiProperties), PROP_TAG(PT_SYSTIME, 0x820e))) == -1) {
-                                if ((filename=MAPIFindUserProp(&(TNEF.MapiProperties), PROP_TAG(PT_SYSTIME, 0x8517))) == -1) {
+                        if ((filename=MAPIFindUserProp(&(TNEF.MapiProperties), PROP_TAG(PT_SYSTIME, 0x8236))) == (variableLength*)-1) {
+                            if ((filename=MAPIFindUserProp(&(TNEF.MapiProperties), PROP_TAG(PT_SYSTIME, 0x820e))) == (variableLength*)-1) {
+                                if ((filename=MAPIFindUserProp(&(TNEF.MapiProperties), PROP_TAG(PT_SYSTIME, 0x8517))) == (variableLength*)-1) {
                                     filename=NULL;
                                 }
                             }
                         }
                         if (filename != NULL) {
                             fprintf(fptr, "DTEND:");
-                            ddword_ptr = filename->data;
-                            MAPISysTimetoDTR(*ddword_ptr, &thedate);
+                            MAPISysTimetoDTR(filename->data, &thedate);
                             fprintf(fptr,"%04i%02i%02iT%02i%02i%02iZ\n", 
                                     thedate.wYear, thedate.wMonth, thedate.wDay,
                                     thedate.wHour, thedate.wMinute, thedate.wSecond);
                         }
                         // Date Stamp
                         filename = NULL;
-                        if ((filename=MAPIFindUserProp(&(TNEF.MapiProperties), PROP_TAG(PT_SYSTIME, 0x8202))) != -1) {
+                        if ((filename=MAPIFindUserProp(&(TNEF.MapiProperties), PROP_TAG(PT_SYSTIME, 0x8202))) != (variableLength*)-1) {
                             fprintf(fptr, "DCREATED:");
-                            ddword_ptr = filename->data;
-                            MAPISysTimetoDTR(*ddword_ptr, &thedate);
+                            MAPISysTimetoDTR(filename->data, &thedate);
                             fprintf(fptr,"%04i%02i%02iT%02i%02i%02iZ\n", 
                                     thedate.wYear, thedate.wMonth, thedate.wDay,
                                     thedate.wHour, thedate.wMinute, thedate.wSecond);
                         }
                         // Sequence
                         filename = NULL;
-                        if ((filename=MAPIFindUserProp(&(TNEF.MapiProperties), PROP_TAG(PT_LONG, 0x8201))) != -1) {
-                            ddword_ptr = filename->data;
+                        if ((filename=MAPIFindUserProp(&(TNEF.MapiProperties), PROP_TAG(PT_LONG, 0x8201))) != (variableLength*)-1) {
+                            ddword_ptr = (DDWORD*)filename->data;
                             fprintf(fptr, "SEQUENCE:%i\n", *ddword_ptr);
                         }
 
                         // Class
                         filename = NULL;
-                        if ((filename=MAPIFindUserProp(&(TNEF.MapiProperties), PROP_TAG(PT_BOOLEAN, 0x8506))) != -1) {
-                            ddword_ptr = filename->data;
+                        if ((filename=MAPIFindUserProp(&(TNEF.MapiProperties), PROP_TAG(PT_BOOLEAN, 0x8506))) != (variableLength*)-1) {
+                            ddword_ptr = (DDWORD*)filename->data;
                             fprintf(fptr, "CLASS:" );
                             if (*ddword_ptr == 1) {
                                 fprintf(fptr,"PRIVATE\n");
@@ -377,8 +373,8 @@ int main(int argc, char ** argv) {
             if (p->FileData.size > 0) {
                 printf("    Attachment Size:  %ib\n", p->FileData.size);
                 
-                if ((filename = MAPIFindProperty(&(p->MAPI), PROP_TAG(30,0x3707))) == -1) {
-                    if ((filename = MAPIFindProperty(&(p->MAPI), PROP_TAG(30,0x3001))) == -1) {
+                if ((filename = MAPIFindProperty(&(p->MAPI), PROP_TAG(30,0x3707))) == (variableLength*)-1) {
+                    if ((filename = MAPIFindProperty(&(p->MAPI), PROP_TAG(30,0x3001))) == (variableLength*)-1) {
                         filename = &(p->Title);
                     }
                 }
@@ -393,8 +389,8 @@ int main(int argc, char ** argv) {
                     if ((fptr = fopen(ifilename, "wb"))==NULL) {
                             printf("Error writing file to disk!");
                     } else {
-                        if((filename = MAPIFindProperty(&(p->MAPI), PROP_TAG(PT_OBJECT, PR_ATTACH_DATA_OBJ))) == -1) {
-                            if((filename = MAPIFindProperty(&(p->MAPI), PROP_TAG(PT_BINARY, PR_ATTACH_DATA_OBJ))) == -1) {
+                        if((filename = MAPIFindProperty(&(p->MAPI), PROP_TAG(PT_OBJECT, PR_ATTACH_DATA_OBJ))) == (variableLength*)-1) {
+                            if((filename = MAPIFindProperty(&(p->MAPI), PROP_TAG(PT_BINARY, PR_ATTACH_DATA_OBJ))) == (variableLength*)-1) {
                                 filename = &(p->FileData);
                             }
                         }

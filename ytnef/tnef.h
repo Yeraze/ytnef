@@ -16,7 +16,7 @@ void TNEFFreeMapiProps(MAPIProps *p);
 int TNEFParseFile(char *filename, TNEFStruct *TNEF);
 variableLength *MAPIFindUserProp(MAPIProps *p, unsigned int ID);
 variableLength *MAPIFindProperty(MAPIProps *p, unsigned int ID);
-int MAPISysTimetoDTR(DDWORD number, dtr *thedate);
+int MAPISysTimetoDTR(BYTE *data, dtr *thedate);
 void MAPIPrint(MAPIProps *p);
 
 /* ------------------------------------- */ 
