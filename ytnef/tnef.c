@@ -951,7 +951,7 @@ int MAPISysTimetoDTR(BYTE *data, dtr *thedate)
 
 void MAPIPrint(MAPIProps *p)
 {
-    int j, i,index;
+    int j, i,index, h;
     DDWORD *ddword_ptr;
     dtr thedate;
     MAPIProperty *mapi;
@@ -1051,6 +1051,30 @@ void MAPIPrint(MAPIProps *p)
                 case PT_OBJECT:
                     printf("\n");
                     break;
+                case PT_BINARY:
+                    printf("    Value: [");
+                    for(h=0; h< mapidata->size; h++) {
+                        if (isprint(mapidata->data[h])) 
+                            printf("%c", mapidata->data[h]);
+                        else 
+                            printf(".");
+
+                    }
+                    printf("]\n");
+                    break;
+                case PT_STRING8:
+                    printf("    Value: [%s]\n", mapidata->data);
+                    if (strlen(mapidata->data) != mapidata->size-1) {
+                        printf("Detected Hidden data: [");
+                        for(h=0; h< mapidata->size; h++) {
+                            if (isprint(mapidata->data[h])) 
+                                printf("%c", mapidata->data[h]);
+                            else 
+                                printf(".");
+
+                        }
+                        printf("]\n");
+                    }
                 default:
                     printf("    Value: [%s]\n", mapidata->data);
             }
