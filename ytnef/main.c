@@ -13,6 +13,7 @@ char *filepath = NULL;
 
 void PrintTNEF(TNEFStruct TNEF);
 void SaveVCalendar(TNEFStruct TNEF);
+void SaveVCard(TNEFStruct TNEF);
 
 
 void PrintHelp(void) {
@@ -125,8 +126,15 @@ void PrintTNEF(TNEFStruct TNEF) {
     }
     if (TNEF.messageStatus[0] != 0) 
         printf("Message Status: %s\n", TNEF.messageStatus);
-    if (TNEF.messageClass[0] != 0) 
+    if (TNEF.messageClass[0] != 0)  {
         printf("Message Class: %s\n", TNEF.messageClass);
+        if (strcmp(TNEF.messageClass, "IPM.Contact") == 0) {
+            printf("Found a contact card\n");
+            if (savefiles == 1) {
+                SaveVCard(TNEF);
+            }
+        }
+    }
     if (TNEF.OriginalMessageClass.size >0) 
         printf("Original Message Class: %s\n", 
                     TNEF.OriginalMessageClass.data);
@@ -301,6 +309,7 @@ void SaveVCalendar(TNEFStruct TNEF) {
     FILE *fptr;
     int index;
     DDWORD *ddword_ptr;
+    DDWORD ddword_val;
     dtr thedate;
 
     printf("-> Creating an icalendar attachment\n");
@@ -313,9 +322,32 @@ void SaveVCalendar(TNEFStruct TNEF) {
             printf("Error writing file to disk!");
     } else {
         fprintf(fptr, "BEGIN:VCALENDAR\n");
+        fprintf(fptr, "METHOD:REQUEST\n");
         fprintf(fptr, "PRODID:-//The Gauntlet//Reader v1.0//EN\n");
-        fprintf(fptr, "VERSION:1.0\n");
+        fprintf(fptr, "VERSION:2.0\n");
         fprintf(fptr, "BEGIN:VEVENT\n");
+
+        // UID
+        filename = NULL;
+        if ((filename=MAPIFindUserProp(&(TNEF.MapiProperties), PROP_TAG(PT_BINARY, 0x3))) == (variableLength*)-1) {
+            if ((filename=MAPIFindUserProp(&(TNEF.MapiProperties), PROP_TAG(PT_BINARY, 0x23))) == (variableLength*)-1) {
+                filename = NULL;
+            }
+        }
+        if (filename!=NULL) {
+            fprintf(fptr, "UID:");
+            for(index=0;index<filename->size;index++) {
+                fprintf(fptr,"%02x", (unsigned char)filename->data[index]);
+            }
+            fprintf(fptr,"\n");
+        }
+
+        // Sequence
+        filename = NULL;
+        if ((filename=MAPIFindUserProp(&(TNEF.MapiProperties), PROP_TAG(PT_LONG, 0x8201))) != (variableLength*)-1) {
+            ddword_ptr = (DDWORD*)filename->data;
+            fprintf(fptr, "SEQUENCE:%i\n", *ddword_ptr);
+        }
 
         // Required Attendees
         if ((filename = MAPIFindUserProp(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, 0x823b))) != (variableLength*)-1) {
@@ -330,7 +362,9 @@ void SaveVCalendar(TNEFStruct TNEF) {
                     if (charptr2 != NULL) {
                         *charptr2 = 0;
                     }
-                    fprintf(fptr, "ATTENDEE;ROLE=ATTENDEE;EXPECT=REQUIRE;%s\n", charptr);
+                    while (*charptr == ' ') 
+                        charptr++;
+                    fprintf(fptr, "ATTENDEE;ROLE=REQ-PARTICIPANT;CN=%s\n", charptr);
                     charptr = charptr2;
                 }
             }
@@ -347,7 +381,9 @@ void SaveVCalendar(TNEFStruct TNEF) {
                     if (charptr2 != NULL) {
                         *charptr2 = 0;
                     }
-                    fprintf(fptr, "ATTENDEE;ROLE=ATTENDEE;EXPECT=REQUEST;%s\n", charptr);
+                    while (*charptr == ' ') 
+                        charptr++;
+                    fprintf(fptr, "ATTENDEE;ROLE=OPT-PARTICIPANT;CN=%s\n", charptr);
                     charptr = charptr2;
                 }
             }
@@ -366,20 +402,6 @@ void SaveVCalendar(TNEFStruct TNEF) {
         }
         if (filename != NULL) {
             fprintf(fptr,"LOCATION: %s\n", filename->data);
-        }
-        // UID
-        filename = NULL;
-        if ((filename=MAPIFindUserProp(&(TNEF.MapiProperties), PROP_TAG(PT_BINARY, 0x3))) == (variableLength*)-1) {
-            if ((filename=MAPIFindUserProp(&(TNEF.MapiProperties), PROP_TAG(PT_BINARY, 0x23))) == (variableLength*)-1) {
-                filename = NULL;
-            }
-        }
-        if (filename!=NULL) {
-            fprintf(fptr, "UID:");
-            for(index=0;index<filename->size;index++) {
-                fprintf(fptr,"%02x", (unsigned char)filename->data[index]);
-            }
-            fprintf(fptr,"\n");
         }
         // Date Start
         filename = NULL;
@@ -424,17 +446,11 @@ void SaveVCalendar(TNEFStruct TNEF) {
                     thedate.wYear, thedate.wMonth, thedate.wDay,
                     thedate.wHour, thedate.wMinute, thedate.wSecond);
         }
-        // Sequence
-        filename = NULL;
-        if ((filename=MAPIFindUserProp(&(TNEF.MapiProperties), PROP_TAG(PT_LONG, 0x8201))) != (variableLength*)-1) {
-            ddword_ptr = (DDWORD*)filename->data;
-            fprintf(fptr, "SEQUENCE:%i\n", *ddword_ptr);
-        }
-
         // Class
         filename = NULL;
         if ((filename=MAPIFindUserProp(&(TNEF.MapiProperties), PROP_TAG(PT_BOOLEAN, 0x8506))) != (variableLength*)-1) {
             ddword_ptr = (DDWORD*)filename->data;
+            ddword_val = SwapDDWord((BYTE*)ddword_ptr);
             fprintf(fptr, "CLASS:" );
             if (*ddword_ptr == 1) {
                 fprintf(fptr,"PRIVATE\n");
@@ -448,4 +464,9 @@ void SaveVCalendar(TNEFStruct TNEF) {
         fprintf(fptr, "END:VCALENDAR\n");
         fclose(fptr);
     }
+}
+
+
+void SaveVCard(TNEFStruct TNEF) {
+
 }
