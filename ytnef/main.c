@@ -5,9 +5,9 @@
 #include "tnef.h"
 #include "mapi.h"
 #include "mapidefs.h"
+#include "config.h"
 
-#define VERSION "1.15"
-#define PRODID "PRODID:-//The Gauntlet//yTNEF v1.15//EN\n"
+#define PRODID "PRODID:-//The Gauntlet//" PACKAGE_STRING "//EN\n"
 
 TNEFStruct TNEF;
 int verbose = 0;
@@ -45,7 +45,10 @@ void PrintHelp(void) {
     printf("     Parse and save all attachments to local directory (.)\n");
     printf("  ytnef -F -f . winmail.dat\n");
     printf("     Parse and save all attachments to local directory (.)\n");
-    printf("     Including saving the message text to a RTF file.\n");
+    printf("     Including saving the message text to a RTF file.\n\n");
+    printf("Send bug reports to ");
+        printf(PACKAGE_BUGREPORT);
+        printf("\n");
 
 }
 
