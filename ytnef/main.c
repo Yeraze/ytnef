@@ -265,7 +265,7 @@ void PrintTNEF(TNEFStruct TNEF) {
                     sprintf(ifilename, "%s/%s", filepath, filename->data);
                 }
                 if ((fptr = fopen(ifilename, "wb"))==NULL) {
-                        printf("Error writing file to disk!");
+                    printf("Error writing file to disk!");
                 } else {
                     object = 1;           
                     if((filename = MAPIFindProperty(&(p->MAPI), PROP_TAG(PT_OBJECT, PR_ATTACH_DATA_OBJ))) == (variableLength*)-1) {
@@ -286,9 +286,7 @@ void PrintTNEF(TNEFStruct TNEF) {
                         if (TNEFParseFile(ifilename, &emb_tnef) == -1) {
                             printf(">>> ERROR processing file\n");
                         } else {
-                            
                             printf("---> File %s\n", ifilename );
-
                             PrintTNEF(emb_tnef);
                         }
                         TNEFFree(&emb_tnef);
@@ -468,5 +466,350 @@ void SaveVCalendar(TNEFStruct TNEF) {
 
 
 void SaveVCard(TNEFStruct TNEF) {
+    char ifilename[512];
+    FILE *fptr;
+    variableLength *vl;
+    variableLength *pobox, *street, *city, *state, *zip, *country;
+    dtr thedate;
+    int boolean,index;
 
+    printf("-> Creating a vCard attachment: ");
+    if ((vl = MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, PR_DISPLAY_NAME))) == (variableLength*)-1) {
+        printf("\n-> Contact has no name. Aborting\n");
+        return;
+    }
+    if (filepath == NULL) {
+        sprintf(ifilename, "%s.vcf", vl->data);
+    } else {
+        sprintf(ifilename, "%s/%s.vcf", filepath, vl->data);
+    }
+    printf("%s\n", ifilename);
+    if ((fptr = fopen(ifilename, "wb"))==NULL) {
+            printf("Error writing file to disk!");
+    } else {
+        fprintf(fptr, "BEGIN:VCARD\n");
+        fprintf(fptr, "VERSION:2.1\n");
+        fprintf(fptr, "FN:%s\n", vl->data);
+        if ((vl=MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, PR_NICKNAME))) != (variableLength*)-1) {
+            fprintf(fptr, "NICKNAME:%s\n", vl->data);
+        }
+
+        // Mailer
+        if ((vl=MAPIFindUserProp(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, 0x8554))) != (variableLength*)-1) {
+            fprintf(fptr, "MAILER:Microsoft Outlook %s\n", vl->data);
+        }
+        
+        // Spouse
+        if ((vl=MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, PR_SPOUSE_NAME))) != (variableLength*)-1) {
+            fprintf(fptr,"X-EVOLUTION-SPOUSE:%s\n", vl->data);
+        }
+
+        // Manager
+        if ((vl=MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, PR_MANAGER_NAME))) != (variableLength*)-1) {
+            fprintf(fptr,"X-EVOLUTION-MANAGER:%s\n", vl->data);
+        }
+
+        // Assistant
+        if ((vl=MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, PR_ASSISTANT))) != (variableLength*)-1) {
+            fprintf(fptr,"X-EVOLUTION-ASSISTANT:%s\n", vl->data);
+        }
+        // Organizational
+        if ((vl=MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, PR_COMPANY_NAME))) != (variableLength*)-1) {
+            fprintf(fptr,"ORG:%s", vl->data);
+            if ((vl=MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, PR_DEPARTMENT_NAME))) != (variableLength*)-1) {
+                fprintf(fptr,";%s", vl->data);
+            }
+            fprintf(fptr, "\n");
+        }
+        if ((vl=MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, PR_OFFICE_LOCATION))) != (variableLength*)-1) {
+            fprintf(fptr,"X-EVOLUTION-OFFICE:%s\n", vl->data);
+        }
+        
+        // Job Title
+        if ((vl=MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, PR_TITLE))) != (variableLength*)-1) {
+            fprintf(fptr,"TITLE:%s\n", vl->data);
+        }
+        // Profession
+        if ((vl=MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, PR_PROFESSION))) != (variableLength*)-1) {
+            fprintf(fptr,"ROLE:%s\n", vl->data);
+        }
+
+        // Note
+        if ((vl=MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, PR_BODY))) != (variableLength*)-1) {
+            fprintf(fptr, "NOTE:%s\n", vl->data);
+        }
+
+        // Business Address
+        boolean = 0;
+        if ((pobox = MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, PR_POST_OFFICE_BOX))) != (variableLength*)-1) {
+            boolean = 1;
+        }
+        if ((street = MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, PR_STREET_ADDRESS))) != (variableLength*)-1) {
+            boolean = 1;
+        }
+        if ((city = MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, PR_LOCALITY))) != (variableLength*)-1) {
+            boolean = 1;
+        }
+        if ((state = MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, PR_STATE_OR_PROVINCE))) != (variableLength*)-1) {
+            boolean = 1;
+        }
+        if ((zip = MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, PR_POSTAL_CODE))) != (variableLength*)-1) {
+            boolean = 1;
+        }
+        if ((country = MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, PR_COUNTRY))) != (variableLength*)-1) {
+            boolean = 1;
+        }
+        if (boolean == 1) {
+            fprintf(fptr, "ADR;WORK:");
+            if (pobox != (variableLength*)-1) {
+                fprintf(fptr, "%s", pobox->data);
+            }
+            fprintf(fptr, ";;");
+            if (street != (variableLength*)-1) {
+                fprintf(fptr, "%s", street->data);
+            }
+            fprintf(fptr, ";");
+            if (city != (variableLength*)-1) {
+                fprintf(fptr, "%s", city->data);
+            }
+            fprintf(fptr, ";");
+            if (state != (variableLength*)-1) {
+                fprintf(fptr, "%s", state->data);
+            }
+            fprintf(fptr, ";");
+            if (zip != (variableLength*)-1) {
+                fprintf(fptr, "%s", zip->data);
+            }
+            fprintf(fptr, ";");
+            if (country != (variableLength*)-1) {
+                fprintf(fptr, "%s", country->data);
+            }
+            fprintf(fptr,"\n");
+            if ((vl = MAPIFindUserProp(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, 0x801b))) != (variableLength*)-1) {
+                fprintf(fptr, "LABEL;QUOTED-PRINTABLE;WORK:");
+                for (index=0;index<vl->size; index++) {
+                    if (vl->data[index] == '\n') {
+                        fprintf(fptr, "=0A");
+                    } else if (vl->data[index] == '\r') {
+                    } else {
+                        fprintf(fptr, "%c", vl->data[index]);
+                    }
+                }
+                fprintf(fptr,"\n");
+            }
+        }
+
+        // Home Address
+        boolean = 0;
+        if ((pobox = MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, PR_HOME_ADDRESS_POST_OFFICE_BOX))) != (variableLength*)-1) {
+            boolean = 1;
+        }
+        if ((street = MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, PR_HOME_ADDRESS_STREET))) != (variableLength*)-1) {
+            boolean = 1;
+        }
+        if ((city = MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, PR_HOME_ADDRESS_CITY))) != (variableLength*)-1) {
+            boolean = 1;
+        }
+        if ((state = MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, PR_HOME_ADDRESS_STATE_OR_PROVINCE))) != (variableLength*)-1) {
+            boolean = 1;
+        }
+        if ((zip = MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, PR_HOME_ADDRESS_POSTAL_CODE))) != (variableLength*)-1) {
+            boolean = 1;
+        }
+        if ((country = MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, PR_HOME_ADDRESS_COUNTRY))) != (variableLength*)-1) {
+            boolean = 1;
+        }
+        if (boolean == 1) {
+            fprintf(fptr, "ADR;HOME:");
+            if (pobox != (variableLength*)-1) {
+                fprintf(fptr, "%s", pobox->data);
+            }
+            fprintf(fptr, ";;");
+            if (street != (variableLength*)-1) {
+                fprintf(fptr, "%s", street->data);
+            }
+            fprintf(fptr, ";");
+            if (city != (variableLength*)-1) {
+                fprintf(fptr, "%s", city->data);
+            }
+            fprintf(fptr, ";");
+            if (state != (variableLength*)-1) {
+                fprintf(fptr, "%s", state->data);
+            }
+            fprintf(fptr, ";");
+            if (zip != (variableLength*)-1) {
+                fprintf(fptr, "%s", zip->data);
+            }
+            fprintf(fptr, ";");
+            if (country != (variableLength*)-1) {
+                fprintf(fptr, "%s", country->data);
+            }
+            fprintf(fptr,"\n");
+            if ((vl = MAPIFindUserProp(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, 0x801a))) != (variableLength*)-1) {
+                fprintf(fptr, "LABEL;QUOTED-PRINTABLE;HOME:");
+                for (index=0;index<vl->size; index++) {
+                    if (vl->data[index] == '\n') {
+                        fprintf(fptr, "=0A");
+                    } else if (vl->data[index] == '\r') {
+                        fprintf(fptr, "=0D");
+                    } else {
+                        fprintf(fptr, "%c", vl->data[index]);
+                    }
+                }
+                fprintf(fptr,"\n");
+            }
+        }
+
+        // Other Address
+        boolean = 0;
+        if ((pobox = MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, PR_OTHER_ADDRESS_POST_OFFICE_BOX))) != (variableLength*)-1) {
+            boolean = 1;
+        }
+        if ((street = MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, PR_OTHER_ADDRESS_STREET))) != (variableLength*)-1) {
+            boolean = 1;
+        }
+        if ((city = MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, PR_OTHER_ADDRESS_CITY))) != (variableLength*)-1) {
+            boolean = 1;
+        }
+        if ((state = MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, PR_OTHER_ADDRESS_STATE_OR_PROVINCE))) != (variableLength*)-1) {
+            boolean = 1;
+        }
+        if ((zip = MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, PR_OTHER_ADDRESS_POSTAL_CODE))) != (variableLength*)-1) {
+            boolean = 1;
+        }
+        if ((country = MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, PR_OTHER_ADDRESS_COUNTRY))) != (variableLength*)-1) {
+            boolean = 1;
+        }
+        if (boolean == 1) {
+            fprintf(fptr, "ADR;OTHER:");
+            if (pobox != (variableLength*)-1) {
+                fprintf(fptr, "%s", pobox->data);
+            }
+            fprintf(fptr, ";;");
+            if (street != (variableLength*)-1) {
+                fprintf(fptr, "%s", street->data);
+            }
+            fprintf(fptr, ";");
+            if (city != (variableLength*)-1) {
+                fprintf(fptr, "%s", city->data);
+            }
+            fprintf(fptr, ";");
+            if (state != (variableLength*)-1) {
+                fprintf(fptr, "%s", state->data);
+            }
+            fprintf(fptr, ";");
+            if (zip != (variableLength*)-1) {
+                fprintf(fptr, "%s", zip->data);
+            }
+            fprintf(fptr, ";");
+            if (country != (variableLength*)-1) {
+                fprintf(fptr, "%s", country->data);
+            }
+            fprintf(fptr,"\n");
+        }
+
+
+        // Telephone #'s
+        if ((vl=MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, PR_CALLBACK_TELEPHONE_NUMBER))) != (variableLength*)-1) {
+            fprintf(fptr, "TEL;X-EVOLUTION-CALLBACK:%s\n", vl->data);
+        }
+        if ((vl=MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, PR_PRIMARY_TELEPHONE_NUMBER))) != (variableLength*)-1) {
+            fprintf(fptr, "TEL;PREF:%s\n", vl->data);
+        }
+        if ((vl=MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, PR_MOBILE_TELEPHONE_NUMBER))) != (variableLength*)-1) {
+            fprintf(fptr, "TEL;CELL:%s\n", vl->data);
+        }
+        if ((vl=MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, PR_RADIO_TELEPHONE_NUMBER))) != (variableLength*)-1) {
+            fprintf(fptr, "TEL;X-EVOLUTION-RADIO:%s\n", vl->data);
+        }
+        if ((vl=MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, PR_CAR_TELEPHONE_NUMBER))) != (variableLength*)-1) {
+            fprintf(fptr, "TEL;CAR:%s\n", vl->data);
+        }
+        if ((vl=MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, PR_OTHER_TELEPHONE_NUMBER))) != (variableLength*)-1) {
+            fprintf(fptr, "TEL;VOICE:%s\n", vl->data);
+        }
+        if ((vl=MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, PR_PAGER_TELEPHONE_NUMBER))) != (variableLength*)-1) {
+            fprintf(fptr, "TEL;PAGER:%s\n", vl->data);
+        }
+        if ((vl=MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, PR_TELEX_NUMBER))) != (variableLength*)-1) {
+            fprintf(fptr, "TEL;X-EVOLUTION-TELEX:%s\n", vl->data);
+        }
+        if ((vl=MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, PR_ISDN_NUMBER))) != (variableLength*)-1) {
+            fprintf(fptr, "TEL;ISDN:%s\n", vl->data);
+        }
+        if ((vl=MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, PR_HOME2_TELEPHONE_NUMBER))) != (variableLength*)-1) {
+            fprintf(fptr, "TEL;HOME:%s\n", vl->data); 
+        }
+        if ((vl=MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, PR_HOME_TELEPHONE_NUMBER))) != (variableLength*)-1) {
+            fprintf(fptr, "TEL;HOME;VOICE:%s\n", vl->data); 
+        }
+        if ((vl=MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, PR_TTYTDD_PHONE_NUMBER))) != (variableLength*)-1) {
+            fprintf(fptr, "TEL;X-EVOLUTION-TTYTDD:%s\n", vl->data);
+        }
+        if ((vl=MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, PR_ASSISTANT_TELEPHONE_NUMBER))) != (variableLength*)-1) {
+            fprintf(fptr, "TEL;X-EVOLUTION-ASSISTANT:%s\n", vl->data);
+        }
+        if ((vl=MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, PR_COMPANY_MAIN_PHONE_NUMBER))) != (variableLength*)-1) {
+            fprintf(fptr, "TEL;WORK:%s\n", vl->data);
+        }
+        if ((vl=MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, PR_BUSINESS2_TELEPHONE_NUMBER))) != (variableLength*)-1) {
+            fprintf(fptr, "TEL;WORK;VOICE:%s\n", vl->data);
+        }
+        // Fax #'s
+        if ((vl=MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, PR_PRIMARY_FAX_NUMBER))) != (variableLength*)-1) {
+            fprintf(fptr, "TEL;PREF;FAX:%s\n", vl->data);
+        }
+        if ((vl=MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, PR_BUSINESS_FAX_NUMBER))) != (variableLength*)-1) {
+            fprintf(fptr, "TEL;WORK;FAX:%s\n", vl->data);
+        }
+        if ((vl=MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, PR_HOME_FAX_NUMBER))) != (variableLength*)-1) {
+            fprintf(fptr, "TEL;HOME;FAX:%s\n", vl->data);
+        }
+
+        // Email addresses
+        if ((vl=MAPIFindUserProp(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, 0x8083))) == (variableLength*)-1) {
+            vl=MAPIFindUserProp(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, 0x8084));
+        }
+        if (vl != (variableLength*)-1) {
+            fprintf(fptr, "EMAIL:%s\n", vl->data);
+        }
+        if ((vl=MAPIFindUserProp(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, 0x8093))) == (variableLength*)-1) {
+            vl=MAPIFindUserProp(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, 0x8094));
+        }
+        if (vl != (variableLength*)-1) {
+            fprintf(fptr, "EMAIL:%s\n", vl->data);
+        }
+        if ((vl=MAPIFindUserProp(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, 0x80a3))) == (variableLength*)-1) {
+            vl=MAPIFindUserProp(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, 0x80a4));
+        }
+        if (vl != (variableLength*)-1) {
+            fprintf(fptr, "EMAIL:%s\n", vl->data);
+        }
+
+        //URL
+        if ((vl=MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, PR_BUSINESS_HOME_PAGE))) != (variableLength*)-1) {
+            fprintf(fptr, "URL:%s\n", vl->data);
+        }
+
+        //fbURL
+        if ((vl=MAPIFindUserProp(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, 0x80d8))) != (variableLength*)-1) {
+            fprintf(fptr, "FBURL:%s\n", vl->data);
+        }
+
+        //Birthday
+        if ((vl=MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_SYSTIME, PR_BIRTHDAY))) != (variableLength*)-1) {
+            fprintf(fptr, "BDAY:");
+            MAPISysTimetoDTR(vl->data, &thedate);
+            fprintf(fptr, "%i-%02i-%02i\n", thedate.wYear, thedate.wMonth, thedate.wDay);
+        }
+
+        //Anniversary
+        if ((vl=MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_SYSTIME, PR_WEDDING_ANNIVERSARY))) != (variableLength*)-1) {
+            fprintf(fptr, "X-EVOLUTION-ANNIVERSARY:");
+            MAPISysTimetoDTR(vl->data, &thedate);
+            fprintf(fptr, "%i-%02i-%02i\n", thedate.wYear, thedate.wMonth, thedate.wDay);
+        }
+        fprintf(fptr, "END:VCARD\n");
+
+    }
 }
