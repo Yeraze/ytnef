@@ -6,7 +6,6 @@
 
 #define PRODID "PRODID:-//The Gauntlet//" PACKAGE_STRING "//EN\n"
 
-TNEFStruct TNEF;
 int verbose = 0;
 int savefiles = 0;
 int saveRTF = 0;
@@ -49,6 +48,7 @@ void PrintHelp(void) {
 
 int main(int argc, char ** argv) {
     int index,i;
+    TNEFStruct TNEF;
 
 //    printf("Size of WORD is %i\n", sizeof(WORD));
 //    printf("Size of DWORD is %i\n", sizeof(DWORD));
@@ -115,7 +115,6 @@ void ProcessTNEF(TNEFStruct TNEF) {
     variableLength *filename;
     variableLength *filedata;
     Attachment *p;
-    TNEFStruct emb_tnef;
     int RealAttachment;
     int object;
     char ifilename[256];
@@ -165,6 +164,7 @@ void ProcessTNEF(TNEFStruct TNEF) {
             if (object == 1) {
                 // This is an "embedded object", so skip the
                 // 16-byte identifier first.
+                TNEFStruct emb_tnef;
                 DWORD signature;
                 memcpy(&signature, filedata->data+16, sizeof(DWORD));
                 if (TNEFCheckForSignature(signature) == 0) {
@@ -179,6 +179,7 @@ void ProcessTNEF(TNEFStruct TNEF) {
                     TNEFFree(&emb_tnef);
                 }
             } else {
+                TNEFStruct emb_tnef;
                 DWORD signature;
                 memcpy(&signature, filedata->data, sizeof(DWORD));
                 if (TNEFCheckForSignature(signature) == 0) {

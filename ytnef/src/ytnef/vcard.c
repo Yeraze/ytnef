@@ -30,11 +30,11 @@ void SaveVCard(TNEFStruct TNEF) {
         fprintf(fptr, "VERSION:2.1\n");
         fprintf(fptr, "FN:%s\n", vl->data);
 
-        fprintProperty(fptr, PT_STRING8, PR_NICKNAME, "NICKNAME:%s\n");
-        fprintUserProp(fptr, PT_STRING8, 0x8554, "MAILER:Microsoft Outlook %s\n");
-        fprintProperty(fptr, PT_STRING8, PR_SPOUSE_NAME, "X-EVOLUTION-SPOUSE:%s\n");
-        fprintProperty(fptr, PT_STRING8, PR_MANAGER_NAME, "X-EVOLUTION-MANAGER:%s\n");       
-        fprintProperty(fptr, PT_STRING8, PR_ASSISTANT, "X-EVOLUTION-ASSISTANT:%s\n");
+        fprintProperty(TNEF, fptr, PT_STRING8, PR_NICKNAME, "NICKNAME:%s\n");
+        fprintUserProp(TNEF, fptr, PT_STRING8, 0x8554, "MAILER:Microsoft Outlook %s\n");
+        fprintProperty(TNEF, fptr, PT_STRING8, PR_SPOUSE_NAME, "X-EVOLUTION-SPOUSE:%s\n");
+        fprintProperty(TNEF, fptr, PT_STRING8, PR_MANAGER_NAME, "X-EVOLUTION-MANAGER:%s\n");       
+        fprintProperty(TNEF, fptr, PT_STRING8, PR_ASSISTANT, "X-EVOLUTION-ASSISTANT:%s\n");
 
         // Organizational
         if ((vl=MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8, PR_COMPANY_NAME))) != MAPI_UNDEFINED) {
@@ -50,10 +50,10 @@ void SaveVCard(TNEFStruct TNEF) {
             }
         }
 
-        fprintProperty(fptr, PT_STRING8, PR_OFFICE_LOCATION, "X-EVOLUTION-OFFICE:%s\n");
-        fprintProperty(fptr, PT_STRING8, PR_TITLE, "TITLE:%s\n");
-        fprintProperty(fptr, PT_STRING8, PR_PROFESSION, "ROLE:%s\n");
-        fprintProperty(fptr, PT_STRING8, PR_BODY, "NOTE:%s\n");
+        fprintProperty(TNEF, fptr, PT_STRING8, PR_OFFICE_LOCATION, "X-EVOLUTION-OFFICE:%s\n");
+        fprintProperty(TNEF, fptr, PT_STRING8, PR_TITLE, "TITLE:%s\n");
+        fprintProperty(TNEF, fptr, PT_STRING8, PR_PROFESSION, "ROLE:%s\n");
+        fprintProperty(TNEF, fptr, PT_STRING8, PR_BODY, "NOTE:%s\n");
         if (TNEF.body.size > 0) {
             fprintf(fptr, "NOTE;QUOTED-PRINTABLE:");
             quotedfprint(fptr, &(TNEF.body));
@@ -216,24 +216,25 @@ void SaveVCard(TNEFStruct TNEF) {
         }
 
 
-        fprintProperty(fptr, PT_STRING8, PR_CALLBACK_TELEPHONE_NUMBER, "TEL;X-EVOLUTION-CALLBACK:%s\n");
-        fprintProperty(fptr, PT_STRING8, PR_PRIMARY_TELEPHONE_NUMBER, "TEL;PREF:%s\n");
-        fprintProperty(fptr, PT_STRING8, PR_MOBILE_TELEPHONE_NUMBER, "TEL;CELL:%s\n");
-        fprintProperty(fptr, PT_STRING8, PR_RADIO_TELEPHONE_NUMBER, "TEL;X-EVOLUTION-RADIO:%s\n");
-        fprintProperty(fptr, PT_STRING8, PR_CAR_TELEPHONE_NUMBER, "TEL;CAR:%s\n");
-        fprintProperty(fptr, PT_STRING8, PR_OTHER_TELEPHONE_NUMBER, "TEL;VOICE:%s\n");
-        fprintProperty(fptr, PT_STRING8, PR_PAGER_TELEPHONE_NUMBER, "TEL;PAGER:%s\n");
-        fprintProperty(fptr, PT_STRING8, PR_TELEX_NUMBER, "TEL;X-EVOLUTION-TELEX:%s\n");
-        fprintProperty(fptr, PT_STRING8, PR_ISDN_NUMBER, "TEL;ISDN:%s\n");
-        fprintProperty(fptr, PT_STRING8, PR_HOME2_TELEPHONE_NUMBER, "TEL;HOME:%s\n");
-        fprintProperty(fptr, PT_STRING8, PR_TTYTDD_PHONE_NUMBER, "TEL;X-EVOLUTION-TTYTDD:%s\n");
-        fprintProperty(fptr, PT_STRING8, PR_HOME_TELEPHONE_NUMBER, "TEL;HOME;VOICE:%s\n");
-        fprintProperty(fptr, PT_STRING8, PR_ASSISTANT_TELEPHONE_NUMBER, "TEL;X-EVOLUTION-ASSISTANT:%s\n");
-        fprintProperty(fptr, PT_STRING8, PR_COMPANY_MAIN_PHONE_NUMBER, "TEL;WORK:%s\n");
-        fprintProperty(fptr, PT_STRING8, PR_BUSINESS2_TELEPHONE_NUMBER, "TEL;WORK;VOICE:%s\n");
-        fprintProperty(fptr, PT_STRING8, PR_PRIMARY_FAX_NUMBER, "TEL;PREF;FAX:%s\n");
-        fprintProperty(fptr, PT_STRING8, PR_BUSINESS_FAX_NUMBER, "TEL;WORK;FAX:%s\n");
-        fprintProperty(fptr, PT_STRING8, PR_HOME_FAX_NUMBER, "TEL;HOME;FAX:%s\n");
+        fprintProperty(TNEF, fptr, PT_STRING8, PR_CALLBACK_TELEPHONE_NUMBER, "TEL;X-EVOLUTION-CALLBACK:%s\n");
+        fprintProperty(TNEF, fptr, PT_STRING8, PR_PRIMARY_TELEPHONE_NUMBER, "TEL;PREF:%s\n");
+        fprintProperty(TNEF, fptr, PT_STRING8, PR_MOBILE_TELEPHONE_NUMBER, "TEL;CELL:%s\n");
+        fprintProperty(TNEF, fptr, PT_STRING8, PR_RADIO_TELEPHONE_NUMBER, "TEL;X-EVOLUTION-RADIO:%s\n");
+        fprintProperty(TNEF, fptr, PT_STRING8, PR_CAR_TELEPHONE_NUMBER, "TEL;CAR:%s\n");
+        fprintProperty(TNEF, fptr, PT_STRING8, PR_OTHER_TELEPHONE_NUMBER, "TEL;VOICE:%s\n");
+        fprintProperty(TNEF, fptr, PT_STRING8, PR_PAGER_TELEPHONE_NUMBER, "TEL;PAGER:%s\n");
+        fprintProperty(TNEF, fptr, PT_STRING8, PR_TELEX_NUMBER, "TEL;X-EVOLUTION-TELEX:%s\n");
+        fprintProperty(TNEF, fptr, PT_STRING8, PR_ISDN_NUMBER, "TEL;ISDN:%s\n");
+        fprintProperty(TNEF, fptr, PT_STRING8, PR_HOME2_TELEPHONE_NUMBER, "TEL;HOME:%s\n");
+        fprintProperty(TNEF, fptr, PT_STRING8, PR_TTYTDD_PHONE_NUMBER, "TEL;X-EVOLUTION-TTYTDD:%s\n");
+        fprintProperty(TNEF, fptr, PT_STRING8, PR_HOME_TELEPHONE_NUMBER, "TEL;HOME;VOICE:%s\n");
+        fprintProperty(TNEF, fptr, PT_STRING8, PR_ASSISTANT_TELEPHONE_NUMBER, "TEL;X-EVOLUTION-ASSISTANT:%s\n");
+        fprintProperty(TNEF, fptr, PT_STRING8, PR_COMPANY_MAIN_PHONE_NUMBER, "TEL;WORK:%s\n");
+        fprintProperty(TNEF, fptr, PT_STRING8, PR_BUSINESS_TELEPHONE_NUMBER, "TEL;WORK:%s\n");
+        fprintProperty(TNEF, fptr, PT_STRING8, PR_BUSINESS2_TELEPHONE_NUMBER, "TEL;WORK;VOICE:%s\n");
+        fprintProperty(TNEF, fptr, PT_STRING8, PR_PRIMARY_FAX_NUMBER, "TEL;PREF;FAX:%s\n");
+        fprintProperty(TNEF, fptr, PT_STRING8, PR_BUSINESS_FAX_NUMBER, "TEL;WORK;FAX:%s\n");
+        fprintProperty(TNEF, fptr, PT_STRING8, PR_HOME_FAX_NUMBER, "TEL;HOME;FAX:%s\n");
 
 
         // Email addresses
@@ -259,8 +260,8 @@ void SaveVCard(TNEFStruct TNEF) {
                 fprintf(fptr, "EMAIL:%s\n", vl->data);
         }
 
-        fprintProperty(fptr, PT_STRING8, PR_BUSINESS_HOME_PAGE, "URL:%s\n");
-        fprintUserProp(fptr, PT_STRING8, 0x80d8, "FBURL:%s\n");
+        fprintProperty(TNEF, fptr, PT_STRING8, PR_BUSINESS_HOME_PAGE, "URL:%s\n");
+        fprintUserProp(TNEF, fptr, PT_STRING8, 0x80d8, "FBURL:%s\n");
 
 
 

@@ -1,4 +1,4 @@
-void fprintProperty(FILE *FPTR, DWORD PROPTYPE, DWORD PROPID, char TEXT[]) {
+void fprintProperty(TNEFStruct TNEF, FILE *FPTR, DWORD PROPTYPE, DWORD PROPID, char TEXT[]) {
     variableLength *vl;
     if ((vl=MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PROPTYPE, PROPID))) != MAPI_UNDEFINED) { 
         if (vl->size > 0)  
@@ -9,7 +9,7 @@ void fprintProperty(FILE *FPTR, DWORD PROPTYPE, DWORD PROPID, char TEXT[]) {
     }
 }
 
-void fprintUserProp(FILE *FPTR, DWORD PROPTYPE, DWORD PROPID, char TEXT[]) {
+void fprintUserProp(TNEFStruct TNEF, FILE *FPTR, DWORD PROPTYPE, DWORD PROPID, char TEXT[]) {
     variableLength *vl;
     if ((vl=MAPIFindUserProp(&(TNEF.MapiProperties), PROP_TAG(PROPTYPE, PROPID))) != MAPI_UNDEFINED) { 
         if (vl->size > 0)  
