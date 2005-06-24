@@ -256,7 +256,6 @@ int TNEFSubjectHandler STD_ARGLIST {
     if  (TNEF->subject.data)
       free(TNEF->subject.data);
 
-    puts ("Setting a subject line");
     TNEF->subject.data = calloc(size, sizeof(BYTE));
     TNEF->subject.size = size;
     memcpy(TNEF->subject.data, data,size);
