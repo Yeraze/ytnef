@@ -1,6 +1,6 @@
 #!/bin/bash
-export CC=$1
 set -ev
+export CC=$1
 cd ytneflib
 ./autogen.sh
 ./configure
