@@ -1,6 +1,2 @@
-nguage: c
-compiler:
-  - gcc
-  - clang
-# Change this to your needs
-  script: ./travis-build.sh
+language: c
+script: "./travis-build.sh"
