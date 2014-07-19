@@ -2,7 +2,7 @@ language: c
 matrix:
   include:
     - c: gcc
-      env: CC=gcc
+      env: COMPILER=gcc
     - c: clang
-      env: CC=clang
-script: "./travis-build.sh"
+      env: COMPILER=clang
+script: ./travis-build.sh $COMPILER

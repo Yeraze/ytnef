@@ -1,4 +1,5 @@
 #!/bin/bash
+export CC=$1
 set -ev
 cd ytneflib
 ./autogen.sh
