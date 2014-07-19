@@ -2,4 +2,5 @@ aclocal
 autoheader
 automake --add-missing
 autoconf
-libtoolize --copy --force
+case `uname` in Darwin*) glibtoolize --copy --force ;;
+  *) libtoolize --copy --force ;; esac

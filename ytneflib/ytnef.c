@@ -178,7 +178,7 @@ char* to_utf8(int len, char* buf)
     char *utf8 = malloc(3 * len/2 + 1);
 
     for (i=0; i<len-1; i+=2) {
-	unsigned int c = SwapWord(buf+i);
+	unsigned int c = SwapWord((BYTE *)buf+i);
 	if (c <= 0x007f) {
 	    utf8[j++] = 0x00 | ((c & 0x007f) >> 0);
 	}
@@ -300,6 +300,7 @@ int TNEFIcon STD_ARGLIST {
     p->IconData.size = size;
     p->IconData.data = calloc(size, sizeof(BYTE));
     memcpy(p->IconData.data, data, size);
+    return 0;
 }
 
 // -----------------------------------------------------------------------------
@@ -554,7 +555,7 @@ int TNEFSentFor STD_ARGLIST {
             printf("<%s>\n", d);
         d+=addr_length;
     }
-
+    return 0;
 }
 // -----------------------------------------------------------------------------
 int TNEFDateHandler STD_ARGLIST {
@@ -621,7 +622,7 @@ void TNEFPrintDate(dtr Date) {
 int TNEFHexBreakdown STD_ARGLIST {
     int i;
     if (TNEF->Debug == 0) 
-        return;
+        return 0;
 
     printf("%s: [%i bytes] \n", TNEFList[id].name, size);
 
@@ -630,13 +631,14 @@ int TNEFHexBreakdown STD_ARGLIST {
         if ((i+1)%16 == 0) printf("\n");
     }
     printf("\n");
+    return 0;
 }
     
 // -----------------------------------------------------------------------------
 int TNEFDetailedPrint STD_ARGLIST {
     int i;
     if (TNEF->Debug == 0) 
-        return;
+        return 0;
 
     printf("%s: [%i bytes] \n", TNEFList[id].name, size);
 
@@ -644,6 +646,7 @@ int TNEFDetailedPrint STD_ARGLIST {
         printf("%c", data[i]);
     }
     printf("\n");
+    return 0;
 }
 
 // -----------------------------------------------------------------------------
@@ -982,6 +985,7 @@ int TNEFMemory_Read (TNEFIOStruct *IO, int size, int count, void *dest) {
 
 int TNEFMemory_Close (TNEFIOStruct *IO) {
     // Do nothing, really...
+   return 0;
 }
 
 int TNEFParseMemory(BYTE *memory, long size, TNEFStruct *TNEF) {
@@ -1469,6 +1473,6 @@ unsigned char *DecompressRTF(variableLength *p, int *size) {
         return dst;
     } else { // unknown magic number
         printf("Unknown compression type (magic number %x)\n", magic );
-        return NULL;
     }
+    return NULL;
 }
