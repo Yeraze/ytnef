@@ -1,3 +1,2 @@
 language: c
-compiler:
-  - script: ./travis-build.sh
+script: "./travis-build.sh"
