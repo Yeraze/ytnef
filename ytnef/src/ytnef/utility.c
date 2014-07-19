@@ -21,22 +21,25 @@
 void fprintProperty(TNEFStruct TNEF, FILE *FPTR, DWORD PROPTYPE, DWORD PROPID, char TEXT[]) {
     variableLength *vl;
     if ((vl=MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PROPTYPE, PROPID))) != MAPI_UNDEFINED) { 
-        if (vl->size > 0)  
+        if (vl->size > 0) {
             if ((vl->size == 1) && (vl->data[0] == 0)) {
+
             } else { 
                 fprintf(FPTR, TEXT, vl->data); 
-            } 
+            }
+        }
     }
 }
 
 void fprintUserProp(TNEFStruct TNEF, FILE *FPTR, DWORD PROPTYPE, DWORD PROPID, char TEXT[]) {
     variableLength *vl;
     if ((vl=MAPIFindUserProp(&(TNEF.MapiProperties), PROP_TAG(PROPTYPE, PROPID))) != MAPI_UNDEFINED) { 
-        if (vl->size > 0)  
+        if (vl->size > 0) {
             if ((vl->size == 1) && (vl->data[0] == 0)) {
             } else { 
                 fprintf(FPTR, TEXT, vl->data); 
             } 
+        }
     }
 }
 

@@ -140,18 +140,7 @@
 #define PR_TRANSPORT_MESSAGE_HEADERS                0x007D
 #define PR_DELEGATION                               0x007E
 #define PR_TNEF_CORRELATION_KEY                     0x007F
-#define PR_BODY                                     0x1000
-#define PR_REPORT_TEXT                              0x1001
-#define PR_ORIGINATOR_AND_DL_EXPANSION_HISTORY      0x1002
-#define PR_REPORTING_DL_NAME                        0x1003
-#define PR_REPORTING_MTA_CERTIFICATE                0x1004
-#define PR_RTF_SYNC_BODY_CRC                        0x1006
-#define PR_RTF_SYNC_BODY_COUNT                      0x1007
-#define PR_RTF_SYNC_BODY_TAG                        0x1008
-#define PR_RTF_COMPRESSED                           0x1009
-#define PR_RTF_SYNC_PREFIX_COUNT                    0x1010
-#define PR_RTF_SYNC_TRAILING_COUNT                  0x1011
-#define PR_ORIGINALLY_INTENDED_RECIP_ENTRYID        0x1012
+
 #define PR_CONTENT_INTEGRITY_CHECK                  0x0C00
 #define PR_EXPLICIT_CONVERSION                      0x0C01
 #define PR_IPM_RETURN_REQUESTED                     0x0C02
@@ -160,7 +149,6 @@
 #define PR_NDR_DIAG_CODE                            0x0C05
 #define PR_NON_RECEIPT_NOTIFICATION_REQUESTED       0x0C06
 #define PR_DELIVERY_POINT                           0x0C07
-
 #define PR_ORIGINATOR_NON_DELIVERY_REPORT_REQUESTED 0x0C08
 #define PR_ORIGINATOR_REQUESTED_ALTERNATE_RECIPIENT 0x0C09
 #define PR_PHYSICAL_DELIVERY_BUREAU_FAX_DELIVERY    0x0C0A
@@ -232,6 +220,23 @@
 #define PR_INSTANCE_KEY                             0x0FF6
 #define PR_ROW_TYPE                                 0x0FF5
 #define PR_ACCESS                                   0x0FF4
+
+#define PR_BODY                                     0x1000
+#define PR_REPORT_TEXT                              0x1001
+#define PR_ORIGINATOR_AND_DL_EXPANSION_HISTORY      0x1002
+#define PR_REPORTING_DL_NAME                        0x1003
+#define PR_REPORTING_MTA_CERTIFICATE                0x1004
+#define PR_RTF_SYNC_BODY_CRC                        0x1006
+#define PR_RTF_SYNC_BODY_COUNT                      0x1007
+#define PR_RTF_SYNC_BODY_TAG                        0x1008
+#define PR_RTF_COMPRESSED                           0x1009
+#define PR_RTF_SYNC_PREFIX_COUNT                    0x1010
+#define PR_RTF_SYNC_TRAILING_COUNT                  0x1011
+#define PR_ORIGINALLY_INTENDED_RECIP_ENTRYID        0x1012
+#define PR_BODY_HTML                                0x1013
+#define PR_INTERNET_MESSAGE_ID                      0x1035
+#define PR_ICON_INDEX                               0x1080
+
 #define PR_ROWID                                    0x3000
 #define PR_DISPLAY_NAME                             0x3001
 #define PR_ADDRTYPE                                 0x3002
@@ -441,6 +446,16 @@
 #define PR_YPOS                                     0x3F06
 #define PR_CONTROL_ID                               0x3F07
 #define PR_INITIAL_DETAILS_PANE                     0x3F08
+#define PR_INTERNET_CPID                            0x3FDE
+#define PR_MESSAGE_LOCALE_ID                        0x3FF1
+#define PR_CREATOR_NAME                             0x3FF8
+#define PR_CREATOR_ENTRYID                          0x3FF9
+#define PR_LAST_MODIFIER_NAME                       0x3FFA
+#define PR_MESSAGE_CODEPAGE                         0x3FFD
+#define PR_INETMAIL_OVERRIDE_FORMAT                 0x5902
+#define PR_MSG_EDITOR_FORMAT                        0x5909
+#define PR_SENDER_SMTP_ADDRESS                      0x5D01
+#define PR_SENT_REPRESENTING_SMTP_ADDRESS           0x5D02
 
 /*
  * Secure property id range
