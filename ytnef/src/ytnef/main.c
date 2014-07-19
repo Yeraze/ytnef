@@ -40,8 +40,8 @@ void SaveVTask(TNEFStruct TNEF);
 
 void PrintHelp(void) {
     printf("Yerase TNEF Exporter v");
-            printf(VERSION);
-            printf("\n");
+    printf(VERSION);
+    printf("\n");
     printf("\n");
     printf("  usage: ytnef [-+vhf] <filenames>\n");
     printf("\n");
@@ -61,9 +61,8 @@ void PrintHelp(void) {
     printf("     Parse and save all attachments to local directory (.)\n");
     printf("     Including saving the message text to a RTF file.\n\n");
     printf("Send bug reports to ");
-        printf(PACKAGE_BUGREPORT);
-        printf("\n");
-
+    printf(PACKAGE_BUGREPORT);
+    printf("\n");
 }
 
 
@@ -89,7 +88,7 @@ int main(int argc, char ** argv) {
                 case 'v': verbose++;
                           break;
                 case 'h': PrintHelp();
-                          return;
+                          return 0;
                 case 'f': savefiles = 1;
                           filepath = argv[i+1];
                           i++;
@@ -129,6 +128,7 @@ int main(int argc, char ** argv) {
         ProcessTNEF(TNEF);
         TNEFFree(&TNEF);
     }
+    return 0;
 }
 
 void ProcessTNEF(TNEFStruct TNEF) {
@@ -325,6 +325,4 @@ void ProcessTNEF(TNEFStruct TNEF) {
 #include "vcal.c"
 #include "vcard.c"
 #include "vtask.c"
-
-
 
