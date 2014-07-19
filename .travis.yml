@@ -1,2 +1,8 @@
 language: c
+matrix:
+  include:
+    - c: gcc
+      env: CC=gcc
+    - c: clang
+      env: CC=clang
 script: "./travis-build.sh"
