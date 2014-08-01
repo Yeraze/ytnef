@@ -49,7 +49,7 @@ typedef struct {
 } dtr;
 
 typedef struct {
-  char *data;
+  unsigned char *data;
   int size;
 } variableLength;
 

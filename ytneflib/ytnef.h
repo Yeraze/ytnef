@@ -43,7 +43,7 @@ variableLength *MAPIFindUserProp(MAPIProps *p, unsigned int ID);
 variableLength *MAPIFindProperty(MAPIProps *p, unsigned int ID);
 int MAPISysTimetoDTR(BYTE *data, dtr *thedate);
 void MAPIPrint(MAPIProps *p);
-char *to_utf8(int len, char *buf);
+unsigned char *to_utf8(int len, unsigned char *buf);
 WORD SwapWord(BYTE *p);
 DWORD SwapDWord(BYTE *p);
 DDWORD SwapDDWord(BYTE *p);
