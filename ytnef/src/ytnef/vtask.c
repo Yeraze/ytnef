@@ -18,12 +18,13 @@
 *
 *    You can contact me at randall.hand@gmail.com for questions or assistance
 */
+#include "settings.h"
 void SaveVTask(TNEFStruct TNEF) {
   variableLength *vl;
   variableLength *filename;
   int index, i;
-  char ifilename[256];
-  char *charptr, *charptr2;
+  char ifilename[MAX_FILENAME_SIZE];
+  unsigned char *charptr, *charptr2;
   dtr thedate;
   FILE *fptr;
   DDWORD *ddword_ptr;
@@ -36,14 +37,14 @@ void SaveVTask(TNEFStruct TNEF) {
     return;
   }
 
-  index = strlen(vl->data);
+  index = strlen((char*)vl->data);
   while (vl->data[index] == ' ')
     vl->data[index--] = 0;
 
   if (filepath == NULL) {
-    sprintf(ifilename, "%s.vcf", vl->data);
+    snprintf(ifilename, MAX_FILENAME_SIZE, "%s.vcf", vl->data);
   } else {
-    sprintf(ifilename, "%s/%s.vcf", filepath, vl->data);
+    snprintf(ifilename, MAX_FILENAME_SIZE, "%s/%s.vcf", filepath, vl->data);
   }
   for (i = 0; i < strlen(ifilename); i++)
     if (ifilename[i] == ' ')
@@ -79,10 +80,10 @@ void SaveVTask(TNEFStruct TNEF) {
     }
     if ((filename != MAPI_UNDEFINED) && (filename->size > 1)) {
       charptr = filename->data - 1;
-      charptr2 = strstr(charptr + 1, ";");
+      charptr2 = (unsigned char *)strstr((char*)(charptr + 1), ";");
       while (charptr != NULL) {
         charptr++;
-        charptr2 = strstr(charptr, ";");
+        charptr2 = (unsigned char *)strstr((char *)charptr, ";");
         if (charptr2 != NULL) {
           *charptr2 = 0;
         }

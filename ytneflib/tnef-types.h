@@ -49,7 +49,7 @@ typedef struct {
 } dtr;
 
 typedef struct {
-  char *data;
+  unsigned char *data;
   int size;
 } variableLength;
 
@@ -108,8 +108,8 @@ typedef struct {
   variableLength subject;
   dtr dateSent;
   dtr dateReceived;
-  char messageStatus[10];
-  char messageClass[50];
+  unsigned char messageStatus[10];
+  unsigned char messageClass[50];
   char messageID[50];
   char parentID[50];
   char conversationID[50];

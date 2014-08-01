@@ -18,6 +18,7 @@
 *
 *    You can contact me at randall.hand@gmail.com for questions or assistance
 */
+#include "settings.h"
 unsigned char GetRruleCount(unsigned char a, unsigned char b) {
   return ((a << 8) | b);
 }
@@ -126,7 +127,7 @@ char *GetRruleDayname(unsigned char a) {
   return (daystring);
 }
 
-void PrintRrule(FILE *fptr, char *recur_data, int size, TNEFStruct TNEF) {
+void PrintRrule(FILE *fptr, unsigned char *recur_data, int size, TNEFStruct TNEF) {
   variableLength *filename;
 
   if (size < 0x1F) {
@@ -200,9 +201,9 @@ void PrintRrule(FILE *fptr, char *recur_data, int size, TNEFStruct TNEF) {
 }
 
 void SaveVCalendar(TNEFStruct TNEF) {
-  char ifilename[256];
+  char ifilename[MAX_FILENAME_SIZE];
   variableLength *filename;
-  char *charptr, *charptr2;
+  unsigned char *charptr, *charptr2;
   FILE *fptr;
   int index;
   DDWORD *ddword_ptr;
@@ -210,9 +211,9 @@ void SaveVCalendar(TNEFStruct TNEF) {
   dtr thedate;
 
   if (filepath == NULL) {
-    sprintf(ifilename, "calendar.vcf");
+    snprintf(ifilename, MAX_FILENAME_SIZE, "calendar.vcf");
   } else {
-    sprintf(ifilename, "%s/calendar.vcf", filepath);
+    snprintf(ifilename, MAX_FILENAME_SIZE, "%s/calendar.vcf", filepath);
   }
   printf("%s\n", ifilename);
   if (savefiles == 0)
@@ -231,7 +232,7 @@ void SaveVCalendar(TNEFStruct TNEF) {
         }
         charptr++;
       }
-      if (strcmp(charptr2, ".MtgCncl") == 0) {
+      if (strcmp((char*)charptr2, ".MtgCncl") == 0) {
         fprintf(fptr, "METHOD:CANCEL\n");
       } else {
         fprintf(fptr, "METHOD:REQUEST\n");
@@ -277,7 +278,7 @@ void SaveVCalendar(TNEFStruct TNEF) {
                                      PROP_TAG(PT_BINARY, PR_SENDER_SEARCH_KEY)))
         != MAPI_UNDEFINED) {
       charptr = filename->data;
-      charptr2 = strstr(charptr, ":");
+      charptr2 = (unsigned char*)strstr((char*)charptr, ":");
       if (charptr2 == NULL)
         charptr2 = charptr;
       else
@@ -293,10 +294,10 @@ void SaveVCalendar(TNEFStruct TNEF) {
       // write them out.
       if (filename->size > 1) {
         charptr = filename->data - 1;
-        charptr2 = strstr(charptr + 1, ";");
+        charptr2 = (unsigned char*)strstr((char*)(charptr + 1), ";");
         while (charptr != NULL) {
           charptr++;
-          charptr2 = strstr(charptr, ";");
+          charptr2 = (unsigned char *)strstr((char*)charptr, ";");
           if (charptr2 != NULL) {
             *charptr2 = 0;
           }
@@ -315,10 +316,10 @@ void SaveVCalendar(TNEFStruct TNEF) {
         // The list of optional participants
         if (filename->size > 1) {
           charptr = filename->data - 1;
-          charptr2 = strstr(charptr + 1, ";");
+          charptr2 = (unsigned char *)strstr((char*)(charptr + 1), ";");
           while (charptr != NULL) {
             charptr++;
-            charptr2 = strstr(charptr, ";");
+            charptr2 = (unsigned char *)strstr((char*)charptr, ";");
             if (charptr2 != NULL) {
               *charptr2 = 0;
             }
@@ -336,10 +337,10 @@ void SaveVCalendar(TNEFStruct TNEF) {
                                             PROP_TAG(PT_STRING8, 0x8238))) != MAPI_UNDEFINED) {
       if (filename->size > 1) {
         charptr = filename->data - 1;
-        charptr2 = strstr(charptr + 1, ";");
+        charptr2 = (unsigned char *)strstr((char*)(charptr + 1), ";");
         while (charptr != NULL) {
           charptr++;
-          charptr2 = strstr(charptr, ";");
+          charptr2 = (unsigned char *)strstr((char*)charptr, ";");
           if (charptr2 != NULL) {
             *charptr2 = 0;
           }
