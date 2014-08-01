@@ -10,3 +10,6 @@ cd ../ytnef
 ./autogen.sh
 ./configure 
 make
+
+cd ../test-data
+./test.sh
