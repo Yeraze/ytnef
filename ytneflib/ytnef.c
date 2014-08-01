@@ -21,6 +21,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <ctype.h>
 #include "ytnef.h"
 #include "tnef-errors.h"
 #include "mapi.h"
@@ -34,19 +35,19 @@
             printf("DEBUG(%i/%i): %s\n", curlvl, lvl,  msg);
 #define DEBUG1(lvl, curlvl, msg, var1) \
         if ((lvl) >= (curlvl)) { \
-            printf("DEBUG(%i/%i):", curlvl, lvl,  msg); \
+            printf("DEBUG(%i/%i):", curlvl, lvl); \
             printf(msg, var1); \
             printf("\n"); \
         }
 #define DEBUG2(lvl, curlvl, msg, var1, var2) \
         if ((lvl) >= (curlvl)) { \
-            printf("DEBUG(%i/%i):", curlvl, lvl,  msg); \
+            printf("DEBUG(%i/%i):", curlvl, lvl); \
             printf(msg, var1, var2); \
             printf("\n"); \
         }
 #define DEBUG3(lvl, curlvl, msg, var1, var2, var3) \
         if ((lvl) >= (curlvl)) { \
-            printf("DEBUG(%i/%i):", curlvl, lvl,  msg); \
+            printf("DEBUG(%i/%i):", curlvl, lvl); \
             printf(msg, var1, var2,var3); \
             printf("\n"); \
         }
@@ -83,6 +84,8 @@ BYTE *TNEFFileContents = NULL;
 DWORD TNEFFileContentsSize;
 BYTE *TNEFFileIcon = NULL;
 DWORD TNEFFileIconSize;
+
+int IsCompressedRTF(variableLength *p);
 
 TNEFHandler TNEFList[] = {
   {attNull,                    "Null",                        TNEFDefaultHandler},
@@ -169,10 +172,10 @@ DDWORD SwapDDWord(BYTE *p) {
 }
 
 /* convert 16-bit unicode to UTF8 unicode */
-char *to_utf8(int len, char *buf) {
+unsigned char *to_utf8(int len, unsigned char *buf) {
   int i, j = 0;
   /* worst case length */
-  char *utf8 = malloc(3 * len / 2 + 1);
+  unsigned char *utf8 = malloc(3 * len / 2 + 1);
 
   for (i = 0; i < len - 1; i += 2) {
     unsigned int c = SwapWord((BYTE *)buf + i);
@@ -518,14 +521,14 @@ void TNEFFillMapi(TNEFStruct *TNEF, BYTE *data, DWORD size, MAPIProps *p) {
   if ((d - data) < size) {
     if (TNEF->Debug >= 1)  {
       printf("ERROR DURING MAPI READ\n");
-      printf("Read %i bytes, Expected %i bytes\n", (d - data), size);
-      printf("%i bytes missing\n", size - (d - data));
+      printf("Read %li bytes, Expected %i bytes\n", (d - data), size);
+      printf("%li bytes missing\n", size - (d - data));
     }
   } else if ((d - data) > size) {
     if (TNEF->Debug >= 1)  {
       printf("ERROR DURING MAPI READ\n");
-      printf("Read %i bytes, Expected %i bytes\n", (d - data), size);
-      printf("%i bytes extra\n", (d - data) - size);
+      printf("Read %li bytes, Expected %i bytes\n", (d - data), size);
+      printf("%li bytes extra\n", (d - data) - size);
     }
   }
   return;
@@ -606,7 +609,7 @@ void TNEFPrintDate(dtr Date) {
   printf("%hu, %hu ", Date.wDay, Date.wYear);
 
   if (Date.wHour > 12)
-    printf("%hu:%02hu:%02hu pm", (Date.wHour - 12),
+    printf("%u:%02hu:%02hu pm", (Date.wHour - 12),
            Date.wMinute, Date.wSecond);
   else if (Date.wHour == 12)
     printf("%hu:%02hu:%02hu pm", (Date.wHour),
@@ -1296,10 +1299,10 @@ void MAPIPrint(MAPIProps *p) {
           printf("] (%llu)\n", ddword_tmp);
           break;
         case PT_LONG:
-          printf("    Value: %li\n", *(mapidata->data));
+          printf("    Value: %li\n", *((long*)mapidata->data));
           break;
         case PT_I2:
-          printf("    Value: %hi\n", *(mapidata->data));
+          printf("    Value: %hi\n", *((short int*)mapidata->data));
           break;
         case PT_BOOLEAN:
           if (mapi->data->data[0] != 0) {
@@ -1336,7 +1339,7 @@ void MAPIPrint(MAPIProps *p) {
           break;
         case PT_STRING8:
           printf("    Value: [%s]\n", mapidata->data);
-          if (strlen(mapidata->data) != mapidata->size - 1) {
+          if (strlen((char*)mapidata->data) != mapidata->size - 1) {
             printf("Detected Hidden data: [");
             for (h = 0; h < mapidata->size; h++) {
               if (isprint(mapidata->data[h])) {
@@ -1394,7 +1397,7 @@ unsigned char *DecompressRTF(variableLength *p, int *size) {
 
   comp_Prebuf.size = strlen(RTF_PREBUF);
   comp_Prebuf.data = calloc(comp_Prebuf.size, 1);
-  strcpy(comp_Prebuf.data, RTF_PREBUF);
+  strcpy((char*)comp_Prebuf.data, RTF_PREBUF);
 
   src = p->data;
   in = 0;
