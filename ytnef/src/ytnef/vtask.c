@@ -41,14 +41,13 @@ void SaveVTask(TNEFStruct TNEF) {
   while (vl->data[index] == ' ')
     vl->data[index--] = 0;
 
-  if (filepath == NULL) {
-    snprintf(ifilename, MAX_FILENAME_SIZE, "%s.vcf", vl->data);
-  } else {
-    snprintf(ifilename, MAX_FILENAME_SIZE, "%s/%s.vcf", filepath, vl->data);
+  snprintf(ifilename, MAX_FILENAME_SIZE, "%s.vcf", vl->data);
+  SanitizeFilename(ifilename);
+  if (filepath) {
+    char temp[MAX_FILENAME_SIZE];
+    memcpy(temp, ifilename, MAX_FILENAME_SIZE);
+    snprintf(ifilename, MAX_FILENAME_SIZE, "%s/%s", filepath, temp);
   }
-  for (i = 0; i < strlen(ifilename); i++)
-    if (ifilename[i] == ' ')
-      ifilename[i] = '_';
   printf("%s\n", ifilename);
 
   if (savefiles == 0) return;
