@@ -148,20 +148,20 @@ void ProcessTNEF(TNEFStruct TNEF) {
 // First see if this requires special processing.
 // ie: it's a Contact Card, Task, or Meeting request (vCal/vCard)
   if (TNEF.messageClass[0] != 0)  {
-    if (strcmp(TNEF.messageClass, "IPM.Contact") == 0) {
+    if (strcmp((char *)TNEF.messageClass, "IPM.Contact") == 0) {
       SaveVCard(TNEF);
     }
-    if (strcmp(TNEF.messageClass, "IPM.Task") == 0) {
+    if (strcmp((char *)TNEF.messageClass, "IPM.Task") == 0) {
       SaveVTask(TNEF);
     }
-    if (strcmp(TNEF.messageClass, "IPM.Appointment") == 0) {
+    if (strcmp((char *)TNEF.messageClass, "IPM.Appointment") == 0) {
       SaveVCalendar(TNEF);
       foundCal = 1;
     }
   }
   if ((filename = MAPIFindUserProp(&(TNEF.MapiProperties),
                                    PROP_TAG(PT_STRING8, 0x24))) != MAPI_UNDEFINED) {
-    if (strcmp(filename->data, "IPM.Appointment") == 0) {
+    if (strcmp((char*)filename->data, "IPM.Appointment") == 0) {
       // If it's "indicated" twice, we don't want to save 2 calendar
       // entries.
       if (foundCal == 0) {
@@ -170,7 +170,7 @@ void ProcessTNEF(TNEFStruct TNEF) {
     }
   }
 
-  if (strcmp(TNEF.messageClass, "IPM.Microsoft Mail.Note") == 0) {
+  if (strcmp((char *)TNEF.messageClass, "IPM.Microsoft Mail.Note") == 0) {
     if ((saveRTF == 1) && (TNEF.subject.size > 0)) {
       // Description
       if ((filename = MAPIFindProperty(&(TNEF.MapiProperties),
@@ -285,8 +285,8 @@ void ProcessTNEF(TNEFStruct TNEF) {
         if (filename->size == 1) {
           filename = (variableLength *)malloc(sizeof(variableLength));
           filename->size = 20;
-          filename->data = (char *)malloc(20);
-          snprintf(filename->data, 19, "file_%03i.dat", count);
+          filename->data = (unsigned char *)malloc(20);
+          snprintf((char*)filename->data, 19, "file_%03i.dat", count);
         }
         if (filepath == NULL) {
           snprintf(ifilename, MAX_FILENAME_SIZE, "%s", filename->data);

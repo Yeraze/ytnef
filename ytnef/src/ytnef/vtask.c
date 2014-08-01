@@ -24,7 +24,7 @@ void SaveVTask(TNEFStruct TNEF) {
   variableLength *filename;
   int index, i;
   char ifilename[MAX_FILENAME_SIZE];
-  char *charptr, *charptr2;
+  unsigned char *charptr, *charptr2;
   dtr thedate;
   FILE *fptr;
   DDWORD *ddword_ptr;
@@ -37,7 +37,7 @@ void SaveVTask(TNEFStruct TNEF) {
     return;
   }
 
-  index = strlen(vl->data);
+  index = strlen((char*)vl->data);
   while (vl->data[index] == ' ')
     vl->data[index--] = 0;
 
@@ -80,10 +80,10 @@ void SaveVTask(TNEFStruct TNEF) {
     }
     if ((filename != MAPI_UNDEFINED) && (filename->size > 1)) {
       charptr = filename->data - 1;
-      charptr2 = strstr(charptr + 1, ";");
+      charptr2 = (unsigned char *)strstr((char*)(charptr + 1), ";");
       while (charptr != NULL) {
         charptr++;
-        charptr2 = strstr(charptr, ";");
+        charptr2 = (unsigned char *)strstr((char *)charptr, ";");
         if (charptr2 != NULL) {
           *charptr2 = 0;
         }
