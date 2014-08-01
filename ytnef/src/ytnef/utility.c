@@ -18,6 +18,7 @@
 *
 *    You can contact me at randall.hand@gmail.com for questions or assistance
 */
+#include "settings.h"
 void fprintProperty(TNEFStruct TNEF, FILE *FPTR, DWORD PROPTYPE, DWORD PROPID,
                     char TEXT[]) {
   variableLength *vl;

@@ -18,11 +18,12 @@
 *
 *    You can contact me at randall.hand@gmail.com for questions or assistance
 */
+#include "settings.h"
 void SaveVTask(TNEFStruct TNEF) {
   variableLength *vl;
   variableLength *filename;
   int index, i;
-  char ifilename[256];
+  char ifilename[MAX_FILENAME_SIZE];
   char *charptr, *charptr2;
   dtr thedate;
   FILE *fptr;
@@ -41,9 +42,9 @@ void SaveVTask(TNEFStruct TNEF) {
     vl->data[index--] = 0;
 
   if (filepath == NULL) {
-    sprintf(ifilename, "%s.vcf", vl->data);
+    snprintf(ifilename, MAX_FILENAME_SIZE, "%s.vcf", vl->data);
   } else {
-    sprintf(ifilename, "%s/%s.vcf", filepath, vl->data);
+    snprintf(ifilename, MAX_FILENAME_SIZE, "%s/%s.vcf", filepath, vl->data);
   }
   for (i = 0; i < strlen(ifilename); i++)
     if (ifilename[i] == ' ')

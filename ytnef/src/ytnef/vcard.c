@@ -18,8 +18,9 @@
 *
 *    You can contact me at randall.hand@gmail.com for questions or assistance
 */
+#include "settings.h"
 void SaveVCard(TNEFStruct TNEF) {
-  char ifilename[512];
+  char ifilename[MAX_FILENAME_SIZE];
   FILE *fptr;
   variableLength *vl;
   variableLength *pobox, *street, *city, *state, *zip, *country;
@@ -32,29 +33,29 @@ void SaveVCard(TNEFStruct TNEF) {
                                PR_COMPANY_NAME))) == MAPI_UNDEFINED) {
       if (TNEF.subject.size > 0) {
         if (filepath == NULL) {
-          sprintf(ifilename, "%s.vcard", TNEF.subject.data);
+          snprintf(ifilename, MAX_FILENAME_SIZE, "%s.vcard", TNEF.subject.data);
         } else {
-          sprintf(ifilename, "%s/%s.vcard", filepath, TNEF.subject.data);
+          snprintf(ifilename, MAX_FILENAME_SIZE, "%s/%s.vcard", filepath, TNEF.subject.data);
         }
       } else {
         if (filepath == NULL) {
-          sprintf(ifilename, "unknown.vcard");
+          snprintf(ifilename, MAX_FILENAME_SIZE, "unknown.vcard");
         } else {
-          sprintf(ifilename, "%s/unknown.vcard", filepath);
+          snprintf(ifilename, MAX_FILENAME_SIZE, "%s/unknown.vcard", filepath);
         }
       }
     } else {
       if (filepath == NULL) {
-        sprintf(ifilename, "%s.vcard", vl->data);
+        snprintf(ifilename, MAX_FILENAME_SIZE, "%s.vcard", vl->data);
       } else {
-        sprintf(ifilename, "%s/%s.vcard", filepath, vl->data);
+        snprintf(ifilename, MAX_FILENAME_SIZE, "%s/%s.vcard", filepath, vl->data);
       }
     }
   } else {
     if (filepath == NULL) {
-      sprintf(ifilename, "%s.vcard", vl->data);
+      snprintf(ifilename, MAX_FILENAME_SIZE, "%s.vcard", vl->data);
     } else {
-      sprintf(ifilename, "%s/%s.vcard", filepath, vl->data);
+      snprintf(ifilename, MAX_FILENAME_SIZE, "%s/%s.vcard", filepath, vl->data);
     }
   }
   for (i = 0; i < strlen(ifilename); i++)
