@@ -10,3 +10,7 @@ cd ../ytnef
 ./autogen.sh
 ./configure 
 make
+
+export LD_LIBRARY_PATH=/usr/local/lib:${LD_LIBRARY_PATH}
+cd ../test-data
+./test.sh

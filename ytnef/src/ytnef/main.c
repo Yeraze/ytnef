@@ -24,6 +24,7 @@
 #include <string.h>
 #include <ytnef.h>
 #include "config.h"
+#include "settings.h"
 
 #define PRODID "PRODID:-//The Gauntlet//" PACKAGE_STRING "//EN\n"
 
@@ -138,7 +139,7 @@ void ProcessTNEF(TNEFStruct TNEF) {
   Attachment *p;
   int RealAttachment;
   int object;
-  char ifilename[256];
+  char ifilename[MAX_FILENAME_SIZE+1];
   int i, count;
   int foundCal = 0;
 
@@ -147,20 +148,20 @@ void ProcessTNEF(TNEFStruct TNEF) {
 // First see if this requires special processing.
 // ie: it's a Contact Card, Task, or Meeting request (vCal/vCard)
   if (TNEF.messageClass[0] != 0)  {
-    if (strcmp(TNEF.messageClass, "IPM.Contact") == 0) {
+    if (strcmp((char *)TNEF.messageClass, "IPM.Contact") == 0) {
       SaveVCard(TNEF);
     }
-    if (strcmp(TNEF.messageClass, "IPM.Task") == 0) {
+    if (strcmp((char *)TNEF.messageClass, "IPM.Task") == 0) {
       SaveVTask(TNEF);
     }
-    if (strcmp(TNEF.messageClass, "IPM.Appointment") == 0) {
+    if (strcmp((char *)TNEF.messageClass, "IPM.Appointment") == 0) {
       SaveVCalendar(TNEF);
       foundCal = 1;
     }
   }
   if ((filename = MAPIFindUserProp(&(TNEF.MapiProperties),
                                    PROP_TAG(PT_STRING8, 0x24))) != MAPI_UNDEFINED) {
-    if (strcmp(filename->data, "IPM.Appointment") == 0) {
+    if (strcmp((char*)filename->data, "IPM.Appointment") == 0) {
       // If it's "indicated" twice, we don't want to save 2 calendar
       // entries.
       if (foundCal == 0) {
@@ -169,7 +170,7 @@ void ProcessTNEF(TNEFStruct TNEF) {
     }
   }
 
-  if (strcmp(TNEF.messageClass, "IPM.Microsoft Mail.Note") == 0) {
+  if (strcmp((char *)TNEF.messageClass, "IPM.Microsoft Mail.Note") == 0) {
     if ((saveRTF == 1) && (TNEF.subject.size > 0)) {
       // Description
       if ((filename = MAPIFindProperty(&(TNEF.MapiProperties),
@@ -178,7 +179,7 @@ void ProcessTNEF(TNEFStruct TNEF) {
         int size;
         variableLength buf;
         if ((buf.data = DecompressRTF(filename, &(buf.size))) != NULL) {
-          sprintf(ifilename, "%s.rtf", TNEF.subject.data);
+          snprintf(ifilename, MAX_FILENAME_SIZE, "%s.rtf", TNEF.subject.data);
           for (i = 0; i < strlen(ifilename); i++) {
             switch (ifilename[i]) {
               case '\\':
@@ -190,8 +191,8 @@ void ProcessTNEF(TNEFStruct TNEF) {
             }
           }
           if (filepath != NULL) {
-            char tmp[256];
-            sprintf(tmp, "%s/%s", filepath, ifilename);
+            char tmp[MAX_FILENAME_SIZE+1];
+            snprintf(tmp, MAX_FILENAME_SIZE, "%s/%s", filepath, ifilename);
             strcpy(ifilename, tmp);
           }
 
@@ -284,13 +285,13 @@ void ProcessTNEF(TNEFStruct TNEF) {
         if (filename->size == 1) {
           filename = (variableLength *)malloc(sizeof(variableLength));
           filename->size = 20;
-          filename->data = (char *)malloc(20);
-          sprintf(filename->data, "file_%03i.dat", count);
+          filename->data = (unsigned char *)malloc(20);
+          snprintf((char*)filename->data, 19, "file_%03i.dat", count);
         }
         if (filepath == NULL) {
-          sprintf(ifilename, "%s", filename->data);
+          snprintf(ifilename, MAX_FILENAME_SIZE, "%s", filename->data);
         } else {
-          sprintf(ifilename, "%s/%s", filepath, filename->data);
+          snprintf(ifilename, MAX_FILENAME_SIZE, "%s/%s", filepath, filename->data);
         }
         for (i = 0; i < strlen(ifilename); i++)
           if (ifilename[i] == ' ')
