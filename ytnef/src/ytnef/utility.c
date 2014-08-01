@@ -18,6 +18,7 @@
 *
 *    You can contact me at randall.hand@gmail.com for questions or assistance
 */
+#include <ctype.h>
 #include "settings.h"
 void fprintProperty(TNEFStruct TNEF, FILE *FPTR, DWORD PROPTYPE, DWORD PROPID,
                     char TEXT[]) {
@@ -83,7 +84,7 @@ void Cstylefprint(FILE *FPTR, variableLength *VL) {
 
 void PrintRTF(FILE *fptr, variableLength *VL) {
   int index;
-  char *byte;
+  unsigned char *byte;
   int brace_ct;
   int key;
 
