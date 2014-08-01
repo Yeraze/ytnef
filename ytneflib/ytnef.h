@@ -43,15 +43,15 @@ variableLength *MAPIFindUserProp(MAPIProps *p, unsigned int ID);
 variableLength *MAPIFindProperty(MAPIProps *p, unsigned int ID);
 int MAPISysTimetoDTR(BYTE *data, dtr *thedate);
 void MAPIPrint(MAPIProps *p);
-char* to_utf8(int len, char* buf);
+char *to_utf8(int len, char *buf);
 WORD SwapWord(BYTE *p);
 DWORD SwapDWord(BYTE *p);
 DDWORD SwapDDWord(BYTE *p);
 variableLength *MAPIFindUserProp(MAPIProps *p, unsigned int ID);
 variableLength *MAPIFindProperty(MAPIProps *p, unsigned int ID);
-unsigned char * DecompressRTF(variableLength *p, int *size);
+unsigned char *DecompressRTF(variableLength *p, int *size);
 
-/* ------------------------------------- */ 
+/* ------------------------------------- */
 /* TNEF Down-level Attributes/Properties */
 /* ------------------------------------- */
 
@@ -110,9 +110,9 @@ unsigned char * DecompressRTF(variableLength *p, int *size);
 #define attRequestRes               ATT( atpShort,      0x0009) /* PR_RESPONSE_REQUESTED */
 
 typedef struct {
-    DWORD id;
-    char name[40];
-    int (*handler) STD_ARGLIST;
+  DWORD id;
+  char name[40];
+  int (*handler) STD_ARGLIST;
 } TNEFHandler;
 
 
