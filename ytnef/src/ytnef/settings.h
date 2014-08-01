@@ -24,4 +24,6 @@
 
 #define MAX_FILENAME_SIZE 1024
 
+void SanitizeFilename(char *filename);
+
 #endif  // YTNEF_SRC_YTNEF_SETTINGS_H_
