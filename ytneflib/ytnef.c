@@ -1316,7 +1316,7 @@ void MAPIPrint(MAPIProps *p) {
           break;
         case PT_BINARY:
           if (IsCompressedRTF(mapidata) == 1) {
-            printf("    Detected Compressed RTF.");
+            printf("    Detected Compressed RTF. ");
             printf("Decompressed text follows\n");
             printf("-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-\n");
             if ((vlTemp.data = DecompressRTF(mapidata, &(vlTemp.size))) != NULL) {
@@ -1397,7 +1397,7 @@ unsigned char *DecompressRTF(variableLength *p, int *size) {
 
   comp_Prebuf.size = strlen(RTF_PREBUF);
   comp_Prebuf.data = calloc(comp_Prebuf.size, 1);
-  strcpy((char*)comp_Prebuf.data, RTF_PREBUF);
+  memcpy(comp_Prebuf.data, RTF_PREBUF, comp_Prebuf.size);
 
   src = p->data;
   in = 0;
