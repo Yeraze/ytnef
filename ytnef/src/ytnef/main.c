@@ -180,16 +180,7 @@ void ProcessTNEF(TNEFStruct TNEF) {
         variableLength buf;
         if ((buf.data = DecompressRTF(filename, &(buf.size))) != NULL) {
           snprintf(ifilename, MAX_FILENAME_SIZE, "%s.rtf", TNEF.subject.data);
-          for (i = 0; i < strlen(ifilename); i++) {
-            switch (ifilename[i]) {
-              case '\\':
-              case '/':
-              case ' ':
-              case ',':
-                ifilename[i] = '_';
-                break;
-            }
-          }
+          SanitizeFilename(ifilename);
           if (filepath != NULL) {
             char tmp[MAX_FILENAME_SIZE+1];
             snprintf(tmp, MAX_FILENAME_SIZE, "%s/%s", filepath, ifilename);
@@ -288,14 +279,13 @@ void ProcessTNEF(TNEFStruct TNEF) {
           filename->data = (unsigned char *)malloc(20);
           snprintf((char*)filename->data, 19, "file_%03i.dat", count);
         }
-        if (filepath == NULL) {
-          snprintf(ifilename, MAX_FILENAME_SIZE, "%s", filename->data);
-        } else {
-          snprintf(ifilename, MAX_FILENAME_SIZE, "%s/%s", filepath, filename->data);
+        snprintf(ifilename, MAX_FILENAME_SIZE, "%s", filename->data);
+        SanitizeFilename(ifilename);
+        if(filepath) {
+          char tmp[MAX_FILENAME_SIZE];
+          memcpy(tmp, ifilename, MAX_FILENAME_SIZE);
+          snprintf(ifilename, MAX_FILENAME_SIZE, "%s/%s", filepath, tmp);
         }
-        for (i = 0; i < strlen(ifilename); i++)
-          if (ifilename[i] == ' ')
-            ifilename[i] = '_';
         printf("%s\n", ifilename);
         if (savefiles == 1) {
           if ((fptr = fopen(ifilename, "wb")) == NULL) {
@@ -326,4 +316,4 @@ void ProcessTNEF(TNEFStruct TNEF) {
 #include "vcal.c"
 #include "vcard.c"
 #include "vtask.c"
-
+#include "settings.c"
