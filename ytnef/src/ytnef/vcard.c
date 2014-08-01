@@ -32,35 +32,22 @@ void SaveVCard(TNEFStruct TNEF) {
     if ((vl = MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8,
                                PR_COMPANY_NAME))) == MAPI_UNDEFINED) {
       if (TNEF.subject.size > 0) {
-        if (filepath == NULL) {
-          snprintf(ifilename, MAX_FILENAME_SIZE, "%s.vcard", TNEF.subject.data);
-        } else {
-          snprintf(ifilename, MAX_FILENAME_SIZE, "%s/%s.vcard", filepath, TNEF.subject.data);
-        }
+        snprintf(ifilename, MAX_FILENAME_SIZE, "%s.vcard", TNEF.subject.data);
       } else {
-        if (filepath == NULL) {
-          snprintf(ifilename, MAX_FILENAME_SIZE, "unknown.vcard");
-        } else {
-          snprintf(ifilename, MAX_FILENAME_SIZE, "%s/unknown.vcard", filepath);
-        }
+        snprintf(ifilename, MAX_FILENAME_SIZE, "unknown.vcard");
       }
     } else {
-      if (filepath == NULL) {
-        snprintf(ifilename, MAX_FILENAME_SIZE, "%s.vcard", vl->data);
-      } else {
-        snprintf(ifilename, MAX_FILENAME_SIZE, "%s/%s.vcard", filepath, vl->data);
-      }
+      snprintf(ifilename, MAX_FILENAME_SIZE, "%s.vcard", vl->data);
     }
   } else {
-    if (filepath == NULL) {
-      snprintf(ifilename, MAX_FILENAME_SIZE, "%s.vcard", vl->data);
-    } else {
-      snprintf(ifilename, MAX_FILENAME_SIZE, "%s/%s.vcard", filepath, vl->data);
-    }
+    snprintf(ifilename, MAX_FILENAME_SIZE, "%s.vcard", vl->data);
   }
-  for (i = 0; i < strlen(ifilename); i++)
-    if (ifilename[i] == ' ')
-      ifilename[i] = '_';
+  SanitizeFilename(ifilename);
+  if (filepath) {
+    char temp[MAX_FILENAME_SIZE];
+    memcpy(temp, ifilename, MAX_FILENAME_SIZE);
+    snprintf(ifilename, MAX_FILENAME_SIZE, "%s/%s", filepath, temp);
+  }
   printf("%s\n", ifilename);
 
   if (savefiles == 0) return;

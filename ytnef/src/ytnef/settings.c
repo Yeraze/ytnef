@@ -19,11 +19,18 @@
 *    You can contact me at randall.hand@gmail.com for questions or assistance
 */
 
-#ifndef YTNEF_SRC_YTNEF_SETTINGS_H_
-#define YTNEF_SRC_YTNEF_SETTINGS_H_
+#include "settings.h"
 
-#define MAX_FILENAME_SIZE 1024
 
-void SanitizeFilename(char *filename);
+// Replace every character in a filename (in place)
+// that is not a valid AlphaNumeric (a-z, A-Z, 0-9) or a period
+// with an underscore.
+void SanitizeFilename(char *filename) {
+  int i;
+  for (i = 0; i < strlen(filename); ++i) {
+    if (! (isalnum(filename[i]) || (filename[i] == '.'))) {
+      filename[i] = '_';
+    }
+  }
+}
 
-#endif  // YTNEF_SRC_YTNEF_SETTINGS_H_
