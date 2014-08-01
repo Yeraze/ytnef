@@ -18,6 +18,7 @@
 *
 *    You can contact me at randall.hand@gmail.com for questions or assistance
 */
+#include "settings.h"
 unsigned char GetRruleCount(unsigned char a, unsigned char b) {
   return ((a << 8) | b);
 }
@@ -200,7 +201,7 @@ void PrintRrule(FILE *fptr, char *recur_data, int size, TNEFStruct TNEF) {
 }
 
 void SaveVCalendar(TNEFStruct TNEF) {
-  char ifilename[256];
+  char ifilename[MAX_FILENAME_SIZE];
   variableLength *filename;
   char *charptr, *charptr2;
   FILE *fptr;
@@ -210,9 +211,9 @@ void SaveVCalendar(TNEFStruct TNEF) {
   dtr thedate;
 
   if (filepath == NULL) {
-    sprintf(ifilename, "calendar.vcf");
+    snprintf(ifilename, MAX_FILENAME_SIZE, "calendar.vcf");
   } else {
-    sprintf(ifilename, "%s/calendar.vcf", filepath);
+    snprintf(ifilename, MAX_FILENAME_SIZE, "%s/calendar.vcf", filepath);
   }
   printf("%s\n", ifilename);
   if (savefiles == 0)

@@ -24,6 +24,7 @@
 #include <string.h>
 #include <ytnef.h>
 #include "config.h"
+#include "settings.h"
 
 #define PRODID "PRODID:-//The Gauntlet//" PACKAGE_STRING "//EN\n"
 
@@ -138,7 +139,7 @@ void ProcessTNEF(TNEFStruct TNEF) {
   Attachment *p;
   int RealAttachment;
   int object;
-  char ifilename[256];
+  char ifilename[MAX_FILENAME_SIZE+1];
   int i, count;
   int foundCal = 0;
 
@@ -178,7 +179,7 @@ void ProcessTNEF(TNEFStruct TNEF) {
         int size;
         variableLength buf;
         if ((buf.data = DecompressRTF(filename, &(buf.size))) != NULL) {
-          sprintf(ifilename, "%s.rtf", TNEF.subject.data);
+          snprintf(ifilename, MAX_FILENAME_SIZE, "%s.rtf", TNEF.subject.data);
           for (i = 0; i < strlen(ifilename); i++) {
             switch (ifilename[i]) {
               case '\\':
@@ -190,8 +191,8 @@ void ProcessTNEF(TNEFStruct TNEF) {
             }
           }
           if (filepath != NULL) {
-            char tmp[256];
-            sprintf(tmp, "%s/%s", filepath, ifilename);
+            char tmp[MAX_FILENAME_SIZE+1];
+            snprintf(tmp, MAX_FILENAME_SIZE, "%s/%s", filepath, ifilename);
             strcpy(ifilename, tmp);
           }
 
@@ -285,12 +286,12 @@ void ProcessTNEF(TNEFStruct TNEF) {
           filename = (variableLength *)malloc(sizeof(variableLength));
           filename->size = 20;
           filename->data = (char *)malloc(20);
-          sprintf(filename->data, "file_%03i.dat", count);
+          snprintf(filename->data, 19, "file_%03i.dat", count);
         }
         if (filepath == NULL) {
-          sprintf(ifilename, "%s", filename->data);
+          snprintf(ifilename, MAX_FILENAME_SIZE, "%s", filename->data);
         } else {
-          sprintf(ifilename, "%s/%s", filepath, filename->data);
+          snprintf(ifilename, MAX_FILENAME_SIZE, "%s/%s", filepath, filename->data);
         }
         for (i = 0; i < strlen(ifilename); i++)
           if (ifilename[i] == ' ')
