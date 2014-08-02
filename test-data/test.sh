@@ -2,10 +2,16 @@
 
 set -ex
 
+mkdir data
+
 # First test that we can save attachments
-../ytnef/src/ytnef/ytnef -f . winmail.dat
-diff results/zappa_av1.jpg zappa_av1.jpg
-diff results/bookmark.htm bookmark.htm
+../ytnef/src/ytnef/ytnef -f data winmail.dat
+for s in *.tnef
+do
+  ../ytnef/src/ytnef/ytnef -f data $s
+done
+
+diff results data
 
 
 # Now do some basic "deep checking" of specific fields.
