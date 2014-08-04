@@ -91,7 +91,7 @@ void PrintTNEF(TNEFStruct TNEF) {
   int j, object;
   int count;
   FILE *fptr;
-  char ifilename[256];
+  char ifilename[1024];
   char *charptr, *charptr2;
   DDWORD ddword_tmp;
   int SaveFile;
@@ -247,7 +247,7 @@ void PrintTNEF(TNEFStruct TNEF) {
           object = 0;
         }
       }
-      sprintf(ifilename, "%s", filename->data);
+      snprintf(ifilename, 1024, "%s", filename->data);
       for (i = 0; i < strlen(ifilename); i++)
         if (ifilename[i] == ' ')
           ifilename[i] = '_';
