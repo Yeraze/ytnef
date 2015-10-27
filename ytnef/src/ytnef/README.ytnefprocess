@@ -1,0 +1,9 @@
+ytnefprocess can be used as a filter with procmail to automatically extract the 
+files contained in the ms-tnef attachment and recreate a new mail with them 
+attached instead.
+
+Add these lines to your .procmailrc:
+
+:0Bfw
+* Content-Type:.*application/ms-tnef.*
+| /usr/bin/ytnefprocess.pl
