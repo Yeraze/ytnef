@@ -1,48 +1,74 @@
-#!/usr/bin/perl
+#!/usr/bin/perl -w
+
+use strict;
 use MIME::Parser;
 use MIME::Entity;
 use Mail::Mailer;
-use Mail::Mailer::test;
+use File::Path;
+use Data::Dumper;
 
-my $mail_dir = "$ENV{HOME}/.ytnef";
-my $reader = "/usr/local/bin/ytnef";
+my $mail_dir = "$ENV{HOME}/.ytnef/$$";
+my $reader = "/usr/bin/ytnef";
 my $output_dir = "$mail_dir/output";
 
+mkdir $mail_dir,0700;
+mkdir $output_dir,0700;
 my $parser = new MIME::Parser;
 my $filer = new MIME::Parser::FileInto;
 $filer->init($mail_dir);
 
-$parser->filer ($filer);
+$parser->filer($filer);
 $parser->output_dir($mail_dir);
 
-$entity = $parser->parse ( \*STDIN );
+my $entity = $parser->parse( \*STDIN );
 
 processParts($entity);
 
+open(LOG, ">/dev/null");
 
+### Delete the tnef parts of the multipart message:
+my @tab;
+foreach my $e ($entity->parts) {
+    print LOG "working on entity:\n";
+    print LOG Dumper($e);
+    if ((defined $e->parts) && ($e->parts > 0)) {
+        print LOG "Found subparts\n";
+        foreach my $e1 ($e->parts) {
+            if ( $e1->mime_type !~ /ms-tnef/i ) {
+                print LOG "pushing entity:\n";
+                print LOG Dumper($e1);
+	        push @tab,$e1;
+            }
+        }
+    } else {
+        if ( $e->mime_type !~ /ms-tnef/i ) {
+            print LOG "pushing entity:\n";
+            print LOG Dumper($e);
+	    push @tab,$e;
+        }
+    }
+}
+$entity->parts(\@tab);
 
-print STDOUT "From process.pl\n";
+close(LOG);
+
 $entity->print( \*STDOUT );
 
-for my $file ( @files ) {
-    `rm -f $file`;
-}
 $entity->purge;
 $parser->filer->purge;
 
-
-
+rmtree($mail_dir);
 
 sub processParts {
     my $entity = shift;
     if ($entity->parts) {
-        for $part ($entity->parts) {
+        for my $part ($entity->parts) {
             processParts($part);
         }
     } else {
         if ( $entity->mime_type =~ /ms-tnef/i ) {
-            if ($bh = $entity->bodyhandle) {
-                $io = $bh->open("r");
+            if (my $bh = $entity->bodyhandle) {
+                my $io = $bh->open("r") || die "Unable to open msg body";
                 open(FPTR, ">$output_dir/winmail.dat");
                 while (defined($_ = $io->getline)) {
                     print FPTR $_;
@@ -51,10 +77,9 @@ sub processParts {
                 $io->close;
 
                 `$reader -f $output_dir +F $output_dir/winmail.dat`;
-                `rm -f $output_dir/winmail.dat`;
+                unlink("$output_dir/winmail.dat");
 
-                opendir(DIR, $output_dir) 
-                    or die "Can't open directory $output_dir: $!";
+                opendir(DIR, $output_dir) || die "Can't open directory $output_dir: $!";
                 my @files = map { $output_dir."/".$_ } 
                     grep { !/^\./ }
                     readdir DIR;
@@ -71,8 +96,8 @@ sub processParts {
                     $disposition = "inline"     if ($file =~ m/\.vcard$/);
 
                     if ($mimetype eq "application/binary") {
-                        $qfile = quotemeta $file;
-                        $filetype = `file -bi $qfile`;
+                        my $qfile = quotemeta $file;
+                        my $filetype = `file -bi $qfile`;
                         chomp $filetype;
                         $mimetype = $filetype if ($filetype ne "");
                     }
