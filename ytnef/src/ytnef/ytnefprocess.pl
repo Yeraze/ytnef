@@ -91,9 +91,11 @@ sub processParts {
 
                     $mimetype = "text/calendar" if ($file =~ m/\.vcf$/);
                     $mimetype = "text/x-vcard"  if ($file =~ m/\.vcard$/);
+                    $mimetype = "text/html"     if ($file =~ m/\.htm[l]*$/);
 
                     $disposition = "inline"     if ($file =~ m/\.vcf$/);
                     $disposition = "inline"     if ($file =~ m/\.vcard$/);
+					#$disposition = "inline"     if ($file =~ m/\.htm[l]*$/);
 
                     if ($mimetype eq "application/binary") {
                         my $qfile = quotemeta $file;
