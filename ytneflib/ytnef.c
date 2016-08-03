@@ -480,6 +480,12 @@ void TNEFFillMapi(TNEFStruct *TNEF, BYTE *data, DWORD size, MAPIProps *p) {
         memcpy(vl->data, &temp_ddword, vl->size);
         d += 8;
         break;
+      case PT_CLSID:
+        vl->size = 16;
+        vl->data = calloc(vl->size, sizeof(BYTE));
+        memcpy(vl->data, d, vl->size);
+        d+=16;
+        break;
     }
 
     switch (PROP_ID(mp->id)) {
@@ -1351,6 +1357,14 @@ void MAPIPrint(MAPIProps *p) {
             }
             printf("]\n");
           }
+          break;
+        case PT_CLSID:
+          printf("    Value: ");
+          printf("[HEX: ");
+          for(x=0; x< 16; x++) {
+            printf(" %02x", (BYTE)mapidata->data[x]);
+          }
+          printf("]\n");
           break;
         default:
           printf("    Value: [%s]\n", mapidata->data);
