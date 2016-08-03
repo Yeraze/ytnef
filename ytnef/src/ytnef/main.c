@@ -270,7 +270,11 @@ void ProcessTNEF(TNEFStruct TNEF) {
           if ((filename = MAPIFindProperty(&(p->MAPI),
                                            PROP_TAG(30, 0x3001)))
               == MAPI_UNDEFINED) {
-            filename = &(p->Title);
+            if ((filename = MAPIFindProperty(&(p->MAPI),
+                                             PROP_TAG(30, 0x370C)))
+                == MAPI_UNDEFINED) {
+              filename = &(p->Title);
+            }
           }
         }
         if (filename->size == 1) {
