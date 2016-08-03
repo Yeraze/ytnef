@@ -82,35 +82,102 @@ void Cstylefprint(FILE *FPTR, variableLength *VL) {
   }
 }
 
+void ConsumeHyperlink(FILE *fptr, char** str) {
+  char *link = NULL;
+  char *text = NULL;
+  char *bgn = *str;
+  char *end = NULL;
+  bgn = strchr(bgn, '"');
+  bgn++;
+  end = strchr(bgn, '"');
+  unsigned int size = end - bgn;
+  link = calloc(size + 1, 1);
+  strncpy(link, bgn, size);
+  link[size] = '\0';
+  bgn = strstr(end, "\\fldrslt");
+  int bSlash = 1;
+  for (;;) {
+    bgn++;
+    if (*bgn == '\\') {
+      bSlash = 1;
+      continue;
+    } else if (*bgn == ' ') {
+      bSlash = 0;
+      continue;
+    } else if (*bgn == '{') {
+      bSlash = 0;
+      continue;
+    } else if (*bgn == '}') {
+      break;
+    }
+	  if (!bSlash) {
+      break;
+    }
+  }
+  if (*bgn != '}') {
+    end = strchr(bgn, '}');
+    size = end - bgn;
+    text = calloc(size + 1, 1);
+    strncpy(text, bgn, size);
+    text[size] = '\0';
+  }
+  if ((text != NULL) && (strcmp(link, text) != 0)) {
+    fprintf(fptr, "%s <%s>", text, link );
+  } else {
+    fprintf(fptr, "%s", link );
+  }
+  free(text);
+  free(link);
+  *str = end;
+  return;
+}
+
 void PrintRTF(FILE *fptr, variableLength *VL) {
-  int index;
-  unsigned char *byte;
-  int brace_ct;
-  int key;
-
-  key = 0;
-  brace_ct = 0;
-
-  for (index = 0, byte = VL->data; index < VL->size; index++, byte++) {
-    if (*byte == '}') {
-      brace_ct--;
-      key = 0;
-      continue;
-    }
-    if (*byte == '{') {
-      brace_ct++;
-      continue;
-    }
+  char *byte = 0;
+  int bSlash = 0;
+  byte = strstr(VL->data, "\\pard");
+  if (!byte)
+    return;
+  for (; *byte != '\0'; byte++) {
     if (*byte == '\\') {
-      key = 1;
+      bSlash = 1;
+      continue;
+    } else if (*byte == ' ') {
+      if (bSlash) {
+        bSlash = 0;
+        continue;
+      }
+    } else if (*byte == '{') {
+      bSlash = 0;
+      continue;
+    } else if (*byte == '}') {
+      bSlash = 0;
+      continue;
+    } else if (*byte == 'l' && bSlash) {
+      if(strncmp(byte, "listtext", 8) == 0) {
+        fprintf(fptr, "*\t");
+        continue;
+      }
+    } else if (*byte == 'd' && bSlash) {
+      if(strncmp(byte, "datastore", 9) == 0) {
+        byte = strchr(byte, '}');
+        continue;
+      }
+    } else if (*byte == '~' && bSlash) {
+      fprintf(fptr, " ");
+      bSlash = 0;
+      continue;
     }
-    if (isspace(*byte)) {
-      key = 0;
-    }
-    if ((brace_ct == 1) && (key == 0)) {
-      if (*byte == '\n') {
-        fprintf(fptr, "\\n");
-      } else if (*byte == '\r') {
+
+    if (!bSlash) {
+      if (*byte == 'H') {
+        if(strncmp(byte, "HYPERLINK", 9) == 0) {
+          ConsumeHyperlink(fptr, &byte);
+          continue;
+        }
+      } else if (*byte == '\n') { 
+        fprintf(fptr, "\\n"); 
+      } else if (*byte == '\r') { 
         // Print nothing.
       } else if (*byte == ';') {
         fprintf(fptr, "\\;");
@@ -118,12 +185,12 @@ void PrintRTF(FILE *fptr, variableLength *VL) {
         fprintf(fptr, "\\,");
       } else if (*byte == '\\') {
         fprintf(fptr, "\\");
-      } else {
-        fprintf(fptr, "%c", *byte);
-      }
+      } else { 
+        fprintf(fptr, "%c", *byte );
+      } 
+      continue;
     }
   }
   fprintf(fptr, "\n");
-
+  return;
 }
-
