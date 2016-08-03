@@ -1055,7 +1055,7 @@ int TNEFParse(TNEFStruct *TNEF) {
   while (TNEFGetHeader(TNEF, &type, &size) == 0) {
     DEBUG2(TNEF->Debug, 2, "Header says type=0x%X, size=%i", type, size);
     DEBUG2(TNEF->Debug, 2, "Header says type=%i, size=%i", type, size);
-    if (size > 0) {
+    if (size >= 0) {
       data = calloc(size, sizeof(BYTE));
       if (TNEFRawRead(TNEF, data, size, &header_checksum) < 0) {
         printf("ERROR: Unable to read data.\n");
