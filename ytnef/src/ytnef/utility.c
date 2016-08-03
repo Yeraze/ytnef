@@ -65,7 +65,7 @@ void quotedfprint(FILE *FPTR, variableLength *VL) {
 void Cstylefprint(FILE *FPTR, variableLength *VL) {
   int index;
 
-  for (index = 0; index < VL->size - 1; index++) {
+  for (index = 0; index < strlen(VL->data); index++) {
     if (VL->data[index] == '\n') {
       fprintf(FPTR, "\\n");
     } else if (VL->data[index] == '\r') {
