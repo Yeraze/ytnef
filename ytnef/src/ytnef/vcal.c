@@ -274,9 +274,18 @@ void SaveVCalendar(TNEFStruct TNEF) {
       ddword_ptr = (DDWORD *)filename->data;
       fprintf(fptr, "SEQUENCE:%i\n", (int) *ddword_ptr);
     }
+
+    filename = NULL;
     if ((filename = MAPIFindProperty(&(TNEF.MapiProperties),
                                      PROP_TAG(PT_BINARY, PR_SENDER_SEARCH_KEY)))
-        != MAPI_UNDEFINED) {
+        == MAPI_UNDEFINED) {
+      if ((filename = MAPIFindProperty(&(TNEF.MapiProperties),
+                                       PROP_TAG(PT_UNICODE, PR_SENT_REPRESENTING_EMAIL_ADDRESS)))
+          == MAPI_UNDEFINED) {
+        filename = NULL;
+      }
+    }
+    if (filename != NULL) {
       charptr = filename->data;
       charptr2 = (unsigned char*)strstr((char*)charptr, ":");
       if (charptr2 == NULL)
