@@ -25,5 +25,8 @@
 #define MAX_FILENAME_SIZE 1024
 
 void SanitizeFilename(char *filename);
+void CreateUniqueFilename(char* output, unsigned int max_size,
+                          const char* name, const char* ext,
+                          const char* path);
 
 #endif  // YTNEF_SRC_YTNEF_SETTINGS_H_

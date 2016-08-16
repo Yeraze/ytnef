@@ -210,11 +210,8 @@ void SaveVCalendar(TNEFStruct TNEF) {
   DDWORD ddword_val;
   dtr thedate;
 
-  if (filepath == NULL) {
-    snprintf(ifilename, MAX_FILENAME_SIZE, "calendar.vcf");
-  } else {
-    snprintf(ifilename, MAX_FILENAME_SIZE, "%s/calendar.vcf", filepath);
-  }
+  CreateUniqueFilename(ifilename, MAX_FILENAME_SIZE, "calendar", "vcf", filepath);
+
   printf("%s\n", ifilename);
   if (savefiles == 0)
     return;
