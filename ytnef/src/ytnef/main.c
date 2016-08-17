@@ -34,7 +34,7 @@ int saveRTF = 0;
 int saveintermediate = 0;
 char *filepath = NULL;
 void ProcessTNEF(TNEFStruct TNEF);
-void SaveVCalendar(TNEFStruct TNEF);
+void SaveVCalendar(TNEFStruct TNEF, int isMtgReq);
 void SaveVCard(TNEFStruct TNEF);
 void SaveVTask(TNEFStruct TNEF);
 
@@ -154,8 +154,12 @@ void ProcessTNEF(TNEFStruct TNEF) {
     if (strcmp((char *)TNEF.messageClass, "IPM.Task") == 0) {
       SaveVTask(TNEF);
     }
+    if (strcmp(TNEF.messageClass, "IPM.Microsoft Schedule.MtgReq") == 0) {
+      SaveVCalendar(TNEF, 1);
+      foundCal = 1;
+    }
     if (strcmp((char *)TNEF.messageClass, "IPM.Appointment") == 0) {
-      SaveVCalendar(TNEF);
+      SaveVCalendar(TNEF, 0);
       foundCal = 1;
     }
   }
@@ -165,7 +169,7 @@ void ProcessTNEF(TNEFStruct TNEF) {
       // If it's "indicated" twice, we don't want to save 2 calendar
       // entries.
       if (foundCal == 0) {
-        SaveVCalendar(TNEF);
+        SaveVCalendar(TNEF, 0);
       }
     }
   }

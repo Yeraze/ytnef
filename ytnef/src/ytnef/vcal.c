@@ -200,7 +200,7 @@ void PrintRrule(FILE *fptr, unsigned char *recur_data, int size, TNEFStruct TNEF
   fprintf(fptr, "\n");
 }
 
-void SaveVCalendar(TNEFStruct TNEF) {
+void SaveVCalendar(TNEFStruct TNEF, int isMtgReq) {
   char ifilename[MAX_FILENAME_SIZE];
   variableLength *filename;
   unsigned char *charptr, *charptr2;
@@ -210,7 +210,11 @@ void SaveVCalendar(TNEFStruct TNEF) {
   DDWORD ddword_val;
   dtr thedate;
 
-  CreateUniqueFilename(ifilename, MAX_FILENAME_SIZE, "calendar", "vcf", filepath);
+  if(isMtgReq) {
+    CreateUniqueFilename(ifilename, MAX_FILENAME_SIZE, "MtgReq", "ics", filepath);
+  } else {
+    CreateUniqueFilename(ifilename, MAX_FILENAME_SIZE, "calendar", "vcf", filepath);
+  }
 
   printf("%s\n", ifilename);
   if (savefiles == 0)
