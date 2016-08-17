@@ -475,7 +475,7 @@ void SaveVCalendar(TNEFStruct TNEF, int isMtgReq) {
     }
 
     if (filename != NULL){
-      fprintf(fptr, "CREATED:");
+      fprintf(fptr, "DTSTAMP:");
       MAPISysTimetoDTR(filename->data, &thedate);
       fprintf(fptr, "%04i%02i%02iT%02i%02i%02iZ\n",
               thedate.wYear, thedate.wMonth, thedate.wDay,
