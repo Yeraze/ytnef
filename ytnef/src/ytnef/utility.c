@@ -157,6 +157,13 @@ void PrintRTF(FILE *fptr, variableLength *VL) {
       if(strncmp(byte, "listtext", 8) == 0) {
         fprintf(fptr, "*\t");
         continue;
+      } else
+      if(strncmp(byte, "lsdlocked", 9) == 0) {
+        byte += 9;
+        if(isdigit(*byte)){
+          byte = strchr(byte, ';');
+          continue;
+        }
       }
     } else if (*byte == 'd' && bSlash) {
       if(strncmp(byte, "datastore", 9) == 0) {
