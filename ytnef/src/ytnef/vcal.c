@@ -213,7 +213,7 @@ void SaveVCalendar(TNEFStruct TNEF, int isMtgReq) {
   if(isMtgReq) {
     CreateUniqueFilename(ifilename, MAX_FILENAME_SIZE, "MtgReq", "ics", filepath);
   } else {
-    CreateUniqueFilename(ifilename, MAX_FILENAME_SIZE, "calendar", "vcf", filepath);
+    CreateUniqueFilename(ifilename, MAX_FILENAME_SIZE, "calendar", "ics", filepath);
   }
 
   printf("%s\n", ifilename);
