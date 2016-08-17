@@ -207,6 +207,47 @@ void ProcessTNEF(TNEFStruct TNEF) {
     }
   }
 
+  if (strcmp(TNEF.messageClass, "IPM.StickyNote") == 0) {
+    if ((saveRTF == 1) && (TNEF.subject.size > 0)) {
+      // Description
+      if ((filedata=MAPIFindProperty(&(TNEF.MapiProperties),
+                                     PROP_TAG(PT_BINARY, PR_RTF_COMPRESSED)))
+          != MAPI_UNDEFINED) {
+        int size;
+	      if ((filename=MAPIFindProperty(&(TNEF.MapiProperties),
+                                    PROP_TAG(PT_STRING8, PR_CONVERSATION_TOPIC))) == MAPI_UNDEFINED) {
+          if ((filename=MAPIFindProperty(&(TNEF.MapiProperties),
+                                      PROP_TAG(PT_UNICODE, PR_CONVERSATION_TOPIC))) == MAPI_UNDEFINED) {
+            filename = NULL;
+          }
+        }
+
+        variableLength buf;
+			  buf.data = DecompressRTF(filedata, &(buf.size));
+        if (buf.data != NULL && filename != NULL) {
+				  char fileNameBase[32];
+				  strncpy(fileNameBase, filename->data, sizeof(fileNameBase) - 1);
+				  
+          SanitizeFilename(fileNameBase);
+
+          CreateUniqueFilename(ifilename, MAX_FILENAME_SIZE, fileNameBase, "rtf", filepath);
+
+          printf("%s\n", ifilename);
+          if ((fptr = fopen(ifilename, "wb"))==NULL) {
+            printf("ERROR: Error writing file to disk!");
+          } else {
+            fwrite(buf.data,
+                   sizeof(BYTE),
+                   buf.size,
+                   fptr);
+            fclose(fptr);
+          }
+          free(buf.data);
+        }
+      }
+    }
+  }
+
 // Now process each attachment
   p = TNEF.starting_attach.next;
   count = 0;
