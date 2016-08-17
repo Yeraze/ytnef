@@ -213,7 +213,7 @@ void SaveVCalendar(TNEFStruct TNEF, int isMtgReq) {
   if(isMtgReq) {
     CreateUniqueFilename(ifilename, MAX_FILENAME_SIZE, "MtgReq", "ics", filepath);
   } else {
-    CreateUniqueFilename(ifilename, MAX_FILENAME_SIZE, "calendar", "vcf", filepath);
+    CreateUniqueFilename(ifilename, MAX_FILENAME_SIZE, "calendar", "ics", filepath);
   }
 
   printf("%s\n", ifilename);
@@ -475,7 +475,7 @@ void SaveVCalendar(TNEFStruct TNEF, int isMtgReq) {
     }
 
     if (filename != NULL){
-      fprintf(fptr, "CREATED:");
+      fprintf(fptr, "DTSTAMP:");
       MAPISysTimetoDTR(filename->data, &thedate);
       fprintf(fptr, "%04i%02i%02iT%02i%02i%02iZ\n",
               thedate.wYear, thedate.wMonth, thedate.wDay,

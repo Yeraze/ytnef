@@ -329,7 +329,9 @@ void ProcessTNEF(TNEFStruct TNEF) {
           snprintf((char*)filename->data, 19, "file_%03i.dat", count);
         }
         snprintf(ifilename, MAX_FILENAME_SIZE, "%s", filename->data);
-        SanitizeFilename(ifilename);
+        for(i = 0; i < strlen(ifilename); i++) 
+          if (ifilename[i] == ' ') 
+            ifilename[i] = '_';
         if(filepath) {
           char tmp[MAX_FILENAME_SIZE];
           memcpy(tmp, ifilename, MAX_FILENAME_SIZE);
