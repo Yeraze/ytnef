@@ -5,10 +5,4 @@ os:
 compiler:
   - gcc
   - clang
-matrix:
-  include:
-    - c: gcc
-      env: COMPILER=gcc
-    - c: clang
-      env: COMPILER=clang
-script: ./travis-build.sh $COMPILER
+script: ./travis-build.sh
