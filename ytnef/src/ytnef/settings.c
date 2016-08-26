@@ -54,7 +54,7 @@ void CreateUniqueFilename(char* output, unsigned int max_size,
 		  }
     }
 		//Let's check if there is a file with the same name.
-		if (check = fopen(output, "r")) {
+		if (NULL == (check = fopen(output, "r"))) {
 			fclose(check);
 			counter++;
 		} else {

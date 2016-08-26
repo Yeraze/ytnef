@@ -65,7 +65,7 @@ void quotedfprint(FILE *FPTR, variableLength *VL) {
 void Cstylefprint(FILE *FPTR, variableLength *VL) {
   int index;
 
-  for (index = 0; index < strlen(VL->data); index++) {
+  for (index = 0; index < strlen((char*)VL->data); index++) {
     if (VL->data[index] == '\n') {
       fprintf(FPTR, "\\n");
     } else if (VL->data[index] == '\r') {
@@ -135,7 +135,7 @@ void ConsumeHyperlink(FILE *fptr, char** str) {
 void PrintRTF(FILE *fptr, variableLength *VL) {
   char *byte = 0;
   int bSlash = 0;
-  byte = strstr(VL->data, "\\pard");
+  byte = strstr((char*)VL->data, "\\pard");
   if (!byte)
     return;
   for (; *byte != '\0'; byte++) {
