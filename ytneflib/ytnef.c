@@ -172,10 +172,10 @@ DDWORD SwapDDWord(BYTE *p) {
 }
 
 /* convert 16-bit unicode to UTF8 unicode */
-unsigned char *to_utf8(int len, unsigned char *buf) {
+char *to_utf8(int len, char *buf) {
   int i, j = 0;
   /* worst case length */
-  unsigned char *utf8 = malloc(3 * len / 2 + 1);
+  char *utf8 = malloc(3 * len / 2 + 1);
 
   for (i = 0; i < len - 1; i += 2) {
     unsigned int c = SwapWord((BYTE *)buf + i);
@@ -281,8 +281,8 @@ int TNEFRendData STD_ARGLIST {
 int TNEFVersion STD_ARGLIST {
   WORD major;
   WORD minor;
-  major = SwapWord(data + 2);
-  minor = SwapWord(data);
+  major = SwapWord((BYTE*)data + 2);
+  minor = SwapWord((BYTE*)data);
 
   sprintf(TNEF->version, "TNEF%i.%i", major, minor);
   return 0;
@@ -309,15 +309,15 @@ int TNEFRecipTable STD_ARGLIST {
   int propcount;
   int current_prop;
 
-  d = data;
-  count = SwapDWord(d);
+  d = (BYTE*)data;
+  count = SwapDWord((BYTE*)d);
   d += 4;
 //    printf("Recipient Table containing %u rows\n", count);
 
   return 0;
 
   for (current_row = 0; current_row < count; current_row++) {
-    propcount = SwapDWord(d);
+    propcount = SwapDWord((BYTE*)d);
     if (TNEF->Debug >= 1)
       printf("> Row %i contains %i properties\n", current_row, propcount);
     d += 4;
@@ -335,13 +335,13 @@ int TNEFAttachmentMAPI STD_ARGLIST {
   //
   p = &(TNEF->starting_attach);
   while (p->next != NULL) p = p->next;
-  TNEFFillMapi(TNEF, data, size, &(p->MAPI));
+  TNEFFillMapi(TNEF, (BYTE*)data, size, &(p->MAPI));
 
   return 0;
 }
 // -----------------------------------------------------------------------------
 int TNEFMapiProperties STD_ARGLIST {
-  TNEFFillMapi(TNEF, data, size, &(TNEF->MapiProperties));
+  TNEFFillMapi(TNEF, (BYTE*)data, size, &(TNEF->MapiProperties));
   if (TNEF->Debug >= 3) {
     MAPIPrint(&(TNEF->MapiProperties));
   }
@@ -364,14 +364,14 @@ void TNEFFillMapi(TNEFStruct *TNEF, BYTE *data, DWORD size, MAPIProps *p) {
   int offset;
 
   d = data;
-  p->count = SwapDWord(data);
+  p->count = SwapDWord((BYTE*)data);
   d += 4;
   p->properties = calloc(p->count, sizeof(MAPIProperty));
   mp = p->properties;
 
   for (i = 0; i < p->count; i++) {
     if (count == -1) {
-      mp->id = SwapDWord(d);
+      mp->id = SwapDWord((BYTE*)d);
       d += 4;
       mp->custom = 0;
       mp->count = 1;
@@ -382,13 +382,13 @@ void TNEFFillMapi(TNEFStruct *TNEF, BYTE *data, DWORD size, MAPIProps *p) {
         memcpy(&(mp->guid[0]), d, 16);
         d += 16;
 
-        length = SwapDWord(d);
+        length = SwapDWord((BYTE*)d);
         d += sizeof(DWORD);
         if (length > 0) {
           mp->namedproperty = length;
           mp->propnames = calloc(length, sizeof(variableLength));
           while (length > 0) {
-            type = SwapDWord(d);
+            type = SwapDWord((BYTE*)d);
             mp->propnames[length - 1].data = calloc(type, sizeof(BYTE));
             mp->propnames[length - 1].size = type;
             d += 4;
@@ -400,7 +400,7 @@ void TNEFFillMapi(TNEFStruct *TNEF, BYTE *data, DWORD size, MAPIProps *p) {
           }
         } else {
           // READ the type
-          type = SwapDWord(d);
+          type = SwapDWord((BYTE*)d);
           d += sizeof(DWORD);
           mp->id = PROP_TAG(PROP_TYPE(mp->id), type);
         }
@@ -411,7 +411,7 @@ void TNEFFillMapi(TNEFStruct *TNEF, BYTE *data, DWORD size, MAPIProps *p) {
              PROP_ID(mp->id));
       if (PROP_TYPE(mp->id) & MV_FLAG) {
         mp->id = PROP_TAG(PROP_TYPE(mp->id) - MV_FLAG, PROP_ID(mp->id));
-        mp->count = SwapDWord(d);
+        mp->count = SwapDWord((BYTE*)d);
         d += 4;
         count = 0;
       }
@@ -430,16 +430,16 @@ void TNEFFillMapi(TNEFStruct *TNEF, BYTE *data, DWORD size, MAPIProps *p) {
       case PT_UNICODE:
         // First number of objects (assume 1 for now)
         if (count == -1) {
-          vl->size = SwapDWord(d);
+          vl->size = SwapDWord((BYTE*)d);
           d += 4;
         }
         // now size of object
-        vl->size = SwapDWord(d);
+        vl->size = SwapDWord((BYTE*)d);
         d += 4;
 
         // now actual object
         if (PROP_TYPE(mp->id) == PT_UNICODE) {
-          vl->data = to_utf8(vl->size, d);
+          vl->data =(BYTE*) to_utf8(vl->size, (char*)d);
         } else {
           vl->data = calloc(vl->size, sizeof(BYTE));
           memcpy(vl->data, d, vl->size);
@@ -455,7 +455,7 @@ void TNEFFillMapi(TNEFStruct *TNEF, BYTE *data, DWORD size, MAPIProps *p) {
         // Read in 2 bytes, but proceed by 4 bytes
         vl->size = 2;
         vl->data = calloc(vl->size, sizeof(WORD));
-        temp_word = SwapWord(d);
+        temp_word = SwapWord((BYTE*)d);
         memcpy(vl->data, &temp_word, vl->size);
         d += 4;
         break;
@@ -467,7 +467,7 @@ void TNEFFillMapi(TNEFStruct *TNEF, BYTE *data, DWORD size, MAPIProps *p) {
       case PT_ERROR:
         vl->size = 4;
         vl->data = calloc(vl->size, sizeof(BYTE));
-        temp_dword = SwapDWord(d);
+        temp_dword = SwapDWord((BYTE*)d);
         memcpy(vl->data, &temp_dword, vl->size);
         d += 4;
         break;
@@ -544,16 +544,16 @@ int TNEFSentFor STD_ARGLIST {
   WORD name_length, addr_length;
   BYTE *d;
 
-  d = data;
+  d = (BYTE*)data;
 
-  while ((d - data) < size) {
-    name_length = SwapWord(d);
+  while ((d - (BYTE*)data) < size) {
+    name_length = SwapWord((BYTE*)d);
     d += sizeof(WORD);
     if (TNEF->Debug >= 1)
       printf("Sent For : %s", d);
     d += name_length;
 
-    addr_length = SwapWord(d);
+    addr_length = SwapWord((BYTE*)d);
     d += sizeof(WORD);
     if (TNEF->Debug >= 1)
       printf("<%s>\n", d);
@@ -674,7 +674,7 @@ int TNEFAttachmentSave STD_ARGLIST {
   p = &(TNEF->starting_attach);
   while (p->next != NULL) p = p->next;
 
-  p->FileData.data = calloc(sizeof(unsigned char), size);
+  p->FileData.data = calloc(sizeof(char), size);
   p->FileData.size = size;
 
   memcpy(p->FileData.data, data, size);
@@ -686,7 +686,7 @@ int TNEFAttachmentSave STD_ARGLIST {
 int TNEFPriority STD_ARGLIST {
   DWORD value;
 
-  value = SwapDWord(data);
+  value = SwapDWord((BYTE*)data);
   switch (value) {
     case 3:
       sprintf((TNEF->priority), "high");
@@ -734,7 +734,7 @@ int TNEFGetKey(TNEFStruct *TNEF, WORD *key) {
 // -----------------------------------------------------------------------------
 int TNEFGetHeader(TNEFStruct *TNEF, DWORD *type, DWORD *size) {
   BYTE component;
-  unsigned char temp[8];
+  char temp[8];
   int i;
   WORD wtemp;
 
@@ -1061,55 +1061,53 @@ int TNEFParse(TNEFStruct *TNEF) {
   while (TNEFGetHeader(TNEF, &type, &size) == 0) {
     DEBUG2(TNEF->Debug, 2, "Header says type=0x%X, size=%i", type, size);
     DEBUG2(TNEF->Debug, 2, "Header says type=%i, size=%i", type, size);
-    if (size >= 0) {
-      data = calloc(size, sizeof(BYTE));
-      if (TNEFRawRead(TNEF, data, size, &header_checksum) < 0) {
-        printf("ERROR: Unable to read data.\n");
-        if (TNEF->IO.CloseProc != NULL) {
-          TNEF->IO.CloseProc(&TNEF->IO);
-        }
-        free(data);
-        return YTNEF_ERROR_READING_DATA;
+    data = calloc(size, sizeof(BYTE));
+    if (TNEFRawRead(TNEF, data, size, &header_checksum) < 0) {
+      printf("ERROR: Unable to read data.\n");
+      if (TNEF->IO.CloseProc != NULL) {
+        TNEF->IO.CloseProc(&TNEF->IO);
       }
-      if (TNEFRawRead(TNEF, (BYTE *)&checksum, 2, NULL) < 0) {
-        printf("ERROR: Unable to read checksum.\n");
-        if (TNEF->IO.CloseProc != NULL) {
-          TNEF->IO.CloseProc(&TNEF->IO);
-        }
-        free(data);
-        return YTNEF_ERROR_READING_DATA;
-      }
-      checksum = SwapWord((BYTE *)&checksum);
-      if (checksum != header_checksum) {
-        printf("ERROR: Checksum mismatch. Data corruption?:\n");
-        if (TNEF->IO.CloseProc != NULL) {
-          TNEF->IO.CloseProc(&TNEF->IO);
-        }
-        free(data);
-        return YTNEF_BAD_CHECKSUM;
-      }
-      for (i = 0; i < (sizeof(TNEFList) / sizeof(TNEFHandler)); i++) {
-        if (TNEFList[i].id == type) {
-          if (TNEFList[i].handler != NULL) {
-            if (TNEFList[i].handler(TNEF, i, data, size) < 0) {
-              free(data);
-              if (TNEF->IO.CloseProc != NULL) {
-                TNEF->IO.CloseProc(&TNEF->IO);
-              }
-              return YTNEF_ERROR_IN_HANDLER;
-            } else {
-              //  Found our handler and processed it.  now time to get out
-              break;
-            }
-          } else {
-            DEBUG2(TNEF->Debug, 1, "No handler for %s: %i bytes",
-                   TNEFList[i].name, size);
-          }
-        }
-      }
-
       free(data);
+      return YTNEF_ERROR_READING_DATA;
     }
+    if (TNEFRawRead(TNEF, (BYTE *)&checksum, 2, NULL) < 0) {
+      printf("ERROR: Unable to read checksum.\n");
+      if (TNEF->IO.CloseProc != NULL) {
+        TNEF->IO.CloseProc(&TNEF->IO);
+      }
+      free(data);
+      return YTNEF_ERROR_READING_DATA;
+    }
+    checksum = SwapWord((BYTE *)&checksum);
+    if (checksum != header_checksum) {
+      printf("ERROR: Checksum mismatch. Data corruption?:\n");
+      if (TNEF->IO.CloseProc != NULL) {
+        TNEF->IO.CloseProc(&TNEF->IO);
+      }
+      free(data);
+      return YTNEF_BAD_CHECKSUM;
+    }
+    for (i = 0; i < (sizeof(TNEFList) / sizeof(TNEFHandler)); i++) {
+      if (TNEFList[i].id == type) {
+        if (TNEFList[i].handler != NULL) {
+          if (TNEFList[i].handler(TNEF, i, (char*)data, size) < 0) {
+            free(data);
+            if (TNEF->IO.CloseProc != NULL) {
+              TNEF->IO.CloseProc(&TNEF->IO);
+            }
+            return YTNEF_ERROR_IN_HANDLER;
+          } else {
+            //  Found our handler and processed it.  now time to get out
+            break;
+          }
+        } else {
+          DEBUG2(TNEF->Debug, 1, "No handler for %s: %i bytes",
+                 TNEFList[i].name, size);
+        }
+      }
+    }
+
+    free(data);
   }
 
   if (TNEF->IO.CloseProc != NULL) {
@@ -1325,7 +1323,7 @@ void MAPIPrint(MAPIProps *p) {
             printf("    Detected Compressed RTF. ");
             printf("Decompressed text follows\n");
             printf("-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-\n");
-            if ((vlTemp.data = DecompressRTF(mapidata, &(vlTemp.size))) != NULL) {
+            if ((vlTemp.data = (BYTE*)DecompressRTF(mapidata, &(vlTemp.size))) != NULL) {
               printf("%s\n", vlTemp.data);
               free(vlTemp.data);
             }
@@ -1376,19 +1374,19 @@ void MAPIPrint(MAPIProps *p) {
 
 int IsCompressedRTF(variableLength *p) {
   unsigned int in;
-  unsigned char *src;
+  BYTE *src;
   ULONG compressedSize, uncompressedSize, magic, crc32;
 
   src = p->data;
   in = 0;
 
-  compressedSize = (ULONG)SwapDWord(src + in);
+  compressedSize = (ULONG)SwapDWord((BYTE*)src + in);
   in += 4;
-  uncompressedSize = (ULONG)SwapDWord(src + in);
+  uncompressedSize = (ULONG)SwapDWord((BYTE*)src + in);
   in += 4;
-  magic = SwapDWord(src + in);
+  magic = SwapDWord((BYTE*)src + in);
   in += 4;
-  crc32 = SwapDWord(src + in);
+  crc32 = SwapDWord((BYTE*)src + in);
   in += 4;
 
   if (magic == 0x414c454d) {
@@ -1400,9 +1398,9 @@ int IsCompressedRTF(variableLength *p) {
   }
 }
 
-unsigned char *DecompressRTF(variableLength *p, int *size) {
-  unsigned char *dst; // destination for uncompressed bytes
-  unsigned char *src;
+BYTE *DecompressRTF(variableLength *p, int *size) {
+  BYTE *dst; // destination for uncompressed bytes
+  BYTE *src;
   unsigned int in;
   unsigned int out;
   int i;
@@ -1416,13 +1414,13 @@ unsigned char *DecompressRTF(variableLength *p, int *size) {
   src = p->data;
   in = 0;
 
-  compressedSize = (ULONG)SwapDWord(src + in);
+  compressedSize = (ULONG)SwapDWord((BYTE*)src + in);
   in += 4;
-  uncompressedSize = (ULONG)SwapDWord(src + in);
+  uncompressedSize = (ULONG)SwapDWord((BYTE*)src + in);
   in += 4;
-  magic = SwapDWord(src + in);
+  magic = SwapDWord((BYTE*)src + in);
   in += 4;
-  crc32 = SwapDWord(src + in);
+  crc32 = SwapDWord((BYTE*)src + in);
   in += 4;
 
   // check size excluding the size field itself

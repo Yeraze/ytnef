@@ -226,7 +226,7 @@ void ProcessTNEF(TNEFStruct TNEF) {
 			  buf.data = DecompressRTF(filedata, &(buf.size));
         if (buf.data != NULL && filename != NULL) {
 				  char fileNameBase[32];
-				  strncpy(fileNameBase, filename->data, sizeof(fileNameBase) - 1);
+				  strncpy(fileNameBase, (char*)filename->data, sizeof(fileNameBase) - 1);
 				  
           SanitizeFilename(fileNameBase);
 
@@ -325,7 +325,7 @@ void ProcessTNEF(TNEFStruct TNEF) {
         if (filename->size == 1) {
           filename = (variableLength *)malloc(sizeof(variableLength));
           filename->size = 20;
-          filename->data = (unsigned char *)malloc(20);
+          filename->data = (BYTE *)malloc(20);
           snprintf((char*)filename->data, 19, "file_%03i.dat", count);
         }
         snprintf(ifilename, MAX_FILENAME_SIZE, "%s", filename->data);

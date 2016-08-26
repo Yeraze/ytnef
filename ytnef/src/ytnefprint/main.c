@@ -171,7 +171,7 @@ void PrintTNEF(TNEFStruct TNEF) {
 
   if ((filename = MAPIFindUserProp(&(TNEF.MapiProperties),
                                    PROP_TAG(PT_STRING8, 0x24))) != MAPI_UNDEFINED) {
-    if (strcmp(filename->data, "IPM.Appointment") == 0) {
+    if (strcmp((char*)filename->data, "IPM.Appointment") == 0) {
       printf("--> Found an appointment entry\n");
     }
   }

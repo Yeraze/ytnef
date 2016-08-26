@@ -1,5 +1,6 @@
 #!/bin/bash
 aclocal
 autoheader
-automake --add-missing
+automake --add-missing 
 autoconf
+autoreconf -vfi
