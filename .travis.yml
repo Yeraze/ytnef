@@ -1,8 +1,8 @@
 language: c
-matrix:
-  include:
-    - c: gcc
-      env: COMPILER=gcc
-    - c: clang
-      env: COMPILER=clang
-script: ./travis-build.sh $COMPILER
+os:
+  - linux
+  - osx
+compiler:
+  - gcc
+  - clang
+script: ./travis-build.sh
