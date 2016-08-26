@@ -127,7 +127,7 @@ char *GetRruleDayname(unsigned char a) {
   return (daystring);
 }
 
-void PrintRrule(FILE *fptr, unsigned char *recur_data, int size, TNEFStruct TNEF) {
+void PrintRrule(FILE *fptr, char *recur_data, int size, TNEFStruct TNEF) {
   variableLength *filename;
 
   if (size < 0x1F) {
@@ -200,21 +200,22 @@ void PrintRrule(FILE *fptr, unsigned char *recur_data, int size, TNEFStruct TNEF
   fprintf(fptr, "\n");
 }
 
-void SaveVCalendar(TNEFStruct TNEF) {
+void SaveVCalendar(TNEFStruct TNEF, int isMtgReq) {
   char ifilename[MAX_FILENAME_SIZE];
   variableLength *filename;
-  unsigned char *charptr, *charptr2;
+  char *charptr, *charptr2;
   FILE *fptr;
   int index;
   DDWORD *ddword_ptr;
   DDWORD ddword_val;
   dtr thedate;
 
-  if (filepath == NULL) {
-    snprintf(ifilename, MAX_FILENAME_SIZE, "calendar.vcf");
+  if(isMtgReq) {
+    CreateUniqueFilename(ifilename, MAX_FILENAME_SIZE, "MtgReq", "ics", filepath);
   } else {
-    snprintf(ifilename, MAX_FILENAME_SIZE, "%s/calendar.vcf", filepath);
+    CreateUniqueFilename(ifilename, MAX_FILENAME_SIZE, "calendar", "ics", filepath);
   }
+
   printf("%s\n", ifilename);
   if (savefiles == 0)
     return;
@@ -274,11 +275,20 @@ void SaveVCalendar(TNEFStruct TNEF) {
       ddword_ptr = (DDWORD *)filename->data;
       fprintf(fptr, "SEQUENCE:%i\n", (int) *ddword_ptr);
     }
+
+    filename = NULL;
     if ((filename = MAPIFindProperty(&(TNEF.MapiProperties),
                                      PROP_TAG(PT_BINARY, PR_SENDER_SEARCH_KEY)))
-        != MAPI_UNDEFINED) {
-      charptr = filename->data;
-      charptr2 = (unsigned char*)strstr((char*)charptr, ":");
+        == MAPI_UNDEFINED) {
+      if ((filename = MAPIFindProperty(&(TNEF.MapiProperties),
+                                       PROP_TAG(PT_UNICODE, PR_SENT_REPRESENTING_EMAIL_ADDRESS)))
+          == MAPI_UNDEFINED) {
+        filename = NULL;
+      }
+    }
+    if (filename != NULL) {
+      charptr = (char*)filename->data;
+      charptr2 = (char*)strstr((char*)charptr, ":");
       if (charptr2 == NULL)
         charptr2 = charptr;
       else
@@ -288,16 +298,23 @@ void SaveVCalendar(TNEFStruct TNEF) {
     }
 
     // Required Attendees
+    filename = NULL;
     if ((filename = MAPIFindUserProp(&(TNEF.MapiProperties),
-                                     PROP_TAG(PT_STRING8, 0x823b))) != MAPI_UNDEFINED) {
+                                     PROP_TAG(PT_STRING8, 0x823b))) == MAPI_UNDEFINED) {
+      if ((filename = MAPIFindUserProp(&(TNEF.MapiProperties),
+                                       PROP_TAG(PT_UNICODE, 0x823b))) == MAPI_UNDEFINED) {
+        filename = NULL;
+      }
+    }
+    if (filename != NULL) {
       // We have a list of required participants, so
       // write them out.
-      if (filename->size > 1) {
-        charptr = filename->data - 1;
-        charptr2 = (unsigned char*)strstr((char*)(charptr + 1), ";");
+      if (strlen((char*)filename->data) > 1) {
+        charptr = (char*)filename->data - 1;
+        charptr2 = (char*)strstr((char*)(charptr + 1), ";");
         while (charptr != NULL) {
           charptr++;
-          charptr2 = (unsigned char *)strstr((char*)charptr, ";");
+          charptr2 = (char *)strstr((char*)charptr, ";");
           if (charptr2 != NULL) {
             *charptr2 = 0;
           }
@@ -311,15 +328,22 @@ void SaveVCalendar(TNEFStruct TNEF) {
         }
       }
       // Optional attendees
+      filename = NULL;
       if ((filename = MAPIFindUserProp(&(TNEF.MapiProperties),
-                                       PROP_TAG(PT_STRING8, 0x823c))) != MAPI_UNDEFINED) {
+                                       PROP_TAG(PT_STRING8, 0x823c))) == MAPI_UNDEFINED) {
+        if ((filename = MAPIFindUserProp(&(TNEF.MapiProperties),
+                                         PROP_TAG(PT_UNICODE, 0x823c))) == MAPI_UNDEFINED) {
+          filename = NULL;
+        }
+      }
+      if (filename != NULL) {
         // The list of optional participants
-        if (filename->size > 1) {
-          charptr = filename->data - 1;
-          charptr2 = (unsigned char *)strstr((char*)(charptr + 1), ";");
+        if (strlen((char*)filename->data) > 1) {
+          charptr = (char*)filename->data - 1;
+          charptr2 = (char *)strstr((char*)(charptr + 1), ";");
           while (charptr != NULL) {
             charptr++;
-            charptr2 = (unsigned char *)strstr((char*)charptr, ";");
+            charptr2 = (char *)strstr((char*)charptr, ";");
             if (charptr2 != NULL) {
               *charptr2 = 0;
             }
@@ -333,33 +357,45 @@ void SaveVCalendar(TNEFStruct TNEF) {
           }
         }
       }
-    } else if ((filename = MAPIFindUserProp(&(TNEF.MapiProperties),
-                                            PROP_TAG(PT_STRING8, 0x8238))) != MAPI_UNDEFINED) {
-      if (filename->size > 1) {
-        charptr = filename->data - 1;
-        charptr2 = (unsigned char *)strstr((char*)(charptr + 1), ";");
-        while (charptr != NULL) {
-          charptr++;
-          charptr2 = (unsigned char *)strstr((char*)charptr, ";");
-          if (charptr2 != NULL) {
-            *charptr2 = 0;
-          }
-          while (*charptr == ' ')
-            charptr++;
-          fprintf(fptr, "ATTENDEE;PARTSTAT=NEEDS-ACTION;");
-          fprintf(fptr, "ROLE=REQ-PARTICIPANT;RSVP=TRUE;");
-          fprintf(fptr, "CN=\"%s\":MAILTO:%s\n",
-                  charptr, charptr);
-          charptr = charptr2;
+    } else {
+      filename = NULL;
+      if ((filename=MAPIFindUserProp(&(TNEF.MapiProperties),
+                                     PROP_TAG(PT_STRING8, 0x8238))) == MAPI_UNDEFINED) {
+        if ((filename=MAPIFindUserProp(&(TNEF.MapiProperties),
+                                       PROP_TAG(PT_UNICODE, 0x8238))) == MAPI_UNDEFINED) {
+          filename = NULL;
         }
       }
-
+      if (filename != NULL) {
+        if (strlen((char*)filename->data) > 1) {
+          charptr = (char*)filename->data - 1;
+          charptr2 = (char *)strstr((char*)(charptr + 1), ";");
+          while (charptr != NULL) {
+            charptr++;
+            charptr2 = (char *)strstr((char*)charptr, ";");
+            if (charptr2 != NULL) {
+              *charptr2 = 0;
+            }
+            while (*charptr == ' ')
+              charptr++;
+            fprintf(fptr, "ATTENDEE;PARTSTAT=NEEDS-ACTION;");
+            fprintf(fptr, "ROLE=REQ-PARTICIPANT;RSVP=TRUE;");
+            fprintf(fptr, "CN=\"%s\":MAILTO:%s\n", charptr, charptr);
+            charptr = charptr2;
+          }
+        }
+      }
     }
     // Summary
     filename = NULL;
     if ((filename = MAPIFindProperty(&(TNEF.MapiProperties),
-                                     PROP_TAG(PT_STRING8, PR_CONVERSATION_TOPIC)))
-        != MAPI_UNDEFINED) {
+                                     PROP_TAG(PT_STRING8, PR_CONVERSATION_TOPIC))) == MAPI_UNDEFINED) {
+      if ((filename = MAPIFindProperty(&(TNEF.MapiProperties),
+                                       PROP_TAG(PT_UNICODE, PR_CONVERSATION_TOPIC))) == MAPI_UNDEFINED) {
+        filename = NULL;
+      }
+    }
+    if (filename != NULL) {
       fprintf(fptr, "SUMMARY:");
       Cstylefprint(fptr, filename);
       fprintf(fptr, "\n");
@@ -384,7 +420,13 @@ void SaveVCalendar(TNEFStruct TNEF) {
                                      PROP_TAG(PT_STRING8, 0x0002))) == MAPI_UNDEFINED) {
       if ((filename = MAPIFindUserProp(&(TNEF.MapiProperties),
                                        PROP_TAG(PT_STRING8, 0x8208))) == MAPI_UNDEFINED) {
-        filename = NULL;
+        if ((filename=MAPIFindUserProp(&(TNEF.MapiProperties), 
+                                       PROP_TAG(PT_UNICODE, 0x0002))) == MAPI_UNDEFINED) {
+          if ((filename=MAPIFindUserProp(&(TNEF.MapiProperties), 
+                                         PROP_TAG(PT_UNICODE, 0x8208))) == MAPI_UNDEFINED) {
+            filename = NULL;
+          }
+        }
       }
     }
     if (filename != NULL) {
@@ -425,8 +467,15 @@ void SaveVCalendar(TNEFStruct TNEF) {
     // Date Stamp
     filename = NULL;
     if ((filename = MAPIFindUserProp(&(TNEF.MapiProperties),
-                                     PROP_TAG(PT_SYSTIME, 0x8202))) != MAPI_UNDEFINED) {
-      fprintf(fptr, "CREATED:");
+                                     PROP_TAG(PT_SYSTIME, 0x8202))) == MAPI_UNDEFINED) {
+      if ((filename = MAPIFindUserProp(&(TNEF.MapiProperties),
+                                       PROP_TAG(PT_SYSTIME, 0x001a))) == MAPI_UNDEFINED) {
+        filename = NULL;
+      }
+    }
+
+    if (filename != NULL){
+      fprintf(fptr, "DTSTAMP:");
       MAPISysTimetoDTR(filename->data, &thedate);
       fprintf(fptr, "%04i%02i%02iT%02i%02i%02iZ\n",
               thedate.wYear, thedate.wMonth, thedate.wDay,
@@ -449,7 +498,7 @@ void SaveVCalendar(TNEFStruct TNEF) {
     filename = NULL;
     if ((filename = MAPIFindUserProp(&(TNEF.MapiProperties),
                                      PROP_TAG(PT_BINARY, 0x8216))) != MAPI_UNDEFINED) {
-      PrintRrule(fptr, filename->data, filename->size, TNEF);
+      PrintRrule(fptr, (char*)filename->data, filename->size, TNEF);
     }
 
     // Wrap it up

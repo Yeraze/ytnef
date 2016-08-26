@@ -34,7 +34,7 @@ int saveRTF = 0;
 int saveintermediate = 0;
 char *filepath = NULL;
 void ProcessTNEF(TNEFStruct TNEF);
-void SaveVCalendar(TNEFStruct TNEF);
+void SaveVCalendar(TNEFStruct TNEF, int isMtgReq);
 void SaveVCard(TNEFStruct TNEF);
 void SaveVTask(TNEFStruct TNEF);
 
@@ -154,8 +154,12 @@ void ProcessTNEF(TNEFStruct TNEF) {
     if (strcmp((char *)TNEF.messageClass, "IPM.Task") == 0) {
       SaveVTask(TNEF);
     }
+    if (strcmp(TNEF.messageClass, "IPM.Microsoft Schedule.MtgReq") == 0) {
+      SaveVCalendar(TNEF, 1);
+      foundCal = 1;
+    }
     if (strcmp((char *)TNEF.messageClass, "IPM.Appointment") == 0) {
-      SaveVCalendar(TNEF);
+      SaveVCalendar(TNEF, 0);
       foundCal = 1;
     }
   }
@@ -165,7 +169,7 @@ void ProcessTNEF(TNEFStruct TNEF) {
       // If it's "indicated" twice, we don't want to save 2 calendar
       // entries.
       if (foundCal == 0) {
-        SaveVCalendar(TNEF);
+        SaveVCalendar(TNEF, 0);
       }
     }
   }
@@ -189,6 +193,47 @@ void ProcessTNEF(TNEFStruct TNEF) {
 
           printf("%s\n", ifilename);
           if ((fptr = fopen(ifilename, "wb")) == NULL) {
+            printf("ERROR: Error writing file to disk!");
+          } else {
+            fwrite(buf.data,
+                   sizeof(BYTE),
+                   buf.size,
+                   fptr);
+            fclose(fptr);
+          }
+          free(buf.data);
+        }
+      }
+    }
+  }
+
+  if (strcmp(TNEF.messageClass, "IPM.StickyNote") == 0) {
+    if ((saveRTF == 1) && (TNEF.subject.size > 0)) {
+      // Description
+      if ((filedata=MAPIFindProperty(&(TNEF.MapiProperties),
+                                     PROP_TAG(PT_BINARY, PR_RTF_COMPRESSED)))
+          != MAPI_UNDEFINED) {
+        int size;
+	      if ((filename=MAPIFindProperty(&(TNEF.MapiProperties),
+                                    PROP_TAG(PT_STRING8, PR_CONVERSATION_TOPIC))) == MAPI_UNDEFINED) {
+          if ((filename=MAPIFindProperty(&(TNEF.MapiProperties),
+                                      PROP_TAG(PT_UNICODE, PR_CONVERSATION_TOPIC))) == MAPI_UNDEFINED) {
+            filename = NULL;
+          }
+        }
+
+        variableLength buf;
+			  buf.data = DecompressRTF(filedata, &(buf.size));
+        if (buf.data != NULL && filename != NULL) {
+				  char fileNameBase[32];
+				  strncpy(fileNameBase, (char*)filename->data, sizeof(fileNameBase) - 1);
+				  
+          SanitizeFilename(fileNameBase);
+
+          CreateUniqueFilename(ifilename, MAX_FILENAME_SIZE, fileNameBase, "rtf", filepath);
+
+          printf("%s\n", ifilename);
+          if ((fptr = fopen(ifilename, "wb"))==NULL) {
             printf("ERROR: Error writing file to disk!");
           } else {
             fwrite(buf.data,
@@ -270,17 +315,23 @@ void ProcessTNEF(TNEFStruct TNEF) {
           if ((filename = MAPIFindProperty(&(p->MAPI),
                                            PROP_TAG(30, 0x3001)))
               == MAPI_UNDEFINED) {
-            filename = &(p->Title);
+            if ((filename = MAPIFindProperty(&(p->MAPI),
+                                             PROP_TAG(30, 0x370C)))
+                == MAPI_UNDEFINED) {
+              filename = &(p->Title);
+            }
           }
         }
         if (filename->size == 1) {
           filename = (variableLength *)malloc(sizeof(variableLength));
           filename->size = 20;
-          filename->data = (unsigned char *)malloc(20);
+          filename->data = (BYTE *)malloc(20);
           snprintf((char*)filename->data, 19, "file_%03i.dat", count);
         }
         snprintf(ifilename, MAX_FILENAME_SIZE, "%s", filename->data);
-        SanitizeFilename(ifilename);
+        for(i = 0; i < strlen(ifilename); i++) 
+          if (ifilename[i] == ' ') 
+            ifilename[i] = '_';
         if(filepath) {
           char tmp[MAX_FILENAME_SIZE];
           memcpy(tmp, ifilename, MAX_FILENAME_SIZE);
