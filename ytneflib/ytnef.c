@@ -1408,7 +1408,7 @@ BYTE *DecompressRTF(variableLength *p, int *size) {
   ULONG compressedSize, uncompressedSize, magic, crc32;
 
   comp_Prebuf.size = strlen(RTF_PREBUF);
-  comp_Prebuf.data = calloc(comp_Prebuf.size, 1);
+  comp_Prebuf.data = calloc(comp_Prebuf.size+1, 1);
   memcpy(comp_Prebuf.data, RTF_PREBUF, comp_Prebuf.size);
 
   src = p->data;
