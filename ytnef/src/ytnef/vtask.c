@@ -138,7 +138,7 @@ void SaveVTask(TNEFStruct TNEF) {
                                 PROP_TAG(PT_BOOLEAN, 0x8506));
     if (filename != MAPI_UNDEFINED) {
       ddword_ptr = (DDWORD *)filename->data;
-      ddword_val = SwapDDWord((BYTE *)ddword_ptr);
+      ddword_val = SwapDDWord((BYTE *)ddword_ptr, 8);
       fprintf(fptr, "CLASS:");
       if (*ddword_ptr == 1) {
         fprintf(fptr, "PRIVATE\n");
