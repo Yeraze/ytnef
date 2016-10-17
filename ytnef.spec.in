@@ -6,7 +6,6 @@ License: GPL
 Group: Applications/Productivity
 Source0: %{name}-%{version}.tar.gz
 BuildRoot: %{_tmppath}/%{name}-%{version}-buildroot
-Requires: libytnef >= 1.4
 
 %description
 Yerase's TNEF Stream Reader.  Can take a TNEF Stream (winmail.dat) sent from
@@ -31,6 +30,8 @@ rm -rf $RPM_BUILD_ROOT
 %doc AUTHORS COPYING README 
 /usr/bin/ytnef
 /usr/bin/ytnefprint
+/usr/lib/*
+/usr/include/*
 
 %changelog
 * Fri Mar 12 2004 Patrick <rpms@puzzled.xs4all.nl>

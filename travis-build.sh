@@ -11,5 +11,5 @@ cd ../ytnef
 make
 
 export LD_LIBRARY_PATH=/usr/local/lib:${LD_LIBRARY_PATH}
-cd ../test-data
+cd test-data
 ./test.sh
