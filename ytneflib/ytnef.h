@@ -25,8 +25,8 @@
 #include "mapi.h"
 #include "mapidefs.h"
 #define STD_ARGLIST (TNEFStruct *TNEF, int id, char *data, int size)
-DWORD SwapDWord(BYTE *p);
-WORD SwapWord(BYTE *p);
+DWORD SwapDWord(BYTE *p, int size);
+WORD SwapWord(BYTE *p, int size);
 
 
 void TNEFInitMapi(MAPIProps *p);
@@ -45,9 +45,9 @@ int MAPISysTimetoDTR(BYTE *data, dtr *thedate);
 void MAPIPrint(MAPIProps *p);
 void TNEFPrintDate(dtr Date);
 char *to_utf8(int len, char *buf);
-WORD SwapWord(BYTE *p);
-DWORD SwapDWord(BYTE *p);
-DDWORD SwapDDWord(BYTE *p);
+WORD SwapWord(BYTE *p, int size);
+DWORD SwapDWord(BYTE *p, int size);
+DDWORD SwapDDWord(BYTE *p, int size);
 variableLength *MAPIFindUserProp(MAPIProps *p, unsigned int ID);
 variableLength *MAPIFindProperty(MAPIProps *p, unsigned int ID);
 BYTE *DecompressRTF(variableLength *p, int *size);
