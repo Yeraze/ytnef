@@ -69,7 +69,7 @@ recurrence information.
 Support
 -------
 
-Don't hesitate to send support requests to me at yerase@yerot.com. I'll do 
+Don't hesitate to send support requests to me at randall.hand@gmail.com. I'll do 
 what I can to help.  Also don't hesitate to post bug reports or
 support/feature requests to https://github.com/Yeraze/ytnef/issues/new
 
