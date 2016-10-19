@@ -22,7 +22,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ytnef.h>
-#include "../../config.h"
+#include "config.h"
 
 #define PRODID "PRODID:-//The Gauntlet//" PACKAGE_STRING "//EN\n"
 
