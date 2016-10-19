@@ -23,27 +23,32 @@ Usage
 
 `ytnef -h` - See these and more options and examples.
 
-AUTOMATIC STRIPPING OF TNEF STREAMS USING PROCMAIL:
+Automatic stripping of TNEF streams using procmail:
+---------------------------------------------------
 
 If you want to use ytnefprocess.pl, then make sure to do the following:
 
 1. Make a directory `~/.ytnef`
 2. Make a directory `~/.ytnef/output`
 3. Install the MIME::Parser perl module.  You can do this with:
-```
-perl -MCPAN -e shell
-(let it load)
-install MIME::Parser
-```
+
+    ```
+    perl -MCPAN -e shell
+    (let it load)
+    install MIME::Parser
+    ```
+
 4. Copy ytnefprocess.pl & ytnef to a place like /usr/bin.
 5. Create a .procmailrc something like this:
-```
-PATH=/bin:/usr/bin
-HOME=/home/randall
-:0fw
-* > 0
-| /usr/bin/ytnefprocess.pl
-```
+
+    ```
+    PATH=/bin:/usr/bin
+    HOME=/home/randall
+    :0fw
+    * > 0
+    | /usr/bin/ytnefprocess.pl
+    ```
+
 and Voilà! you should be ready to go.
 
 Help
