@@ -568,13 +568,13 @@ void TNEFFillMapi(TNEFStruct *TNEF, BYTE *data, DWORD size, MAPIProps *p) {
   if ((d - data) < size) {
     if (TNEF->Debug >= 1)  {
       printf("ERROR DURING MAPI READ\n");
-      printf("Read %li bytes, Expected %u bytes\n", (d - data), size);
-      printf("%li bytes missing\n", size - (d - data));
+      printf("Read %td bytes, Expected %u bytes\n", (d - data), size);
+      printf("%td bytes missing\n", size - (d - data));
     }
   } else if ((d - data) > size) {
     if (TNEF->Debug >= 1)  {
       printf("ERROR DURING MAPI READ\n");
-      printf("Read %li bytes, Expected %u bytes\n", (d - data), size);
+      printf("Read %td bytes, Expected %u bytes\n", (d - data), size);
       printf("%li bytes extra\n", (d - data) - size);
     }
   }
