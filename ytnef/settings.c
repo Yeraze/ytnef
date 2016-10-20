@@ -38,7 +38,7 @@ void CreateUniqueFilename(char* output, unsigned int max_size,
                           const char* name, const char* ext,
                           const char* path) {
 	int counter = 0;
-	FILE* check;
+	FILE* check = NULL;
   while (1) {
     if (filepath != NULL) {
 	    if (counter > 0){
@@ -54,11 +54,14 @@ void CreateUniqueFilename(char* output, unsigned int max_size,
 		  }
     }
 		//Let's check if there is a file with the same name.
-		if (NULL == (check = fopen(output, "r"))) {
+		if ((check = fopen(output, "r")) == NULL) {
+      // There was an error, so this would be unique
+      break;
+		} else {
+      // We successfully opened the file, so close 
+      // and try again
 			fclose(check);
 			counter++;
-		} else {
-			break;
 		}
 	}
 	return;
