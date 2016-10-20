@@ -568,13 +568,13 @@ void TNEFFillMapi(TNEFStruct *TNEF, BYTE *data, DWORD size, MAPIProps *p) {
   if ((d - data) < size) {
     if (TNEF->Debug >= 1)  {
       printf("ERROR DURING MAPI READ\n");
-      printf("Read %li bytes, Expected %i bytes\n", (d - data), size);
-      printf("%li bytes missing\n", size - (d - data));
+      printf("Read %td bytes, Expected %u bytes\n", (d - data), size);
+      printf("%td bytes missing\n", size - (d - data));
     }
   } else if ((d - data) > size) {
     if (TNEF->Debug >= 1)  {
       printf("ERROR DURING MAPI READ\n");
-      printf("Read %li bytes, Expected %i bytes\n", (d - data), size);
+      printf("Read %td bytes, Expected %u bytes\n", (d - data), size);
       printf("%li bytes extra\n", (d - data) - size);
     }
   }
@@ -656,7 +656,7 @@ void TNEFPrintDate(dtr Date) {
   printf("%hu, %hu ", Date.wDay, Date.wYear);
 
   if (Date.wHour > 12)
-    printf("%u:%02hu:%02hu pm", (Date.wHour - 12),
+    printf("%i:%02hu:%02hu pm", (Date.wHour - 12),
            Date.wMinute, Date.wSecond);
   else if (Date.wHour == 12)
     printf("%hu:%02hu:%02hu pm", (Date.wHour),
@@ -775,9 +775,6 @@ int TNEFGetKey(TNEFStruct *TNEF, WORD *key) {
 // -----------------------------------------------------------------------------
 int TNEFGetHeader(TNEFStruct *TNEF, DWORD *type, DWORD *size) {
   BYTE component;
-  char temp[8];
-  int i;
-  WORD wtemp;
 
   DEBUG(TNEF->Debug, 2, "About to read Component");
   if (TNEF->IO.ReadProc(&(TNEF->IO), sizeof(BYTE), 1, &component) < 1) {
@@ -792,7 +789,7 @@ int TNEFGetHeader(TNEFStruct *TNEF, DWORD *type, DWORD *size) {
     return YTNEF_ERROR_READING_DATA;
   }
   DEBUG1(TNEF->Debug, 2, "Type = 0x%X", *type);
-  DEBUG1(TNEF->Debug, 2, "Type = %i", *type);
+  DEBUG1(TNEF->Debug, 2, "Type = %u", *type);
 
 
   DEBUG(TNEF->Debug, 2, "About to read size");
@@ -803,7 +800,7 @@ int TNEFGetHeader(TNEFStruct *TNEF, DWORD *type, DWORD *size) {
   }
 
 
-  DEBUG1(TNEF->Debug, 2, "Size = %i", *size);
+  DEBUG1(TNEF->Debug, 2, "Size = %u", *size);
 
   *type = SwapDWord((BYTE *)type, sizeof(DWORD));
   *size = SwapDWord((BYTE *)size, sizeof(DWORD));
@@ -1100,8 +1097,8 @@ int TNEFParse(TNEFStruct *TNEF) {
   DEBUG(TNEF->Debug, 2, "Starting Full Processing.");
 
   while (TNEFGetHeader(TNEF, &type, &size) == 0) {
-    DEBUG2(TNEF->Debug, 2, "Header says type=0x%X, size=%i", type, size);
-    DEBUG2(TNEF->Debug, 2, "Header says type=%i, size=%i", type, size);
+    DEBUG2(TNEF->Debug, 2, "Header says type=0x%X, size=%u", type, size);
+    DEBUG2(TNEF->Debug, 2, "Header says type=%u, size=%u", type, size);
     data = calloc(size, sizeof(BYTE));
     if (TNEFRawRead(TNEF, data, size, &header_checksum) < 0) {
       printf("ERROR: Unable to read data.\n");
@@ -1142,7 +1139,7 @@ int TNEFParse(TNEFStruct *TNEF) {
             break;
           }
         } else {
-          DEBUG2(TNEF->Debug, 1, "No handler for %s: %i bytes",
+          DEBUG2(TNEF->Debug, 1, "No handler for %s: %u bytes",
                  TNEFList[i].name, size);
         }
       }
@@ -1326,7 +1323,7 @@ void MAPIPrint(MAPIProps *p) {
     for (i = 0; i < mapi->count; i++) {
       mapidata = &(mapi->data[i]);
       if (mapi->count > 1) {
-        printf("    [%i/%i] ", i, mapi->count);
+        printf("    [%i/%u] ", i, mapi->count);
       } else {
         printf("    ");
       }
@@ -1416,19 +1413,14 @@ void MAPIPrint(MAPIProps *p) {
 int IsCompressedRTF(variableLength *p) {
   unsigned int in;
   BYTE *src;
-  ULONG compressedSize, uncompressedSize, magic, crc32;
+  ULONG magic;
 
   src = p->data;
   in = 0;
 
-  compressedSize = (ULONG)SwapDWord((BYTE*)src + in, 4);
   in += 4;
-  uncompressedSize = (ULONG)SwapDWord((BYTE*)src + in, 4);
   in += 4;
   magic = SwapDWord((BYTE*)src + in, 4);
-  in += 4;
-  crc32 = SwapDWord((BYTE*)src + in, 4);
-  in += 4;
 
   if (magic == 0x414c454d) {
     return 1;
@@ -1444,9 +1436,8 @@ BYTE *DecompressRTF(variableLength *p, int *size) {
   BYTE *src;
   unsigned int in;
   unsigned int out;
-  int i;
   variableLength comp_Prebuf;
-  ULONG compressedSize, uncompressedSize, magic, crc32;
+  ULONG compressedSize, uncompressedSize, magic;
 
   comp_Prebuf.size = strlen(RTF_PREBUF);
   comp_Prebuf.data = calloc(comp_Prebuf.size+1, 1);
@@ -1461,12 +1452,12 @@ BYTE *DecompressRTF(variableLength *p, int *size) {
   in += 4;
   magic = SwapDWord((BYTE*)src + in, 4);
   in += 4;
-  crc32 = SwapDWord((BYTE*)src + in, 4);
   in += 4;
 
   // check size excluding the size field itself
   if (compressedSize != p->size - 4) {
-    printf(" Size Mismatch: %i != %i\n", compressedSize, p->size - 4);
+    printf(" Size Mismatch: %u != %i\n", compressedSize, p->size - 4);
+    free(comp_Prebuf.data);
     return NULL;
   }
 
@@ -1514,9 +1505,11 @@ BYTE *DecompressRTF(variableLength *p, int *size) {
     memcpy(dst, src + comp_Prebuf.size, uncompressedSize);
     free(src);
     *size = uncompressedSize;
+    free(comp_Prebuf.data);
     return dst;
   } else { // unknown magic number
     printf("Unknown compression type (magic number %x)\n", magic);
   }
+  free(comp_Prebuf.data);
   return NULL;
 }

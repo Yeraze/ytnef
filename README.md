@@ -57,7 +57,7 @@ Help
 If you want additional information exported (to the vCalendar or vCard
 information), then use the -v option to try & find out where the information
 is.  Then send the winmail.dat file, along with the -v listing to me 
-(yerase@yerot.com) along with some information & justifications.  It works 
+(randall.hand@gmail.com) along with some information & justifications.  It works 
 best if you send several data files, showing the option in various states 
 to back up your claim.  For example, if you want me to parse recurrence
 patterns encoded in the TNEF stream, then send yourself several meeting

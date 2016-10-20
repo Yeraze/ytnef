@@ -165,7 +165,7 @@ void PrintTNEF(TNEFStruct TNEF) {
            TNEF.body.size, TNEF.body.data);
 
   if (TNEF.MapiProperties.count > 0) {
-    printf("    MAPI Properties: %i\n", TNEF.MapiProperties.count);
+    printf("    MAPI Properties: %u\n", TNEF.MapiProperties.count);
     MAPIPrint(&TNEF.MapiProperties);
   }
 
@@ -218,7 +218,7 @@ void PrintTNEF(TNEFStruct TNEF) {
     }
 
     if (p->MAPI.count > 0) {
-      printf("    MAPI Properties: %i\n", p->MAPI.count);
+      printf("    MAPI Properties: %u\n", p->MAPI.count);
       if (verbose == 1) {
         MAPIPrint(&p->MAPI);
       }

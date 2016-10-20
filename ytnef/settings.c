@@ -37,29 +37,32 @@ void SanitizeFilename(char *filename) {
 void CreateUniqueFilename(char* output, unsigned int max_size,
                           const char* name, const char* ext,
                           const char* path) {
-	int counter = 0;
-	FILE* check;
+  int counter = 0;
+  FILE* check = NULL;
   while (1) {
     if (filepath != NULL) {
-	    if (counter > 0){
-			  snprintf(output, max_size, "%s/%s%i.%s", path, name, counter, ext);
-		  } else {
-			  snprintf(output, max_size, "%s/%s.%s", path, name, ext);
-		  }
+      if (counter > 0){
+        snprintf(output, max_size, "%s/%s%i.%s", path, name, counter, ext);
+      } else {
+        snprintf(output, max_size, "%s/%s.%s", path, name, ext);
+      }
     } else {
-		  if (counter > 0){
-			  snprintf(output, max_size, "%s%i.%s", name, counter, ext);
-		  } else {
-			  snprintf(output, max_size, "%s.%s", name, ext);
-		  }
+      if (counter > 0){
+        snprintf(output, max_size, "%s%i.%s", name, counter, ext);
+      } else {
+        snprintf(output, max_size, "%s.%s", name, ext);
+      }
     }
-		//Let's check if there is a file with the same name.
-		if (NULL == (check = fopen(output, "r"))) {
-			fclose(check);
-			counter++;
-		} else {
-			break;
-		}
-	}
-	return;
+    //Let's check if there is a file with the same name.
+    if ((check = fopen(output, "r")) == NULL) {
+      // There was an error, so this would be unique
+      break;
+    } else {
+      // We successfully opened the file, so close 
+      // and try again
+      fclose(check);
+      counter++;
+    }
+  }
+  return;
 }
