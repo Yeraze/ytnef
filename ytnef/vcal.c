@@ -207,7 +207,6 @@ void SaveVCalendar(TNEFStruct TNEF, int isMtgReq) {
   FILE *fptr;
   int index;
   DDWORD *ddword_ptr;
-  DDWORD ddword_val;
   dtr thedate;
 
   if(isMtgReq) {
@@ -486,7 +485,6 @@ void SaveVCalendar(TNEFStruct TNEF, int isMtgReq) {
     if ((filename = MAPIFindUserProp(&(TNEF.MapiProperties),
                                      PROP_TAG(PT_BOOLEAN, 0x8506))) != MAPI_UNDEFINED) {
       ddword_ptr = (DDWORD *)filename->data;
-      ddword_val = SwapDDWord((BYTE *)ddword_ptr, 8);
       fprintf(fptr, "CLASS:");
       if (*ddword_ptr == 1) {
         fprintf(fptr, "PRIVATE\n");

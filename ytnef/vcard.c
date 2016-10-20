@@ -25,7 +25,7 @@ void SaveVCard(TNEFStruct TNEF) {
   variableLength *vl;
   variableLength *pobox, *street, *city, *state, *zip, *country;
   dtr thedate;
-  int boolean, index, i;
+  int boolean;
 
   if ((vl = MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8,
                              PR_DISPLAY_NAME))) == MAPI_UNDEFINED) {
@@ -356,7 +356,7 @@ void SaveVCard(TNEFStruct TNEF) {
       fprintf(fptr, "%i-%02i-%02i\n", thedate.wYear, thedate.wMonth, thedate.wDay);
     }
     fprintf(fptr, "END:VCARD\n");
-
+    fclose(fptr);
   }
 }
 

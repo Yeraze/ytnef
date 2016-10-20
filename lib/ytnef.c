@@ -775,9 +775,6 @@ int TNEFGetKey(TNEFStruct *TNEF, WORD *key) {
 // -----------------------------------------------------------------------------
 int TNEFGetHeader(TNEFStruct *TNEF, DWORD *type, DWORD *size) {
   BYTE component;
-  char temp[8];
-  int i;
-  WORD wtemp;
 
   DEBUG(TNEF->Debug, 2, "About to read Component");
   if (TNEF->IO.ReadProc(&(TNEF->IO), sizeof(BYTE), 1, &component) < 1) {
@@ -1416,19 +1413,14 @@ void MAPIPrint(MAPIProps *p) {
 int IsCompressedRTF(variableLength *p) {
   unsigned int in;
   BYTE *src;
-  ULONG compressedSize, uncompressedSize, magic, crc32;
+  ULONG magic;
 
   src = p->data;
   in = 0;
 
-  compressedSize = (ULONG)SwapDWord((BYTE*)src + in, 4);
   in += 4;
-  uncompressedSize = (ULONG)SwapDWord((BYTE*)src + in, 4);
   in += 4;
   magic = SwapDWord((BYTE*)src + in, 4);
-  in += 4;
-  crc32 = SwapDWord((BYTE*)src + in, 4);
-  in += 4;
 
   if (magic == 0x414c454d) {
     return 1;
@@ -1444,9 +1436,8 @@ BYTE *DecompressRTF(variableLength *p, int *size) {
   BYTE *src;
   unsigned int in;
   unsigned int out;
-  int i;
   variableLength comp_Prebuf;
-  ULONG compressedSize, uncompressedSize, magic, crc32;
+  ULONG compressedSize, uncompressedSize, magic;
 
   comp_Prebuf.size = strlen(RTF_PREBUF);
   comp_Prebuf.data = calloc(comp_Prebuf.size+1, 1);
@@ -1461,12 +1452,12 @@ BYTE *DecompressRTF(variableLength *p, int *size) {
   in += 4;
   magic = SwapDWord((BYTE*)src + in, 4);
   in += 4;
-  crc32 = SwapDWord((BYTE*)src + in, 4);
   in += 4;
 
   // check size excluding the size field itself
   if (compressedSize != p->size - 4) {
     printf(" Size Mismatch: %i != %i\n", compressedSize, p->size - 4);
+    free(comp_Prebuf.data);
     return NULL;
   }
 
@@ -1514,9 +1505,11 @@ BYTE *DecompressRTF(variableLength *p, int *size) {
     memcpy(dst, src + comp_Prebuf.size, uncompressedSize);
     free(src);
     *size = uncompressedSize;
+    free(comp_Prebuf.data);
     return dst;
   } else { // unknown magic number
     printf("Unknown compression type (magic number %x)\n", magic);
   }
+  free(comp_Prebuf.data);
   return NULL;
 }
