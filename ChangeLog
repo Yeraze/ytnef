@@ -1,3 +1,18 @@
+v1.9 - January 2, 2017
+* Unify libytnef and ytnef tools into a single build & package (Thanks @jmallach)
+* Fix applied for CVE-2010-5109
+* Various fixes for errors found via Static Analysis (cppcheck)
+* Various memory leaks plugged (Thanks @slonik-v-domene)
+* Bugfix for a broken "uniqueness" checker
+* Lots of formatting & documentation cleanups
+
+Now that the two packages are unified into a single install & build, I've had
+to choose a unifier of Version Numbers.  I chose 1.9 .
+
+
+
+
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 v2.7
 Mark Paulus -- Better processing of filenames, to eliminate problem-causing characters.
 Hilmar - Update to the autoconf scripts to check for a valid ytneflib install during the configuration.
