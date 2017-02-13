@@ -22,6 +22,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <limits.h>
 #include "ytnef.h"
 #include "tnef-errors.h"
 #include "mapi.h"
@@ -212,9 +213,13 @@ DDWORD SwapDDWord(BYTE *p, int size) {
 }
 
 /* convert 16-bit unicode to UTF8 unicode */
-char *to_utf8(int len, char *buf) {
+char *to_utf8(size_t len, char *buf) {
   int i, j = 0;
   /* worst case length */
+  if (len > 10000) {	// deal with this by adding an arbitrary limit
+     printf("corrupt file\n");
+     exit(-1);
+  }
   char *utf8 = malloc(3 * len / 2 + 1);
 
   for (i = 0; i < len - 1; i += 2) {

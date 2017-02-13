@@ -44,7 +44,7 @@ variableLength *MAPIFindProperty(MAPIProps *p, unsigned int ID);
 int MAPISysTimetoDTR(BYTE *data, dtr *thedate);
 void MAPIPrint(MAPIProps *p);
 void TNEFPrintDate(dtr Date);
-char *to_utf8(int len, char *buf);
+char *to_utf8(size_t len, char *buf);
 WORD SwapWord(BYTE *p, int size);
 DWORD SwapDWord(BYTE *p, int size);
 DDWORD SwapDDWord(BYTE *p, int size);
