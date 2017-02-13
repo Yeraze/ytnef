@@ -53,6 +53,9 @@
         }
 
 #define MIN(x,y) (((x)<(y))?(x):(y))
+
+#define ALLOCCHECK(x) { if(!x) { printf("Out of Memory\n"); exit(-1); } }
+
 void TNEFFillMapi(TNEFStruct *TNEF, BYTE *data, DWORD size, MAPIProps *p);
 void SetFlip(void);
 
@@ -245,6 +248,7 @@ int TNEFDefaultHandler STD_ARGLIST {
 int TNEFCodePage STD_ARGLIST {
   TNEF->CodePage.size = size;
   TNEF->CodePage.data = calloc(size, sizeof(BYTE));
+  ALLOCCHECK(TNEF->CodePage.data);
   memcpy(TNEF->CodePage.data, data, size);
   return 0;
 }
@@ -263,6 +267,7 @@ int TNEFMessageID STD_ARGLIST {
 int TNEFBody STD_ARGLIST {
   TNEF->body.size = size;
   TNEF->body.data = calloc(size, sizeof(BYTE));
+  ALLOCCHECK(TNEF->body.data);
   memcpy(TNEF->body.data, data, size);
   return 0;
 }
@@ -270,6 +275,7 @@ int TNEFBody STD_ARGLIST {
 int TNEFOriginalMsgClass STD_ARGLIST {
   TNEF->OriginalMessageClass.size = size;
   TNEF->OriginalMessageClass.data = calloc(size, sizeof(BYTE));
+  ALLOCCHECK(TNEF->OriginalMessageClass.data);
   memcpy(TNEF->OriginalMessageClass.data, data, size);
   return 0;
 }
@@ -281,6 +287,7 @@ int TNEFMessageClass STD_ARGLIST {
 // -----------------------------------------------------------------------------
 int TNEFFromHandler STD_ARGLIST {
   TNEF->from.data = calloc(size, sizeof(BYTE));
+  ALLOCCHECK(TNEF->from.data);
   TNEF->from.size = size;
   memcpy(TNEF->from.data, data, size);
   return 0;
@@ -291,6 +298,7 @@ int TNEFSubjectHandler STD_ARGLIST {
     free(TNEF->subject.data);
 
   TNEF->subject.data = calloc(size, sizeof(BYTE));
+  ALLOCCHECK(TNEF->subject.data);
   TNEF->subject.size = size;
   memcpy(TNEF->subject.data, data, size);
   return 0;
@@ -305,6 +313,7 @@ int TNEFRendData STD_ARGLIST {
 
   // Add a new one
   p->next = calloc(1, sizeof(Attachment));
+  ALLOCCHECK(p->next);
   p = p->next;
 
   TNEFInitAttachment(p);
@@ -334,6 +343,7 @@ int TNEFIcon STD_ARGLIST {
 
   p->IconData.size = size;
   p->IconData.data = calloc(size, sizeof(BYTE));
+  ALLOCCHECK(p->IconData.data);
   memcpy(p->IconData.data, data, size);
   return 0;
 }
@@ -404,6 +414,7 @@ void TNEFFillMapi(TNEFStruct *TNEF, BYTE *data, DWORD size, MAPIProps *p) {
   p->count = SwapDWord((BYTE*)data, 4);
   d += 4;
   p->properties = calloc(p->count, sizeof(MAPIProperty));
+  ALLOCCHECK(p->properties);
   mp = p->properties;
 
   for (i = 0; i < p->count; i++) {
@@ -424,9 +435,11 @@ void TNEFFillMapi(TNEFStruct *TNEF, BYTE *data, DWORD size, MAPIProps *p) {
         if (length > 0) {
           mp->namedproperty = length;
           mp->propnames = calloc(length, sizeof(variableLength));
+          ALLOCCHECK(mp->propnames);
           while (length > 0) {
             type = SwapDWord((BYTE*)d, 4);
             mp->propnames[length - 1].data = calloc(type, sizeof(BYTE));
+            ALLOCCHECK(mp->propnames[length - 1].data);
             mp->propnames[length - 1].size = type;
             d += 4;
             for (j = 0; j < (type >> 1); j++) {
@@ -453,6 +466,7 @@ void TNEFFillMapi(TNEFStruct *TNEF, BYTE *data, DWORD size, MAPIProps *p) {
         count = 0;
       }
       mp->data = calloc(mp->count, sizeof(variableLength));
+      ALLOCCHECK(mp->data);
       vl = mp->data;
     } else {
       i--;
@@ -480,6 +494,7 @@ void TNEFFillMapi(TNEFStruct *TNEF, BYTE *data, DWORD size, MAPIProps *p) {
                 vl->data =(BYTE*) to_utf8(vl->size, (char*)d);
             } else {
               vl->data = calloc(vl->size, sizeof(BYTE));
+              ALLOCCHECK(vl->data);
               memcpy(vl->data, d, vl->size);
             }
         } else {
@@ -496,6 +511,7 @@ void TNEFFillMapi(TNEFStruct *TNEF, BYTE *data, DWORD size, MAPIProps *p) {
         // Read in 2 bytes, but proceed by 4 bytes
         vl->size = 2;
         vl->data = calloc(vl->size, sizeof(WORD));
+        ALLOCCHECK(vl->data);
         temp_word = SwapWord((BYTE*)d, sizeof(WORD));
         memcpy(vl->data, &temp_word, vl->size);
         d += 4;
@@ -508,6 +524,7 @@ void TNEFFillMapi(TNEFStruct *TNEF, BYTE *data, DWORD size, MAPIProps *p) {
       case PT_ERROR:
         vl->size = 4;
         vl->data = calloc(vl->size, sizeof(BYTE));
+        ALLOCCHECK(vl->data);
         temp_dword = SwapDWord((BYTE*)d, 4);
         memcpy(vl->data, &temp_dword, vl->size);
         d += 4;
@@ -517,6 +534,7 @@ void TNEFFillMapi(TNEFStruct *TNEF, BYTE *data, DWORD size, MAPIProps *p) {
       case PT_SYSTIME:
         vl->size = 8;
         vl->data = calloc(vl->size, sizeof(BYTE));
+        ALLOCCHECK(vl->data);
         temp_ddword = SwapDDWord(d, 8);
         memcpy(vl->data, &temp_ddword, vl->size);
         d += 8;
@@ -524,6 +542,7 @@ void TNEFFillMapi(TNEFStruct *TNEF, BYTE *data, DWORD size, MAPIProps *p) {
       case PT_CLSID:
         vl->size = 16;
         vl->data = calloc(vl->size, sizeof(BYTE));
+        ALLOCCHECK(vl->data);
         memcpy(vl->data, d, vl->size);
         d+=16;
         break;
@@ -540,6 +559,7 @@ void TNEFFillMapi(TNEFStruct *TNEF, BYTE *data, DWORD size, MAPIProps *p) {
           int i;
           DEBUG(TNEF->Debug, 3, "Assigning a Subject");
           TNEF->subject.data = calloc(size, sizeof(BYTE));
+          ALLOCCHECK(TNEF->subject.data);
           TNEF->subject.size = vl->size;
           memcpy(TNEF->subject.data, vl->data, vl->size);
           //  Unfortunately, we have to normalize out some invalid
@@ -704,6 +724,7 @@ int TNEFAttachmentFilename STD_ARGLIST {
 
   p->Title.size = size;
   p->Title.data = calloc(size, sizeof(BYTE));
+  ALLOCCHECK(p->Title.data);
   memcpy(p->Title.data, data, size);
 
   return 0;
@@ -716,6 +737,7 @@ int TNEFAttachmentSave STD_ARGLIST {
   while (p->next != NULL) p = p->next;
 
   p->FileData.data = calloc(sizeof(char), size);
+  ALLOCCHECK(p->FileData.data);
   p->FileData.size = size;
 
   memcpy(p->FileData.data, data, size);
@@ -1100,6 +1122,7 @@ int TNEFParse(TNEFStruct *TNEF) {
     DEBUG2(TNEF->Debug, 2, "Header says type=0x%X, size=%u", type, size);
     DEBUG2(TNEF->Debug, 2, "Header says type=%u, size=%u", type, size);
     data = calloc(size, sizeof(BYTE));
+    ALLOCCHECK(data);
     if (TNEFRawRead(TNEF, data, size, &header_checksum) < 0) {
       printf("ERROR: Unable to read data.\n");
       if (TNEF->IO.CloseProc != NULL) {
@@ -1441,6 +1464,7 @@ BYTE *DecompressRTF(variableLength *p, int *size) {
 
   comp_Prebuf.size = strlen(RTF_PREBUF);
   comp_Prebuf.data = calloc(comp_Prebuf.size+1, 1);
+  ALLOCCHECK(comp_Prebuf.data);
   memcpy(comp_Prebuf.data, RTF_PREBUF, comp_Prebuf.size);
 
   src = p->data;
@@ -1465,12 +1489,14 @@ BYTE *DecompressRTF(variableLength *p, int *size) {
   if (magic == 0x414c454d) {
     // magic number that identifies the stream as a uncompressed stream
     dst = calloc(uncompressedSize, 1);
+    ALLOCCHECK(dst);
     memcpy(dst, src + 4, uncompressedSize);
   } else if (magic == 0x75465a4c) {
     // magic number that identifies the stream as a compressed stream
     int flagCount = 0;
     int flags = 0;
     dst = calloc(comp_Prebuf.size + uncompressedSize, 1);
+    ALLOCCHECK(dst);
     memcpy(dst, comp_Prebuf.data, comp_Prebuf.size);
     out = comp_Prebuf.size;
     while (out < (comp_Prebuf.size + uncompressedSize)) {
@@ -1502,6 +1528,7 @@ BYTE *DecompressRTF(variableLength *p, int *size) {
     // copy it back without the prebuffered data
     src = dst;
     dst = calloc(uncompressedSize, 1);
+    ALLOCCHECK(dst);
     memcpy(dst, src + comp_Prebuf.size, uncompressedSize);
     free(src);
     *size = uncompressedSize;
