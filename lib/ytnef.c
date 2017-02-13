@@ -1514,6 +1514,11 @@ BYTE *DecompressRTF(variableLength *p, int *size) {
     // magic number that identifies the stream as a compressed stream
     int flagCount = 0;
     int flags = 0;
+    // Prevent overflow on 32 Bit Systems
+    if (comp_Prebuf.size >= INT_MAX - uncompressedSize) {
+       printf("Corrupted file\n");
+       exit(-1);
+    }
     dst = calloc(comp_Prebuf.size + uncompressedSize, 1);
     ALLOCCHECK(dst);
     memcpy(dst, comp_Prebuf.data, comp_Prebuf.size);
