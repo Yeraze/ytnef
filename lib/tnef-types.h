@@ -103,7 +103,7 @@ typedef struct {
 } TNEFMemInfo;
 
 typedef struct {
-  char version[10];
+  char version[16];
   variableLength from;
   variableLength subject;
   dtr dateSent;

@@ -330,7 +330,7 @@ int TNEFVersion STD_ARGLIST {
   minor = SwapWord((BYTE*)data, size);
   major = SwapWord((BYTE*)data + 2, size - 2);
 
-  sprintf(TNEF->version, "TNEF%i.%i", major, minor);
+  snprintf(TNEF->version, sizeof(TNEF->version), "TNEF%i.%i", major, minor);
   return 0;
 }
 
