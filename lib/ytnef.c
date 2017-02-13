@@ -546,6 +546,9 @@ void TNEFFillMapi(TNEFStruct *TNEF, BYTE *data, DWORD size, MAPIProps *p) {
         memcpy(vl->data, d, vl->size);
         d+=16;
         break;
+      default:
+        printf("Bad file\n");
+        exit(-1);
     }
 
     switch (PROP_ID(mp->id)) {
