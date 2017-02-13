@@ -1497,6 +1497,10 @@ BYTE *DecompressRTF(variableLength *p, int *size) {
   src = p->data;
   in = 0;
 
+  if (p->size < 20) {
+    printf("File too small\n");
+    exit(-1);
+  }
   compressedSize = (ULONG)SwapDWord((BYTE*)src + in, 4);
   in += 4;
   uncompressedSize = (ULONG)SwapDWord((BYTE*)src + in, 4);
@@ -1535,9 +1539,9 @@ BYTE *DecompressRTF(variableLength *p, int *size) {
       // each flag byte flags 8 literals/references, 1 per bit
       flags = (flagCount++ % 8 == 0) ? src[in++] : flags >> 1;
       if ((flags & 1) == 1) { // each flag bit is 1 for reference, 0 for literal
-        int offset = src[in++];
-        int length = src[in++];
-        int end;
+        unsigned int offset = src[in++];
+        unsigned int length = src[in++];
+        unsigned int end;
         offset = (offset << 4) | (length >> 4); // the offset relative to block start
         length = (length & 0xF) + 2; // the number of bytes to copy
         // the decompression buffer is supposed to wrap around back
@@ -1551,9 +1555,15 @@ BYTE *DecompressRTF(variableLength *p, int *size) {
         // note: can't use System.arraycopy, because the referenced
         // bytes can cross through the current out position.
         end = offset + length;
-        while (offset < end)
+        while ((offset < end) && (out < (comp_Prebuf.size + uncompressedSize))
+             && (offset < (comp_Prebuf.size + uncompressedSize)))
           dst[out++] = dst[offset++];
       } else { // literal
+        if ((out >= (comp_Prebuf.size + uncompressedSize)) ||
+            (in >= p->size)) {
+          printf("Corrupted stream\n");
+          exit(-1);
+        }
         dst[out++] = src[in++];
       }
     }
