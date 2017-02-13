@@ -55,6 +55,7 @@
 #define MIN(x,y) (((x)<(y))?(x):(y))
 
 #define ALLOCCHECK(x) { if(!x) { printf("Out of Memory\n"); exit(-1); } }
+#define SIZECHECK(x) { if ((((char *)d - (char *)data) + x) >= size) {  printf("Corrupted file\n"); exit(-1); } }
 
 void TNEFFillMapi(TNEFStruct *TNEF, BYTE *data, DWORD size, MAPIProps *p);
 void SetFlip(void);
@@ -427,9 +428,11 @@ void TNEFFillMapi(TNEFStruct *TNEF, BYTE *data, DWORD size, MAPIProps *p) {
       length = -1;
       if (PROP_ID(mp->id) >= 0x8000) {
         // Read the GUID
+        SIZECHECK(16);
         memcpy(&(mp->guid[0]), d, 16);
         d += 16;
 
+        SIZECHECK(4);
         length = SwapDWord((BYTE*)d, 4);
         d += sizeof(DWORD);
         if (length > 0) {
@@ -437,12 +440,14 @@ void TNEFFillMapi(TNEFStruct *TNEF, BYTE *data, DWORD size, MAPIProps *p) {
           mp->propnames = calloc(length, sizeof(variableLength));
           ALLOCCHECK(mp->propnames);
           while (length > 0) {
+            SIZECHECK(4);
             type = SwapDWord((BYTE*)d, 4);
             mp->propnames[length - 1].data = calloc(type, sizeof(BYTE));
             ALLOCCHECK(mp->propnames[length - 1].data);
             mp->propnames[length - 1].size = type;
             d += 4;
             for (j = 0; j < (type >> 1); j++) {
+              SIZECHECK(j*2);
               mp->propnames[length - 1].data[j] = d[j * 2];
             }
             d += type + ((type % 4) ? (4 - type % 4) : 0);
@@ -450,6 +455,7 @@ void TNEFFillMapi(TNEFStruct *TNEF, BYTE *data, DWORD size, MAPIProps *p) {
           }
         } else {
           // READ the type
+          SIZECHECK(sizeof(DWORD));
           type = SwapDWord((BYTE*)d, sizeof(DWORD));
           d += sizeof(DWORD);
           mp->id = PROP_TAG(PROP_TYPE(mp->id), type);
@@ -461,6 +467,7 @@ void TNEFFillMapi(TNEFStruct *TNEF, BYTE *data, DWORD size, MAPIProps *p) {
              PROP_ID(mp->id));
       if (PROP_TYPE(mp->id) & MV_FLAG) {
         mp->id = PROP_TAG(PROP_TYPE(mp->id) - MV_FLAG, PROP_ID(mp->id));
+        SIZECHECK(4);
         mp->count = SwapDWord((BYTE*)d, 4);
         d += 4;
         count = 0;
@@ -481,16 +488,19 @@ void TNEFFillMapi(TNEFStruct *TNEF, BYTE *data, DWORD size, MAPIProps *p) {
       case PT_UNICODE:
         // First number of objects (assume 1 for now)
         if (count == -1) {
+          SIZECHECK(4);
           vl->size = SwapDWord((BYTE*)d, 4);
           d += 4;
         }
         // now size of object
+        SIZECHECK(4);
         vl->size = SwapDWord((BYTE*)d, 4);
         d += 4;
 
         // now actual object
         if (vl->size != 0) {    
-          if (PROP_TYPE(mp->id) == PT_UNICODE) {
+         SIZECHECK(vl->size);
+         if (PROP_TYPE(mp->id) == PT_UNICODE) {
                 vl->data =(BYTE*) to_utf8(vl->size, (char*)d);
             } else {
               vl->data = calloc(vl->size, sizeof(BYTE));
@@ -512,6 +522,7 @@ void TNEFFillMapi(TNEFStruct *TNEF, BYTE *data, DWORD size, MAPIProps *p) {
         vl->size = 2;
         vl->data = calloc(vl->size, sizeof(WORD));
         ALLOCCHECK(vl->data);
+        SIZECHECK(sizeof(WORD))
         temp_word = SwapWord((BYTE*)d, sizeof(WORD));
         memcpy(vl->data, &temp_word, vl->size);
         d += 4;
@@ -525,6 +536,7 @@ void TNEFFillMapi(TNEFStruct *TNEF, BYTE *data, DWORD size, MAPIProps *p) {
         vl->size = 4;
         vl->data = calloc(vl->size, sizeof(BYTE));
         ALLOCCHECK(vl->data);
+        SIZECHECK(4);
         temp_dword = SwapDWord((BYTE*)d, 4);
         memcpy(vl->data, &temp_dword, vl->size);
         d += 4;
@@ -535,6 +547,7 @@ void TNEFFillMapi(TNEFStruct *TNEF, BYTE *data, DWORD size, MAPIProps *p) {
         vl->size = 8;
         vl->data = calloc(vl->size, sizeof(BYTE));
         ALLOCCHECK(vl->data);
+        SIZECHECK(8);
         temp_ddword = SwapDDWord(d, 8);
         memcpy(vl->data, &temp_ddword, vl->size);
         d += 8;
@@ -543,6 +556,7 @@ void TNEFFillMapi(TNEFStruct *TNEF, BYTE *data, DWORD size, MAPIProps *p) {
         vl->size = 16;
         vl->data = calloc(vl->size, sizeof(BYTE));
         ALLOCCHECK(vl->data);
+        SIZECHECK(vl->size);
         memcpy(vl->data, d, vl->size);
         d+=16;
         break;
@@ -611,12 +625,14 @@ int TNEFSentFor STD_ARGLIST {
   d = (BYTE*)data;
 
   while ((d - (BYTE*)data) < size) {
+    SIZECHECK(sizeof(WORD));
     name_length = SwapWord((BYTE*)d, sizeof(WORD));
     d += sizeof(WORD);
     if (TNEF->Debug >= 1)
       printf("Sent For : %s", d);
     d += name_length;
 
+    SIZECHECK(sizeof(WORD));
     addr_length = SwapWord((BYTE*)d, sizeof(WORD));
     d += sizeof(WORD);
     if (TNEF->Debug >= 1)
