@@ -55,10 +55,11 @@
 
 #define MIN(x,y) (((x)<(y))?(x):(y))
 
-#define ALLOCCHECK(x) { if(!x) { printf("Out of Memory at %s : %i\n", __FILE__, __LINE__); exit(-1); } }
-#define SIZECHECK(x) { if ((((char *)d - (char *)data) + x) > size) {  printf("Corrupted file detected at %s : %i\n", __FILE__, __LINE__); exit(-1); } }
+#define ALLOCCHECK(x) { if(!x) { printf("Out of Memory at %s : %i\n", __FILE__, __LINE__); return(-1); } }
+#define ALLOCCHECK_CHAR(x) { if(!x) { printf("Out of Memory at %s : %i\n", __FILE__, __LINE__); return(NULL); } }
+#define SIZECHECK(x) { if ((((char *)d - (char *)data) + x) > size) {  printf("Corrupted file detected at %s : %i\n", __FILE__, __LINE__); return(-1); } }
 
-void TNEFFillMapi(TNEFStruct *TNEF, BYTE *data, DWORD size, MAPIProps *p);
+int TNEFFillMapi(TNEFStruct *TNEF, BYTE *data, DWORD size, MAPIProps *p);
 void SetFlip(void);
 
 int TNEFDefaultHandler STD_ARGLIST;
@@ -388,20 +389,21 @@ int TNEFAttachmentMAPI STD_ARGLIST {
   //
   p = &(TNEF->starting_attach);
   while (p->next != NULL) p = p->next;
-  TNEFFillMapi(TNEF, (BYTE*)data, size, &(p->MAPI));
-
-  return 0;
+  return TNEFFillMapi(TNEF, (BYTE*)data, size, &(p->MAPI));
 }
 // -----------------------------------------------------------------------------
 int TNEFMapiProperties STD_ARGLIST {
-  TNEFFillMapi(TNEF, (BYTE*)data, size, &(TNEF->MapiProperties));
+  if (TNEFFillMapi(TNEF, (BYTE*)data, size, &(TNEF->MapiProperties)) < 0) {
+    printf("ERROR Parsing MAPI block\n");
+    return -1;
+  };
   if (TNEF->Debug >= 3) {
     MAPIPrint(&(TNEF->MapiProperties));
   }
   return 0;
 }
 
-void TNEFFillMapi(TNEFStruct *TNEF, BYTE *data, DWORD size, MAPIProps *p) {
+int TNEFFillMapi(TNEFStruct *TNEF, BYTE *data, DWORD size, MAPIProps *p) {
   int i, j;
   DWORD num;
   BYTE *d;
@@ -620,7 +622,7 @@ void TNEFFillMapi(TNEFStruct *TNEF, BYTE *data, DWORD size, MAPIProps *p) {
       printf("%li bytes extra\n", (d - data) - size);
     }
   }
-  return;
+  return 0;
 }
 // -----------------------------------------------------------------------------
 int TNEFSentFor STD_ARGLIST {
@@ -1491,7 +1493,7 @@ BYTE *DecompressRTF(variableLength *p, int *size) {
 
   comp_Prebuf.size = strlen(RTF_PREBUF);
   comp_Prebuf.data = calloc(comp_Prebuf.size+1, 1);
-  ALLOCCHECK(comp_Prebuf.data);
+  ALLOCCHECK_CHAR(comp_Prebuf.data);
   memcpy(comp_Prebuf.data, RTF_PREBUF, comp_Prebuf.size);
 
   src = p->data;
@@ -1499,7 +1501,7 @@ BYTE *DecompressRTF(variableLength *p, int *size) {
 
   if (p->size < 20) {
     printf("File too small\n");
-    exit(-1);
+    return(NULL);
   }
   compressedSize = (ULONG)SwapDWord((BYTE*)src + in, 4);
   in += 4;
@@ -1520,7 +1522,7 @@ BYTE *DecompressRTF(variableLength *p, int *size) {
   if (magic == 0x414c454d) {
     // magic number that identifies the stream as a uncompressed stream
     dst = calloc(uncompressedSize, 1);
-    ALLOCCHECK(dst);
+    ALLOCCHECK_CHAR(dst);
     memcpy(dst, src + 4, uncompressedSize);
   } else if (magic == 0x75465a4c) {
     // magic number that identifies the stream as a compressed stream
@@ -1532,7 +1534,7 @@ BYTE *DecompressRTF(variableLength *p, int *size) {
        exit(-1);
     }
     dst = calloc(comp_Prebuf.size + uncompressedSize, 1);
-    ALLOCCHECK(dst);
+    ALLOCCHECK_CHAR(dst);
     memcpy(dst, comp_Prebuf.data, comp_Prebuf.size);
     out = comp_Prebuf.size;
     while (out < (comp_Prebuf.size + uncompressedSize)) {
@@ -1570,7 +1572,7 @@ BYTE *DecompressRTF(variableLength *p, int *size) {
     // copy it back without the prebuffered data
     src = dst;
     dst = calloc(uncompressedSize, 1);
-    ALLOCCHECK(dst);
+    ALLOCCHECK_CHAR(dst);
     memcpy(dst, src + comp_Prebuf.size, uncompressedSize);
     free(src);
     *size = uncompressedSize;
