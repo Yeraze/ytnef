@@ -28,7 +28,7 @@
 void SanitizeFilename(char *filename) {
   int i;
   for (i = 0; i < strlen(filename); ++i) {
-    if (! (isalnum(filename[i]) || (filename[i] == '.'))) {
+    if (! (isalnum(filename[i]) || (filename[i] == '.') || (filename[i] == '\\') || (filename[i] == '/'))) {
       filename[i] = '_';
     }
   }
