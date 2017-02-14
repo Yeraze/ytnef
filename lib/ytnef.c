@@ -55,8 +55,8 @@
 
 #define MIN(x,y) (((x)<(y))?(x):(y))
 
-#define ALLOCCHECK(x) { if(!x) { printf("Out of Memory\n"); exit(-1); } }
-#define SIZECHECK(x) { if ((((char *)d - (char *)data) + x) > size) {  printf("Corrupted file\n"); exit(-1); } }
+#define ALLOCCHECK(x) { if(!x) { printf("Out of Memory at %s : %i\n", __FILE__, __LINE__); exit(-1); } }
+#define SIZECHECK(x) { if ((((char *)d - (char *)data) + x) > size) {  printf("Corrupted file detected at %s : %i\n", __FILE__, __LINE__); exit(-1); } }
 
 void TNEFFillMapi(TNEFStruct *TNEF, BYTE *data, DWORD size, MAPIProps *p);
 void SetFlip(void);
@@ -217,7 +217,7 @@ char *to_utf8(size_t len, char *buf) {
   int i, j = 0;
   /* worst case length */
   if (len > 10000) {	// deal with this by adding an arbitrary limit
-     printf("corrupt file\n");
+     printf("suspecting a corrupt file in UTF8 conversion\n");
      exit(-1);
   }
   char *utf8 = malloc(3 * len / 2 + 1);
