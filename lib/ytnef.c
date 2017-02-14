@@ -56,7 +56,7 @@
 #define MIN(x,y) (((x)<(y))?(x):(y))
 
 #define ALLOCCHECK(x) { if(!x) { printf("Out of Memory\n"); exit(-1); } }
-#define SIZECHECK(x) { if ((((char *)d - (char *)data) + x) >= size) {  printf("Corrupted file\n"); exit(-1); } }
+#define SIZECHECK(x) { if ((((char *)d - (char *)data) + x) > size) {  printf("Corrupted file\n"); exit(-1); } }
 
 void TNEFFillMapi(TNEFStruct *TNEF, BYTE *data, DWORD size, MAPIProps *p);
 void SetFlip(void);
