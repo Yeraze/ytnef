@@ -26,7 +26,7 @@ Usage
 Automatic stripping of TNEF streams using procmail:
 ---------------------------------------------------
 
-If you want to use ytnefprocess.pl, then make sure to do the following:
+If you want to use ytnefprocess, then make sure to do the following:
 
 1. Build and install ytnef as described in the Installation section.
 2. Make a directory `~/.ytnef`
@@ -46,7 +46,7 @@ If you want to use ytnefprocess.pl, then make sure to do the following:
     HOME=/home/randall
     :0fw
     * > 0
-    | /usr/bin/ytnefprocess.pl
+    | /usr/bin/ytnefprocess
     ```
 
 and Voilà! you should be ready to go.
