@@ -1390,7 +1390,7 @@ void MAPIPrint(MAPIProps *p) {
           printf("] (%llu)\n", ddword_tmp);
           break;
         case PT_LONG:
-          printf("    Value: %li\n", *((long*)mapidata->data));
+          printf("    Value: %i\n", *((int*)mapidata->data));
           break;
         case PT_I2:
           printf("    Value: %hi\n", *((short int*)mapidata->data));
