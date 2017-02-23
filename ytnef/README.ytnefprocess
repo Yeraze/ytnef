@@ -6,4 +6,4 @@ Add these lines to your .procmailrc:
 
 :0Bfw
 * Content-Type:.*application/ms-tnef.*
-| /usr/bin/ytnefprocess.pl
+| /usr/bin/ytnefprocess
