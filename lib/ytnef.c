@@ -1147,6 +1147,10 @@ int TNEFParse(TNEFStruct *TNEF) {
   while (TNEFGetHeader(TNEF, &type, &size) == 0) {
     DEBUG2(TNEF->Debug, 2, "Header says type=0x%X, size=%u", type, size);
     DEBUG2(TNEF->Debug, 2, "Header says type=%u, size=%u", type, size);
+    if(size == 0) {
+      printf("ERROR: Field with size of 0\n");
+      return YTNEF_ERROR_READING_DATA;
+    }
     data = calloc(size, sizeof(BYTE));
     ALLOCCHECK(data);
     if (TNEFRawRead(TNEF, data, size, &header_checksum) < 0) {
