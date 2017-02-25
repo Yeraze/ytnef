@@ -73,6 +73,7 @@ Makefile
 ytnef/Makefile
 ytnefprint/Makefile
 lib/Makefile
+lib/libytnef.pc
 test-data/Makefile
 ])
 
