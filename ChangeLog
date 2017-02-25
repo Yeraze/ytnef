@@ -3,6 +3,7 @@ v1.9.2 - February 23, 2017
 Thanks to @hannob for finding some Out-of-bound exceptions in memory handline.
 * [SECURITY] An invalid memory access (heap overrun) in handling LONG datatypes
 * [SECURITY] Missing a check for fields of size 0
+* [SECURITY] Potential buffer overrun on incoming Compressed RTF Streams
 
 This version  & the previous 1.9.1 resolves the following CVEs:
 * CVE-2017-6306

@@ -1541,7 +1541,7 @@ BYTE *DecompressRTF(variableLength *p, int *size) {
     ALLOCCHECK_CHAR(dst);
     memcpy(dst, comp_Prebuf.data, comp_Prebuf.size);
     out = comp_Prebuf.size;
-    while (out < (comp_Prebuf.size + uncompressedSize)) {
+    while ((out < (comp_Prebuf.size + uncompressedSize)) && (in < p->size)) {
       // each flag byte flags 8 literals/references, 1 per bit
       flags = (flagCount++ % 8 == 0) ? src[in++] : flags >> 1;
       if ((flags & 1) == 1) { // each flag bit is 1 for reference, 0 for literal
