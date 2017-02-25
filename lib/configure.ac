@@ -21,6 +21,6 @@ AC_C_BIGENDIAN
 AC_FUNC_MALLOC
 AC_CHECK_FUNCS([memset])
 
-AC_CONFIG_FILES([Makefile])
+AC_CONFIG_FILES([Makefile libytnef.pc])
 AC_OUTPUT
 AC_OUTPUT(libytnef.spec)
