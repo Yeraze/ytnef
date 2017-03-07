@@ -21,3 +21,5 @@ diff results data
 ../ytnefprint/ytnefprint ./winmail.dat  | grep -A 1 PR_RTF_SYNC_BODY_CRC     | grep 872404792
 ../ytnefprint/ytnefprint ./winmail.dat  | grep -A 1 PR_RTF_SYNC_BODY_COUNT   | grep 90
 ../ytnefprint/ytnefprint ./winmail.dat  | grep -A 18 PR_RTF_COMPRESSED       | grep '\pard Casdasdfasdfasd\\par'
+
+../ytnefprint/ytnefprint ./ytnef-oob-TNEFVersion-SwapWord | grep 'ERROR: Field with size of 0'

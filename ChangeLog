@@ -1,3 +1,27 @@
+v1.9.2 - February 23, 2017 
+
+Thanks to @hannob for finding some Out-of-bound exceptions in memory handline.
+* [SECURITY] An invalid memory access (heap overrun) in handling LONG datatypes
+* [SECURITY] Missing a check for fields of size 0
+* [SECURITY] Potential buffer overrun on incoming Compressed RTF Streams
+
+This version  & the previous 1.9.1 resolves the following CVEs:
+* CVE-2017-6306
+* CVE-2017-6305
+* CVE-2017-6304
+* CVE-2017-6303
+* CVE-2017-6302
+* CVE-2017-6301
+* CVE-2017-6300
+* CVE-2017-6299
+* CVE-2017-6298
+
+v1.9.1 - Feb 14, 2017
+* BugFix for path handling- label both / and \ as invalid characters inattachments
+* Remove lots of exit(-1)'s from the code that would crash calling programs
+* [SECURITY] Thanks to EricSesterhennX41 for a patch to fix lots of invalid
+memory allocation around corrupted files.
+
 v1.9 - January 2, 2017
 * Unify libytnef and ytnef tools into a single build & package (Thanks @jmallach)
 * Fix applied for CVE-2010-5109

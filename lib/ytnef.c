@@ -1147,6 +1147,10 @@ int TNEFParse(TNEFStruct *TNEF) {
   while (TNEFGetHeader(TNEF, &type, &size) == 0) {
     DEBUG2(TNEF->Debug, 2, "Header says type=0x%X, size=%u", type, size);
     DEBUG2(TNEF->Debug, 2, "Header says type=%u, size=%u", type, size);
+    if(size == 0) {
+      printf("ERROR: Field with size of 0\n");
+      return YTNEF_ERROR_READING_DATA;
+    }
     data = calloc(size, sizeof(BYTE));
     ALLOCCHECK(data);
     if (TNEFRawRead(TNEF, data, size, &header_checksum) < 0) {
@@ -1390,7 +1394,7 @@ void MAPIPrint(MAPIProps *p) {
           printf("] (%llu)\n", ddword_tmp);
           break;
         case PT_LONG:
-          printf("    Value: %li\n", *((long*)mapidata->data));
+          printf("    Value: %i\n", *((int*)mapidata->data));
           break;
         case PT_I2:
           printf("    Value: %hi\n", *((short int*)mapidata->data));
@@ -1537,7 +1541,7 @@ BYTE *DecompressRTF(variableLength *p, int *size) {
     ALLOCCHECK_CHAR(dst);
     memcpy(dst, comp_Prebuf.data, comp_Prebuf.size);
     out = comp_Prebuf.size;
-    while (out < (comp_Prebuf.size + uncompressedSize)) {
+    while ((out < (comp_Prebuf.size + uncompressedSize)) && (in < p->size)) {
       // each flag byte flags 8 literals/references, 1 per bit
       flags = (flagCount++ % 8 == 0) ? src[in++] : flags >> 1;
       if ((flags & 1) == 1) { // each flag bit is 1 for reference, 0 for literal
