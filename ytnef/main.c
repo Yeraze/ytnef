@@ -193,9 +193,8 @@ int ProcessTNEF(TNEFStruct TNEF) {
             strcpy(ifilename, tmp);
           }
 
-          printf("%s\n", ifilename);
           if ((fptr = fopen(ifilename, "wb")) == NULL) {
-            fprintf(stderr, "ERROR: Error writing file to disk!\n");
+            fprintf(stderr, "ERROR: Error writing %s to disk!\n", ifilename);
             ++failures;
           } else {
             fwrite(buf.data,
@@ -203,6 +202,7 @@ int ProcessTNEF(TNEFStruct TNEF) {
                    buf.size,
                    fptr);
             fclose(fptr);
+            printf("%s\n", ifilename);
           }
           free(buf.data);
         }
@@ -235,9 +235,8 @@ int ProcessTNEF(TNEFStruct TNEF) {
 
           CreateUniqueFilename(ifilename, MAX_FILENAME_SIZE, fileNameBase, "rtf", filepath);
 
-          printf("%s\n", ifilename);
           if ((fptr = fopen(ifilename, "wb"))==NULL) {
-            fprintf(stderr, "ERROR: Error writing file to disk!\n");
+            fprintf(stderr, "ERROR: Error writing %s to disk!\n", ifilename);
             ++failures;
           } else {
             fwrite(buf.data,
@@ -245,6 +244,7 @@ int ProcessTNEF(TNEFStruct TNEF) {
                    buf.size,
                    fptr);
             fclose(fptr);
+            printf("%s\n", ifilename);
           }
           free(buf.data);
         }
@@ -341,10 +341,9 @@ int ProcessTNEF(TNEFStruct TNEF) {
           memcpy(tmp, ifilename, MAX_FILENAME_SIZE);
           snprintf(ifilename, MAX_FILENAME_SIZE, "%s/%s", filepath, tmp);
         }
-        printf("%s\n", ifilename);
         if (savefiles == 1) {
           if ((fptr = fopen(ifilename, "wb")) == NULL) {
-            fprintf(stderr, "ERROR: Error writing file to disk!\n");
+            fprintf(stderr, "ERROR: Error writing %s to disk!\n", ifilename);
             ++failures;
           } else {
             if (object == 1) {
@@ -359,6 +358,7 @@ int ProcessTNEF(TNEFStruct TNEF) {
                      fptr);
             }
             fclose(fptr);
+            printf("%s\n", ifilename);
           } // if we opened successfully
         } // if savefiles == 1
       } // if RealAttachment == 1
