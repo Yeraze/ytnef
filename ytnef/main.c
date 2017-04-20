@@ -123,7 +123,7 @@ int main(int argc, char **argv) {
     TNEFInitialize(&TNEF);
     TNEF.Debug = verbose;
     if (TNEFParseFile(argv[i], &TNEF) == -1) {
-      printf("ERROR processing file\n");
+      fprintf(stderr, "ERROR processing file\n");
       ++errors;
       continue;
     }
@@ -195,7 +195,7 @@ int ProcessTNEF(TNEFStruct TNEF) {
 
           printf("%s\n", ifilename);
           if ((fptr = fopen(ifilename, "wb")) == NULL) {
-            printf("ERROR: Error writing file to disk!\n");
+            fprintf(stderr, "ERROR: Error writing file to disk!\n");
             ++failures;
           } else {
             fwrite(buf.data,
@@ -237,7 +237,7 @@ int ProcessTNEF(TNEFStruct TNEF) {
 
           printf("%s\n", ifilename);
           if ((fptr = fopen(ifilename, "wb"))==NULL) {
-            printf("ERROR: Error writing file to disk!\n");
+            fprintf(stderr, "ERROR: Error writing file to disk!\n");
             ++failures;
           } else {
             fwrite(buf.data,
@@ -344,7 +344,7 @@ int ProcessTNEF(TNEFStruct TNEF) {
         printf("%s\n", ifilename);
         if (savefiles == 1) {
           if ((fptr = fopen(ifilename, "wb")) == NULL) {
-            printf("ERROR: Error writing file to disk!\n");
+            fprintf(stderr, "ERROR: Error writing file to disk!\n");
             ++failures;
           } else {
             if (object == 1) {
