@@ -33,7 +33,7 @@ int savefiles = 0;
 int saveRTF = 0;
 int saveintermediate = 0;
 char *filepath = NULL;
-void ProcessTNEF(TNEFStruct TNEF);
+int ProcessTNEF(TNEFStruct TNEF);
 void SaveVCalendar(TNEFStruct TNEF, int isMtgReq);
 void SaveVCard(TNEFStruct TNEF);
 void SaveVTask(TNEFStruct TNEF);
@@ -68,7 +68,7 @@ void PrintHelp(void) {
 
 
 int main(int argc, char **argv) {
-  int index, i;
+  int index, i, errors=0;
   TNEFStruct TNEF;
 
 //    printf("Size of WORD is %i\n", sizeof(WORD));
@@ -123,16 +123,18 @@ int main(int argc, char **argv) {
     TNEFInitialize(&TNEF);
     TNEF.Debug = verbose;
     if (TNEFParseFile(argv[i], &TNEF) == -1) {
-      printf("ERROR processing file\n");
+      fprintf(stderr, "ERROR processing file\n");
+      ++errors;
       continue;
     }
-    ProcessTNEF(TNEF);
+    errors += ProcessTNEF(TNEF);
     TNEFFree(&TNEF);
   }
-  return 0;
+  return -errors;
 }
 
-void ProcessTNEF(TNEFStruct TNEF) {
+/* Return number of failures */
+int ProcessTNEF(TNEFStruct TNEF) {
   char *astring;
   variableLength *filename;
   variableLength *filedata;
@@ -140,7 +142,7 @@ void ProcessTNEF(TNEFStruct TNEF) {
   int RealAttachment;
   int object;
   char ifilename[MAX_FILENAME_SIZE+1];
-  int i, count;
+  int i, count, failures = 0;
   int foundCal = 0;
 
   FILE *fptr;
@@ -191,15 +193,16 @@ void ProcessTNEF(TNEFStruct TNEF) {
             strcpy(ifilename, tmp);
           }
 
-          printf("%s\n", ifilename);
           if ((fptr = fopen(ifilename, "wb")) == NULL) {
-            printf("ERROR: Error writing file to disk!");
+            fprintf(stderr, "ERROR: Error writing %s to disk!\n", ifilename);
+            ++failures;
           } else {
             fwrite(buf.data,
                    sizeof(BYTE),
                    buf.size,
                    fptr);
             fclose(fptr);
+            printf("%s\n", ifilename);
           }
           free(buf.data);
         }
@@ -232,15 +235,16 @@ void ProcessTNEF(TNEFStruct TNEF) {
 
           CreateUniqueFilename(ifilename, MAX_FILENAME_SIZE, fileNameBase, "rtf", filepath);
 
-          printf("%s\n", ifilename);
           if ((fptr = fopen(ifilename, "wb"))==NULL) {
-            printf("ERROR: Error writing file to disk!");
+            fprintf(stderr, "ERROR: Error writing %s to disk!\n", ifilename);
+            ++failures;
           } else {
             fwrite(buf.data,
                    sizeof(BYTE),
                    buf.size,
                    fptr);
             fclose(fptr);
+            printf("%s\n", ifilename);
           }
           free(buf.data);
         }
@@ -285,7 +289,7 @@ void ProcessTNEF(TNEFStruct TNEF) {
           emb_tnef.Debug = TNEF.Debug;
           if (TNEFParseMemory(filedata->data + 16,
                               filedata->size - 16, &emb_tnef) != -1) {
-            ProcessTNEF(emb_tnef);
+            failures += ProcessTNEF(emb_tnef);
             RealAttachment = 0;
           }
           TNEFFree(&emb_tnef);
@@ -300,7 +304,7 @@ void ProcessTNEF(TNEFStruct TNEF) {
           emb_tnef.Debug = TNEF.Debug;
           if (TNEFParseMemory(filedata->data,
                               filedata->size, &emb_tnef) != -1) {
-            ProcessTNEF(emb_tnef);
+            failures += ProcessTNEF(emb_tnef);
             RealAttachment = 0;
           }
           TNEFFree(&emb_tnef);
@@ -337,10 +341,10 @@ void ProcessTNEF(TNEFStruct TNEF) {
           memcpy(tmp, ifilename, MAX_FILENAME_SIZE);
           snprintf(ifilename, MAX_FILENAME_SIZE, "%s/%s", filepath, tmp);
         }
-        printf("%s\n", ifilename);
         if (savefiles == 1) {
           if ((fptr = fopen(ifilename, "wb")) == NULL) {
-            printf("ERROR: Error writing file to disk!");
+            fprintf(stderr, "ERROR: Error writing %s to disk!\n", ifilename);
+            ++failures;
           } else {
             if (object == 1) {
               fwrite(filedata->data + 16,
@@ -354,12 +358,15 @@ void ProcessTNEF(TNEFStruct TNEF) {
                      fptr);
             }
             fclose(fptr);
+            printf("%s\n", ifilename);
           } // if we opened successfully
         } // if savefiles == 1
       } // if RealAttachment == 1
     } // if size>0
     p = p->next;
   } // while p!= null
+
+  return failures;
 }
 
 
