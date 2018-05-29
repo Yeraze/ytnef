@@ -655,6 +655,9 @@ int TNEFDateHandler STD_ARGLIST {
   WORD * tmp_src, *tmp_dst;
   int i;
 
+  if (size < sizeof(dtr))
+    return -1;
+
   p = &(TNEF->starting_attach);
   switch (TNEFList[id].id) {
     case attDateSent: Date = &(TNEF->dateSent); break;
