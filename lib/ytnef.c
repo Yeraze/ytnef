@@ -421,6 +421,11 @@ int TNEFFillMapi(TNEFStruct *TNEF, BYTE *data, DWORD size, MAPIProps *p) {
   d = data;
   p->count = SwapDWord((BYTE*)data, 4);
   d += 4;
+  // Arbitrary limit on the amount of properties
+  if (((size_t) p->count) > 1000) {
+     printf("ERROR: suspecting a corrupt file in MAPI allocation\n");
+     return -1;
+  }
   p->properties = calloc(p->count, sizeof(MAPIProperty));
   ALLOCCHECK(p->properties);
   mp = p->properties;
