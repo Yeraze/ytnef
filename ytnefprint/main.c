@@ -77,7 +77,7 @@ int main(int argc, char **argv) {
     }
     TNEFInitialize(&TNEF);
     TNEF.Debug = verbose;
-    if (TNEFParseFile(argv[i], &TNEF) == -1) {
+    if (TNEFParseFile(argv[i], &TNEF) < 0) {
       printf("ERROR processing file\n");
       continue;
     }
