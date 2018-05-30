@@ -453,8 +453,8 @@ int TNEFFillMapi(TNEFStruct *TNEF, BYTE *data, DWORD size, MAPIProps *p) {
             ALLOCCHECK(mp->propnames[length - 1].data);
             mp->propnames[length - 1].size = type;
             d += 4;
+            SIZECHECK(type);
             for (j = 0; j < (type >> 1); j++) {
-              SIZECHECK(j*2);
               mp->propnames[length - 1].data[j] = d[j * 2];
             }
             d += type + ((type % 4) ? (4 - type % 4) : 0);
