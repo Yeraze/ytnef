@@ -247,7 +247,7 @@ char *to_utf8(size_t len, char *buf) {
 // -----------------------------------------------------------------------------
 int TNEFDefaultHandler STD_ARGLIST {
   if (TNEF->Debug >= 1)
-    printf("%s: [%i] %s\n", TNEFList[id].name, size, data);
+    printf("%s: [%i] %.*s\n", TNEFList[id].name, size, size, data);
   return 0;
 }
 
@@ -454,7 +454,7 @@ int TNEFFillMapi(TNEFStruct *TNEF, BYTE *data, DWORD size, MAPIProps *p) {
           while (length > 0) {
             SIZECHECK(4);
             type = SwapDWord((BYTE*)d, 4);
-            mp->propnames[length - 1].data = calloc(type, sizeof(BYTE));
+            mp->propnames[length - 1].data = calloc(type+1, sizeof(BYTE));
             ALLOCCHECK(mp->propnames[length - 1].data);
             mp->propnames[length - 1].size = type;
             d += 4;
@@ -644,15 +644,17 @@ int TNEFSentFor STD_ARGLIST {
     SIZECHECK(sizeof(WORD));
     name_length = SwapWord((BYTE*)d, sizeof(WORD));
     d += sizeof(WORD);
+    SIZECHECK(name_length);
     if (TNEF->Debug >= 1)
-      printf("Sent For : %s", d);
+      printf("Sent For : %.*s", name_length, d);
     d += name_length;
 
     SIZECHECK(sizeof(WORD));
     addr_length = SwapWord((BYTE*)d, sizeof(WORD));
     d += sizeof(WORD);
+    SIZECHECK(addr_length);
     if (TNEF->Debug >= 1)
-      printf("<%s>\n", d);
+      printf("<%.*s>\n", addr_length, d);
     d += addr_length;
   }
   return 0;
@@ -1445,7 +1447,7 @@ void MAPIPrint(MAPIProps *p) {
           }
           break;
         case PT_STRING8:
-          printf("    Value: [%s]\n", mapidata->data);
+          printf("    Value: [%.*s]\n", mapidata->size, mapidata->data);
           if (strlen((char*)mapidata->data) != mapidata->size - 1) {
             printf("Detected Hidden data: [");
             for (h = 0; h < mapidata->size; h++) {
@@ -1468,7 +1470,7 @@ void MAPIPrint(MAPIProps *p) {
           printf("]\n");
           break;
         default:
-          printf("    Value: [%s]\n", mapidata->data);
+          printf("    Value: [%.*s]\n", mapidata->size, mapidata->data);
       }
     }
   }
