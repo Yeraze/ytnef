@@ -217,7 +217,7 @@ DDWORD SwapDDWord(BYTE *p, int size) {
 char *to_utf8(size_t len, char *buf) {
   int i, j = 0;
   /* worst case length */
-  if (len > 10000) {	// deal with this by adding an arbitrary limit
+  if (len > 100000) {	// deal with this by adding an arbitrary limit
      printf("suspecting a corrupt file in UTF8 conversion\n");
      exit(-1);
   }
