@@ -219,7 +219,7 @@ char *to_utf8(size_t len, char *buf) {
   /* worst case length */
   if (len > 100000) {	// deal with this by adding an arbitrary limit
      printf("suspecting a corrupt file in UTF8 conversion\n");
-     exit(-1);
+     return NULL;
   }
   char *utf8 = malloc(3 * len / 2 + 1);
 
@@ -514,15 +514,17 @@ int TNEFFillMapi(TNEFStruct *TNEF, BYTE *data, DWORD size, MAPIProps *p) {
         d += 4;
 
         // now actual object
-        if (vl->size != 0) {    
-         SIZECHECK(vl->size);
-         if (PROP_TYPE(mp->id) == PT_UNICODE) {
-                vl->data =(BYTE*) to_utf8(vl->size, (char*)d);
-            } else {
-              vl->data = calloc(vl->size, sizeof(BYTE));
-              ALLOCCHECK(vl->data);
-              memcpy(vl->data, d, vl->size);
-            }
+        if (vl->size != 0) {
+          SIZECHECK(vl->size);
+          if (PROP_TYPE(mp->id) == PT_UNICODE) {
+            vl->data =(BYTE*) to_utf8(vl->size, (char*)d);
+            if(vl->data == NULL)
+              return -1;
+          } else {
+            vl->data = calloc(vl->size, sizeof(BYTE));
+            ALLOCCHECK(vl->data);
+            memcpy(vl->data, d, vl->size);
+          }
         } else {
           vl->data = NULL;
         }
@@ -578,7 +580,7 @@ int TNEFFillMapi(TNEFStruct *TNEF, BYTE *data, DWORD size, MAPIProps *p) {
         break;
       default:
         printf("Bad file\n");
-        exit(-1);
+        return -1;
     }
 
     switch (PROP_ID(mp->id)) {
@@ -624,12 +626,14 @@ int TNEFFillMapi(TNEFStruct *TNEF, BYTE *data, DWORD size, MAPIProps *p) {
       printf("Read %td bytes, Expected %u bytes\n", (d - data), size);
       printf("%td bytes missing\n", size - (d - data));
     }
+    return -1;
   } else if ((d - data) > size) {
     if (TNEF->Debug >= 1)  {
       printf("ERROR DURING MAPI READ\n");
       printf("Read %td bytes, Expected %u bytes\n", (d - data), size);
       printf("%li bytes extra\n", (d - data) - size);
     }
+    return -1;
   }
   return 0;
 }
@@ -1549,7 +1553,7 @@ BYTE *DecompressRTF(variableLength *p, int *size) {
     // Prevent overflow on 32 Bit Systems
     if (comp_Prebuf.size >= INT_MAX - uncompressedSize) {
        printf("Corrupted file\n");
-       exit(-1);
+       return NULL;
     }
     dst = calloc(comp_Prebuf.size + uncompressedSize, 1);
     ALLOCCHECK_CHAR(dst);
@@ -1582,7 +1586,7 @@ BYTE *DecompressRTF(variableLength *p, int *size) {
         if ((out >= (comp_Prebuf.size + uncompressedSize)) ||
             (in >= p->size)) {
           printf("Corrupted stream\n");
-          exit(-1);
+          return NULL;
         }
         dst[out++] = src[in++];
       }
