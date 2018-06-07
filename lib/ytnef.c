@@ -454,6 +454,10 @@ int TNEFFillMapi(TNEFStruct *TNEF, BYTE *data, DWORD size, MAPIProps *p) {
           while (length > 0) {
             SIZECHECK(4);
             type = SwapDWord((BYTE*)d, 4);
+            if(type < 0 || type > 100) {
+              printf("ERROR: invalid propname length, suspected corruption\n");
+              return -1;
+            }
             mp->propnames[length - 1].data = calloc(type+1, sizeof(BYTE));
             ALLOCCHECK(mp->propnames[length - 1].data);
             mp->propnames[length - 1].size = type;
@@ -484,8 +488,8 @@ int TNEFFillMapi(TNEFStruct *TNEF, BYTE *data, DWORD size, MAPIProps *p) {
         d += 4;
         count = 0;
       }
-      if (mp->count == 0) {
-        printf("ERROR: count==0 when filling MAPI property\n");
+      if (mp->count == 0 || mp->count > 1000) {
+        printf("ERROR: invalid count of items in MAPIProperty, suspected corruption\n");
         return -1;
       }
       mp->data = calloc(mp->count, sizeof(variableLength));
