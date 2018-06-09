@@ -600,7 +600,7 @@ int TNEFFillMapi(TNEFStruct *TNEF, BYTE *data, DWORD size, MAPIProps *p) {
         if (TNEF->subject.size == 0) {
           int i;
           DEBUG(TNEF->Debug, 3, "Assigning a Subject");
-          TNEF->subject.data = calloc(size+1, sizeof(BYTE));
+          TNEF->subject.data = calloc(vl->size+1, sizeof(BYTE));
           ALLOCCHECK(TNEF->subject.data);
           TNEF->subject.size = vl->size;
           memcpy(TNEF->subject.data, vl->data, vl->size);
