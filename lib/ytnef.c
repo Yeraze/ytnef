@@ -365,17 +365,17 @@ int TNEFRecipTable STD_ARGLIST {
 
   d = (BYTE*)data;
   SIZECHECK(sizeof(DWORD));
-  count = SwapDWord((BYTE*)d, 4);
-  d += 4;
+  count = SwapDWord((BYTE*)d, sizeof(DWORD));
+  d += sizeof(DWORD);
 //    printf("Recipient Table containing %u rows\n", count);
 
   return 0;
 
   for (current_row = 0; current_row < count; current_row++) {
-    propcount = SwapDWord((BYTE*)d, 4);
+    propcount = SwapDWord((BYTE*)d, sizeof(DWORD));
     if (TNEF->Debug >= 1)
       printf("> Row %i contains %i properties\n", current_row, propcount);
-    d += 4;
+    d += sizeof(DWORD);
     for (current_prop = 0; current_prop < propcount; current_prop++) {
 
 
@@ -421,8 +421,8 @@ int TNEFFillMapi(TNEFStruct *TNEF, BYTE *data, DWORD size, MAPIProps *p) {
 
   d = data;
   SIZECHECK(sizeof(DWORD));
-  p->count = SwapDWord((BYTE*)data, 4);
-  d += 4;
+  p->count = SwapDWord((BYTE*)data, sizeof(DWORD));
+  d += sizeof(DWORD);
   // Arbitrary limit on the amount of properties
   if (((size_t) p->count) > 1000) {
      printf("ERROR: suspecting a corrupt file in MAPI allocation\n");
@@ -435,8 +435,8 @@ int TNEFFillMapi(TNEFStruct *TNEF, BYTE *data, DWORD size, MAPIProps *p) {
   for (i = 0; i < p->count; i++) {
     if (count == -1) {
       SIZECHECK(sizeof(DWORD));
-      mp->id = SwapDWord((BYTE*)d, 4);
-      d += 4;
+      mp->id = SwapDWord((BYTE*)d, sizeof(DWORD));
+      d += sizeof(DWORD);
       mp->custom = 0;
       mp->count = 1;
       mp->namedproperty = 0;
@@ -447,16 +447,17 @@ int TNEFFillMapi(TNEFStruct *TNEF, BYTE *data, DWORD size, MAPIProps *p) {
         memcpy(&(mp->guid[0]), d, 16);
         d += 16;
 
-        SIZECHECK(4);
-        length = SwapDWord((BYTE*)d, 4);
+        SIZECHECK(sizeof(DWORD));
+        length = SwapDWord((BYTE*)d, sizeof(DWORD));
         d += sizeof(DWORD);
         if (length > 0) {
           mp->namedproperty = length;
           mp->propnames = calloc(length, sizeof(variableLength));
           ALLOCCHECK(mp->propnames);
           while (length > 0) {
-            SIZECHECK(4);
-            type = SwapDWord((BYTE*)d, 4);
+            SIZECHECK(sizeof(DWORD));
+            type = SwapDWord((BYTE*)d, sizeof(DWORD));
+            d += sizeof(DWORD);
             if(type < 0 || type > 100) {
               printf("ERROR: invalid propname length, suspected corruption\n");
               return -1;
@@ -464,7 +465,6 @@ int TNEFFillMapi(TNEFStruct *TNEF, BYTE *data, DWORD size, MAPIProps *p) {
             mp->propnames[length - 1].data = calloc(type+1, sizeof(BYTE));
             ALLOCCHECK(mp->propnames[length - 1].data);
             mp->propnames[length - 1].size = type;
-            d += 4;
             SIZECHECK(type);
             for (j = 0; j < (type >> 1); j++) {
               mp->propnames[length - 1].data[j] = d[j * 2];
@@ -486,9 +486,9 @@ int TNEFFillMapi(TNEFStruct *TNEF, BYTE *data, DWORD size, MAPIProps *p) {
              PROP_ID(mp->id));
       if (PROP_TYPE(mp->id) & MV_FLAG) {
         mp->id = PROP_TAG(PROP_TYPE(mp->id) - MV_FLAG, PROP_ID(mp->id));
-        SIZECHECK(4);
-        mp->count = SwapDWord((BYTE*)d, 4);
-        d += 4;
+        SIZECHECK(sizeof(DWORD));
+        mp->count = SwapDWord((BYTE*)d, sizeof(DWORD));
+        d += sizeof(DWORD);
         count = 0;
       }
       if (mp->count == 0 || mp->count > 1000) {
@@ -511,14 +511,14 @@ int TNEFFillMapi(TNEFStruct *TNEF, BYTE *data, DWORD size, MAPIProps *p) {
       case PT_UNICODE:
         // First number of objects (assume 1 for now)
         if (count == -1) {
-          SIZECHECK(4);
-          vl->size = SwapDWord((BYTE*)d, 4);
-          d += 4;
+          SIZECHECK(sizeof(DWORD));
+          vl->size = SwapDWord((BYTE*)d, sizeof(DWORD));
+          d += sizeof(DWORD);
         }
         // now size of object
-        SIZECHECK(4);
-        vl->size = SwapDWord((BYTE*)d, 4);
-        d += 4;
+        SIZECHECK(sizeof(DWORD));
+        vl->size = SwapDWord((BYTE*)d, sizeof(DWORD));
+        d += sizeof(DWORD);
 
         // now actual object
         if (vl->size != 0) {
@@ -1525,13 +1525,12 @@ BYTE *DecompressRTF(variableLength *p, int *size) {
     printf("File too small\n");
     return(NULL);
   }
-  compressedSize = (ULONG)SwapDWord((BYTE*)src + in, 4);
-  in += 4;
-  uncompressedSize = (ULONG)SwapDWord((BYTE*)src + in, 4);
-  in += 4;
-  magic = SwapDWord((BYTE*)src + in, 4);
-  in += 4;
-  in += 4;
+  compressedSize = (ULONG)SwapDWord((BYTE*)src + in, sizeof(DWORD));
+  in += sizeof(DWORD);
+  uncompressedSize = (ULONG)SwapDWord((BYTE*)src + in, sizeof(DWORD));
+  in += sizeof(DWORD);
+  magic = SwapDWord((BYTE*)src + in, sizeof(DWORD));
+  in += 2*sizeof(DWORD);
 
   // check size excluding the size field itself
   if (compressedSize != p->size - 4) {
