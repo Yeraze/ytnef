@@ -273,7 +273,7 @@ int TNEFMessageID STD_ARGLIST {
 // -----------------------------------------------------------------------------
 int TNEFBody STD_ARGLIST {
   TNEF->body.size = size;
-  TNEF->body.data = calloc(size, sizeof(BYTE));
+  TNEF->body.data = calloc(size+1, sizeof(BYTE));
   ALLOCCHECK(TNEF->body.data);
   memcpy(TNEF->body.data, data, size);
   return 0;
@@ -281,19 +281,19 @@ int TNEFBody STD_ARGLIST {
 // -----------------------------------------------------------------------------
 int TNEFOriginalMsgClass STD_ARGLIST {
   TNEF->OriginalMessageClass.size = size;
-  TNEF->OriginalMessageClass.data = calloc(size, sizeof(BYTE));
+  TNEF->OriginalMessageClass.data = calloc(size+1, sizeof(BYTE));
   ALLOCCHECK(TNEF->OriginalMessageClass.data);
   memcpy(TNEF->OriginalMessageClass.data, data, size);
   return 0;
 }
 // -----------------------------------------------------------------------------
 int TNEFMessageClass STD_ARGLIST {
-  memcpy(TNEF->messageClass, data, MIN(size, sizeof(TNEF->messageClass)));
+  memcpy(TNEF->messageClass, data, MIN(size, sizeof(TNEF->messageClass)-1));
   return 0;
 }
 // -----------------------------------------------------------------------------
 int TNEFFromHandler STD_ARGLIST {
-  TNEF->from.data = calloc(size, sizeof(BYTE));
+  TNEF->from.data = calloc(size+1, sizeof(BYTE));
   ALLOCCHECK(TNEF->from.data);
   TNEF->from.size = size;
   memcpy(TNEF->from.data, data, size);
@@ -304,7 +304,7 @@ int TNEFSubjectHandler STD_ARGLIST {
   if (TNEF->subject.data)
     free(TNEF->subject.data);
 
-  TNEF->subject.data = calloc(size, sizeof(BYTE));
+  TNEF->subject.data = calloc(size+1, sizeof(BYTE));
   ALLOCCHECK(TNEF->subject.data);
   TNEF->subject.size = size;
   memcpy(TNEF->subject.data, data, size);
@@ -600,7 +600,7 @@ int TNEFFillMapi(TNEFStruct *TNEF, BYTE *data, DWORD size, MAPIProps *p) {
         if (TNEF->subject.size == 0) {
           int i;
           DEBUG(TNEF->Debug, 3, "Assigning a Subject");
-          TNEF->subject.data = calloc(size, sizeof(BYTE));
+          TNEF->subject.data = calloc(size+1, sizeof(BYTE));
           ALLOCCHECK(TNEF->subject.data);
           TNEF->subject.size = vl->size;
           memcpy(TNEF->subject.data, vl->data, vl->size);
