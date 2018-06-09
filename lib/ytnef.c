@@ -364,6 +364,7 @@ int TNEFRecipTable STD_ARGLIST {
   int current_prop;
 
   d = (BYTE*)data;
+  SIZECHECK(sizeof(DWORD));
   count = SwapDWord((BYTE*)d, 4);
   d += 4;
 //    printf("Recipient Table containing %u rows\n", count);
@@ -419,6 +420,7 @@ int TNEFFillMapi(TNEFStruct *TNEF, BYTE *data, DWORD size, MAPIProps *p) {
   int offset;
 
   d = data;
+  SIZECHECK(sizeof(DWORD));
   p->count = SwapDWord((BYTE*)data, 4);
   d += 4;
   // Arbitrary limit on the amount of properties
@@ -432,6 +434,7 @@ int TNEFFillMapi(TNEFStruct *TNEF, BYTE *data, DWORD size, MAPIProps *p) {
 
   for (i = 0; i < p->count; i++) {
     if (count == -1) {
+      SIZECHECK(sizeof(DWORD));
       mp->id = SwapDWord((BYTE*)d, 4);
       d += 4;
       mp->custom = 0;
