@@ -418,17 +418,19 @@ int TNEFFillMapi(TNEFStruct *TNEF, BYTE *data, DWORD size, MAPIProps *p) {
   WORD temp_word;
   DWORD temp_dword;
   DDWORD temp_ddword;
+  int mp_count = 0, p_count = 0;
   int count = -1;
   int offset;
 
   d = data;
   SIZECHECK(sizeof(DWORD));
-  p->count = SwapDWord((BYTE*)data, sizeof(DWORD));
+  p_count = SwapDWord((BYTE*)data, sizeof(DWORD));
   d += sizeof(DWORD);
   // Arbitrary limit on the amount of properties
-  PREALLOCCHECK(p->count, 1000);
-  p->properties = calloc(p->count, sizeof(MAPIProperty));
+  PREALLOCCHECK(p_count, 1000);
+  p->properties = calloc(p_count, sizeof(MAPIProperty));
   ALLOCCHECK(p->properties);
+  p->count = p_count;
   mp = p->properties;
 
   for (i = 0; i < p->count; i++) {
@@ -437,7 +439,7 @@ int TNEFFillMapi(TNEFStruct *TNEF, BYTE *data, DWORD size, MAPIProps *p) {
       mp->id = SwapDWord((BYTE*)d, sizeof(DWORD));
       d += sizeof(DWORD);
       mp->custom = 0;
-      mp->count = 1;
+      mp_count = 1;
       mp->namedproperty = 0;
       length = -1;
       if (PROP_ID(mp->id) >= 0x8000) {
@@ -450,10 +452,10 @@ int TNEFFillMapi(TNEFStruct *TNEF, BYTE *data, DWORD size, MAPIProps *p) {
         length = SwapDWord((BYTE*)d, sizeof(DWORD));
         d += sizeof(DWORD);
         if (length > 0) {
-          mp->namedproperty = length;
           PREALLOCCHECK(length, 1000);
           mp->propnames = calloc(length, sizeof(variableLength));
           ALLOCCHECK(mp->propnames);
+          mp->namedproperty = length;
           while (length > 0) {
             SIZECHECK(sizeof(DWORD));
             type = SwapDWord((BYTE*)d, sizeof(DWORD));
@@ -484,13 +486,14 @@ int TNEFFillMapi(TNEFStruct *TNEF, BYTE *data, DWORD size, MAPIProps *p) {
       if (PROP_TYPE(mp->id) & MV_FLAG) {
         mp->id = PROP_TAG(PROP_TYPE(mp->id) - MV_FLAG, PROP_ID(mp->id));
         SIZECHECK(sizeof(DWORD));
-        mp->count = SwapDWord((BYTE*)d, sizeof(DWORD));
+        mp_count = SwapDWord((BYTE*)d, sizeof(DWORD));
         d += sizeof(DWORD);
         count = 0;
       }
-      PREALLOCCHECK(mp->count, 1000);
-      mp->data = calloc(mp->count, sizeof(variableLength));
+      PREALLOCCHECK(mp_count, 1000);
+      mp->data = calloc(mp_count, sizeof(variableLength));
       ALLOCCHECK(mp->data);
+      mp->count = mp_count;
       vl = mp->data;
     } else {
       i--;
