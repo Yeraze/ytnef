@@ -1,3 +1,19 @@
+v1.9.3 - July 20, 2018
+Special thanks to @evintila, @bestshow, @bingosxs, and @asarubbo for
+submitting high quality bug reports via valgrind, afl, and other tools. And 
+a special thanks to @ohwgiles for submitting a bunchof patches to fix them!
+
+This version resolves the following CVEs:
+* CVE-2017-9470
+* CVE-2017-9471
+* CVE-2017-9474
+* CVE-2017-9058
+* CVE-2017-12142
+* CVE-2017-12141
+* CVE-2017-12144
+* 
+
+
 v1.9.2 - February 23, 2017 
 
 Thanks to @hannob for finding some Out-of-bound exceptions in memory handline.
