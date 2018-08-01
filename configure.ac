@@ -49,7 +49,6 @@ AC_CHECK_HEADERS([stdlib.h string.h])
 AC_C_BIGENDIAN
 
 # Checks for library functions.
-AC_FUNC_MALLOC
 AC_CHECK_FUNCS([memset strstr])
 
 AC_SYS_LARGEFILE
