@@ -55,7 +55,7 @@
 
 #define MIN(x,y) (((x)<(y))?(x):(y))
 
-#define PREALLOCCHECK(sz,max) { if(sz==0||(unsigned)sz>max) { printf("ERROR: invalid alloc size %u at %s : %i, suspected corruption\n", (unsigned)sz, __FILE__, __LINE__); return(-1); } }
+#define PREALLOCCHECK(sz,max) { if(sz==0||(unsigned)sz>max) { printf("ERROR: invalid alloc size %u at %s : %i, suspected corruption (exceeded %i bytes)\n", (unsigned)sz, __FILE__, __LINE__, max); return(-1); } }
 #define ALLOCCHECK(x) { if(!x) { printf("Out of Memory at %s : %i\n", __FILE__, __LINE__); return(-1); } }
 #define ALLOCCHECK_CHAR(x) { if(!x) { printf("Out of Memory at %s : %i\n", __FILE__, __LINE__); return(NULL); } }
 #define SIZECHECK(x) { if ((((char *)d - (char *)data) + x) > size) {  printf("Corrupted file detected at %s : %i\n", __FILE__, __LINE__); return(-1); } }
@@ -1180,7 +1180,7 @@ int TNEFParse(TNEFStruct *TNEF) {
       printf("ERROR: Field with size of 0\n");
       return YTNEF_ERROR_READING_DATA;
     }
-    PREALLOCCHECK(size, 100000);
+    PREALLOCCHECK(size, 1000000);
     data = calloc(size, sizeof(BYTE));
     ALLOCCHECK(data);
     if (TNEFRawRead(TNEF, data, size, &header_checksum) < 0) {
