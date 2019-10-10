@@ -32,6 +32,7 @@ int verbose = 0;
 int savefiles = 0;
 int saveRTF = 0;
 int saveintermediate = 0;
+int attachmentSize = 50;
 char *filepath = NULL;
 int ProcessTNEF(TNEFStruct TNEF);
 void SaveVCalendar(TNEFStruct TNEF, int isMtgReq);
@@ -51,6 +52,7 @@ void PrintHelp(void) {
   printf("   -/+f - Enables/Disables saving of attachments\n");
   printf("   -/+F - Enables/Disables saving of the message body as RTF\n");
   printf("   -/+a - Enables/Disables saving of intermediate files\n");
+  printf("   -s <n> - Override the default Attachment Size (%i MB)\n", attachmentSize);
   printf("   -h   - Displays this help message\n");
   printf("\n");
   printf("Example:\n");
@@ -94,6 +96,10 @@ int main(int argc, char **argv) {
           filepath = argv[i + 1];
           i++;
           break;
+        case 's': 
+          attachmentSize = atoi(argv[i+1]);
+          i++;
+          break;
         case 'F': saveRTF = 1;
           break;
         default:
@@ -122,6 +128,7 @@ int main(int argc, char **argv) {
 
     TNEFInitialize(&TNEF);
     TNEF.Debug = verbose;
+    TNEF.attachmentSize = attachmentSize;
     if (TNEFParseFile(argv[i], &TNEF) == -1) {
       fprintf(stderr, "ERROR processing file\n");
       ++errors;
@@ -286,6 +293,7 @@ int ProcessTNEF(TNEFStruct TNEF) {
         if (TNEFCheckForSignature(signature) == 0) {
           // Has a TNEF signature, so process it.
           TNEFInitialize(&emb_tnef);
+          emb_tnef.attachmentSize = attachmentSize;
           emb_tnef.Debug = TNEF.Debug;
           if (TNEFParseMemory(filedata->data + 16,
                               filedata->size - 16, &emb_tnef) != -1) {
@@ -301,6 +309,7 @@ int ProcessTNEF(TNEFStruct TNEF) {
         if (TNEFCheckForSignature(signature) == 0) {
           // Has a TNEF signature, so process it.
           TNEFInitialize(&emb_tnef);
+          emb_tnef.attachmentSize = attachmentSize;
           emb_tnef.Debug = TNEF.Debug;
           if (TNEFParseMemory(filedata->data,
                               filedata->size, &emb_tnef) != -1) {

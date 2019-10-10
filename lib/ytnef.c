@@ -961,6 +961,7 @@ void TNEFInitialize(TNEFStruct *TNEF) {
   TNEF->IO.InitProc = NULL;
   TNEF->IO.ReadProc = NULL;
   TNEF->IO.CloseProc = NULL;
+  TNEF->attachmentSize = 50;
 }
 #undef INITVARLENGTH
 #undef INITDTR
@@ -1180,7 +1181,7 @@ int TNEFParse(TNEFStruct *TNEF) {
       printf("ERROR: Field with size of 0\n");
       return YTNEF_ERROR_READING_DATA;
     }
-    PREALLOCCHECK(size, 50*1024*1024);
+    PREALLOCCHECK(size, TNEF->attachmentSize*1024*1024);
     data = calloc(size, sizeof(BYTE));
     ALLOCCHECK(data);
     if (TNEFRawRead(TNEF, data, size, &header_checksum) < 0) {
