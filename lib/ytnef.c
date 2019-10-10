@@ -1180,7 +1180,7 @@ int TNEFParse(TNEFStruct *TNEF) {
       printf("ERROR: Field with size of 0\n");
       return YTNEF_ERROR_READING_DATA;
     }
-    PREALLOCCHECK(size, 1000000);
+    PREALLOCCHECK(size, 50*1024*1024);
     data = calloc(size, sizeof(BYTE));
     ALLOCCHECK(data);
     if (TNEFRawRead(TNEF, data, size, &header_checksum) < 0) {
