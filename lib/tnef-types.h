@@ -129,6 +129,7 @@ typedef struct {
   int RequestRes;
   int Debug;
   TNEFIOStruct IO;
+  int attachmentSize;
 } TNEFStruct;
 
 #endif

@@ -28,6 +28,7 @@
 
 TNEFStruct TNEF;
 int verbose = 0;
+int attachmentSize = 50;
 void PrintTNEF(TNEFStruct TNEF);
 void ProcessTNEF(TNEFStruct TNEF);
 void SaveVCalendar(TNEFStruct TNEF);
@@ -44,6 +45,7 @@ void PrintHelp(void) {
   printf("\n");
   printf("Options:\n");
   printf("   -h   - Displays this help message\n");
+  printf("   -s <n> - Override the default max attachment size (%i MB)\n", attachmentSize);
   printf("   -v   - Verbose output (multiple -v's increase \n");
   printf("                   the level of output.\n");
   printf("\n");
@@ -77,6 +79,7 @@ int main(int argc, char **argv) {
     }
     TNEFInitialize(&TNEF);
     TNEF.Debug = verbose;
+    TNEF.attachmentSize = attachmentSize;
     if (TNEFParseFile(argv[i], &TNEF) < 0) {
       printf("ERROR processing file\n");
       continue;
