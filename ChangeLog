@@ -1,3 +1,10 @@
+v2.0.0 - April 27, 2020 - COVID Edition
+Special thanks to several people exposing the Attachment size limits.  This
+version includes a new configuration parameter of the data structure, and
+commandline argument of the `ytnef` binary, allowing you to override the
+default attachment limit of 50MB.
+
+
 v1.9.3 - July 20, 2018
 Special thanks to @evintila, @bestshow, @bingosxs, and @asarubbo for
 submitting high quality bug reports via valgrind, afl, and other tools. And 

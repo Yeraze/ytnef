@@ -2,9 +2,9 @@
 # MAJOR version when you make incompatible API changes,
 # MINOR version when you add functionality in a backwards-compatible manner
 # PATCH version when you make backwards-compatible bug fixes.
-m4_define([version_major],1)
-m4_define([version_minor],9)
-m4_define([version_micro],3)
+m4_define([version_major],2)
+m4_define([version_minor],0)
+m4_define([version_micro],0)
 m4_define([version_triplet],version_major.version_minor.version_micro)
 
 AC_PREREQ([2.63])
