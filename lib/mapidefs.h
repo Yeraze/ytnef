@@ -315,6 +315,10 @@
 #define PR_ATTACH_LONG_PATHNAME                     0x370D
 #define PR_ATTACH_MIME_TAG                          0x370E
 #define PR_ATTACH_ADDITIONAL_INFO                   0x370F
+#define PR_ATTACH_MIME_SEQUENCE                     0x3710
+#define PR_ATTACH_CONTENT_ID                        0x3712
+#define PR_ATTACH_CONTENT_LOCATION                  0x3713
+#define PR_ATTACH_FLAGS                             0x3714
 #define PR_DISPLAY_TYPE                             0x3900
 #define PR_TEMPLATEID                               0x3902
 #define PR_PRIMARY_CAPABILITY                       0x3904

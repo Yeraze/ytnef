@@ -31,6 +31,7 @@
 int verbose = 0;
 int savefiles = 0;
 int saveRTF = 0;
+int saveHTML = 0;
 int saveintermediate = 0;
 int attachmentSize = 50;
 char *filepath = NULL;
@@ -51,6 +52,7 @@ void PrintHelp(void) {
   printf("          Multiple -v's increase the level of output\n");
   printf("   -/+f - Enables/Disables saving of attachments\n");
   printf("   -/+F - Enables/Disables saving of the message body as RTF\n");
+  printf("   -/+H - Enables/Disables saving of the message body as HTML\n");
   printf("   -/+a - Enables/Disables saving of intermediate files\n");
   printf("   -s <n> - Override the default Attachment Size (%i MB)\n", attachmentSize);
   printf("   -h   - Displays this help message\n");
@@ -102,6 +104,8 @@ int main(int argc, char **argv) {
           break;
         case 'F': saveRTF = 1;
           break;
+        case 'H': saveHTML = 1;
+          break;
         default:
           printf("Unknown option '%s'\n", argv[i]);
       }
@@ -118,6 +122,8 @@ int main(int argc, char **argv) {
           filepath = NULL;
           break;
         case 'F': saveRTF = 0;
+          break;
+        case 'H': saveHTML = 0;
           break;
         default:
           printf("Unknown option '%s'\n", argv[i]);
@@ -212,6 +218,35 @@ int ProcessTNEF(TNEFStruct TNEF) {
             printf("%s\n", ifilename);
           }
           free(buf.data);
+        }
+      }
+    }
+
+    if ((saveHTML == 1) && (TNEF.subject.size > 0)) {
+      // filename seems to be the actual data rather than the filename
+      if ((filename = MAPIFindProperty(&(TNEF.MapiProperties),
+              PROP_TAG(PT_BINARY, PR_BODY_HTML)))
+          != MAPI_UNDEFINED) {
+        int size;
+        variableLength buf;
+        snprintf(ifilename, MAX_FILENAME_SIZE, "%s.html", TNEF.subject.data);
+        SanitizeFilename(ifilename);
+        if (filepath != NULL) {
+          char tmp[MAX_FILENAME_SIZE+1];
+          snprintf(tmp, MAX_FILENAME_SIZE, "%s/%s", filepath, ifilename);
+          strcpy(ifilename, tmp);
+        }
+
+        if ((fptr = fopen(ifilename, "wb")) == NULL) {
+          fprintf(stderr, "ERROR: Error writing %s to disk!\n", ifilename);
+          ++failures;
+        } else {
+          fwrite(filename->data,
+              sizeof(BYTE),
+              filename->size,
+              fptr);
+          fclose(fptr);
+          printf("%s\n", ifilename);
         }
       }
     }
