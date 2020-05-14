@@ -108,6 +108,7 @@ int main(int argc, char **argv) {
           break;
         default:
           printf("Unknown option '%s'\n", argv[i]);
+	  PrintHelp();	      
       }
       continue;
 
@@ -127,6 +128,7 @@ int main(int argc, char **argv) {
           break;
         default:
           printf("Unknown option '%s'\n", argv[i]);
+	  PrintHelp();	      
       }
       continue;
 
