@@ -335,6 +335,10 @@ int TNEFRendData STD_ARGLIST {
 int TNEFVersion STD_ARGLIST {
   WORD major;
   WORD minor;
+  if (size != 2 * sizeof(WORD)) {
+    printf("Incorrect size of version field, suspected corruption\n");
+    return -1;
+  }
   minor = SwapWord((BYTE*)data, size);
   major = SwapWord((BYTE*)data + 2, size - 2);
 
