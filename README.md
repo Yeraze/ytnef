@@ -1,7 +1,6 @@
 Yerase's TNEF Stream Reader
 ===========================
 
-[![Build Status](https://travis-ci.org/Yeraze/ytnef.svg?branch=master)](https://travis-ci.org/Yeraze/ytnef)
 
 Installation
 ------------
