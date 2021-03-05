@@ -301,8 +301,10 @@ int TNEFFromHandler STD_ARGLIST {
 }
 // -----------------------------------------------------------------------------
 int TNEFSubjectHandler STD_ARGLIST {
-  if (TNEF->subject.data)
+  if (TNEF->subject.data) {
     free(TNEF->subject.data);
+    TNEF->subject.data = NULL;
+  }
 
   PREALLOCCHECK(size, 100);
   TNEF->subject.data = calloc(size+1, sizeof(BYTE));
