@@ -526,7 +526,7 @@ int TNEFFillMapi(TNEFStruct *TNEF, BYTE *data, DWORD size, MAPIProps *p) {
         // now actual object
         if (vl->size != 0) {
           SIZECHECK(vl->size);
-          PREALLOCCHECK(vl->size, 100000);
+          PREALLOCCHECK(vl->size, 524288);
           if (PROP_TYPE(mp->id) == PT_UNICODE) {
             vl->data =(BYTE*) to_utf8(vl->size, (char*)d);
             if(vl->data == NULL)
