@@ -378,7 +378,7 @@ int ProcessTNEF(TNEFStruct TNEF) {
           filename->data = (BYTE *)malloc(20);
           snprintf((char*)filename->data, 19, "file_%03i.dat", count);
         }
-        snprintf(ifilename, MAX_FILENAME_SIZE, "%s", filename->data);
+        snprintf(ifilename, MAX_FILENAME_SIZE, "%.*s", filename->size, filename->data);
         for(i = 0; i < strlen(ifilename); i++) 
           if (ifilename[i] == ' ') 
             ifilename[i] = '_';
