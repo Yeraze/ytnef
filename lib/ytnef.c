@@ -1557,6 +1557,8 @@ BYTE *DecompressRTF(variableLength *p, int *size) {
     dst = calloc(uncompressedSize, 1);
     ALLOCCHECK_CHAR(dst);
     memcpy(dst, src + 4, uncompressedSize);
+    free(comp_Prebuf.data);
+    return dst;
   } else if (magic == 0x75465a4c) {
     // magic number that identifies the stream as a compressed stream
     int flagCount = 0;
