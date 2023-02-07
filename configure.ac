@@ -58,6 +58,14 @@ LT_PREREQ([2.2])
 LT_INIT
 LT_LANG([C])
 
+case "$host" in
+*-mingw* | MSYS* | *MSYS* )
+LDFLAGS="-no-undefined $LDFLAGS"
+    ;;
+*)
+    ;;
+esac
+
 AC_SUBST([YTNEF_MAJOR_VERSION],[version_major])
 AC_SUBST([YTNEF_MINOR_VERSION],[version_minor])
 AC_SUBST([YTNEF_MICRO_VERSION],[version_micro])
