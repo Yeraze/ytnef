@@ -783,7 +783,7 @@ int TNEFAttachmentFilename STD_ARGLIST {
   while (p->next != NULL) p = p->next;
 
   p->Title.size = size;
-  PREALLOCCHECK(size, 100);
+  PREALLOCCHECK(size, 260);
   p->Title.data = calloc(size+1, sizeof(BYTE));
   ALLOCCHECK(p->Title.data);
   memcpy(p->Title.data, data, size);
