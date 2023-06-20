@@ -4,7 +4,7 @@
 # PATCH version when you make backwards-compatible bug fixes.
 m4_define([version_major],2)
 m4_define([version_minor],1)
-m4_define([version_micro],1)
+m4_define([version_micro],2)
 m4_define([version_triplet],version_major.version_minor.version_micro)
 
 AC_PREREQ([2.63])
