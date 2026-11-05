@@ -515,33 +515,34 @@ int TNEFFillMapi(TNEFStruct *TNEF, BYTE *data, DWORD size, MAPIProps *p) {
         // First number of objects (assume 1 for now)
         if (count == -1) {
           SIZECHECK(sizeof(DWORD));
-          vl->size = SwapDWord((BYTE*)d, sizeof(DWORD));
           d += sizeof(DWORD);
         }
         // now size of object
         SIZECHECK(sizeof(DWORD));
-        vl->size = SwapDWord((BYTE*)d, sizeof(DWORD));
+        num = SwapDWord((BYTE*)d, sizeof(DWORD));
         d += sizeof(DWORD);
 
-        // now actual object
-        if (vl->size != 0) {
-          SIZECHECK(vl->size);
-          PREALLOCCHECK(vl->size, 10485760);
+        // now actual object. Only set vl->size once vl->data is set: the
+        // properties read so far stay in place if parsing stops here.
+        if (num != 0) {
+          SIZECHECK(num);
+          PREALLOCCHECK(num, 10485760);
           if (PROP_TYPE(mp->id) == PT_UNICODE) {
-            vl->data =(BYTE*) to_utf8(vl->size, (char*)d);
+            vl->data =(BYTE*) to_utf8(num, (char*)d);
             if(vl->data == NULL)
               return -1;
           } else {
-            vl->data = calloc(vl->size, sizeof(BYTE));
+            vl->data = calloc(num, sizeof(BYTE));
             ALLOCCHECK(vl->data);
-            memcpy(vl->data, d, vl->size);
+            memcpy(vl->data, d, num);
           }
+          vl->size = num;
         } else {
           vl->data = NULL;
+          vl->size = 0;
         }
 
         // Make sure to read in a multiple of 4
-        num = vl->size;
         offset = ((num % 4) ? (4 - num % 4) : 0);
         d += num + ((num % 4) ? (4 - num % 4) : 0);
         break;
