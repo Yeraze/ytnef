@@ -1525,6 +1525,12 @@ BYTE *DecompressRTF(variableLength *p, int *size) {
   variableLength comp_Prebuf;
   ULONG compressedSize, uncompressedSize, magic;
 
+  // A property can have a size but no data if parsing stopped part way through it
+  if ((p->data == NULL) || (p->size < 20)) {
+    printf("File too small\n");
+    return(NULL);
+  }
+
   comp_Prebuf.size = strlen(RTF_PREBUF);
   comp_Prebuf.data = calloc(comp_Prebuf.size+1, 1);
   ALLOCCHECK_CHAR(comp_Prebuf.data);
@@ -1533,10 +1539,6 @@ BYTE *DecompressRTF(variableLength *p, int *size) {
   src = p->data;
   in = 0;
 
-  if (p->size < 20) {
-    printf("File too small\n");
-    return(NULL);
-  }
   compressedSize = (ULONG)SwapDWord((BYTE*)src + in, sizeof(DWORD));
   in += sizeof(DWORD);
   uncompressedSize = (ULONG)SwapDWord((BYTE*)src + in, sizeof(DWORD));

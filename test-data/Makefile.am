@@ -14,3 +14,10 @@ EXTRA_DIST = \
 	results/TechlibNOV99.doc \
 	results/TechlibDEC99.doc \
 	results/zappa_av1.jpg
+
+check_PROGRAMS = test_decompress_rtf
+test_decompress_rtf_SOURCES = test_decompress_rtf.c
+test_decompress_rtf_CPPFLAGS = -I$(top_srcdir)/lib
+test_decompress_rtf_LDADD = $(top_builddir)/lib/libytnef.la
+
+TESTS = test_decompress_rtf
