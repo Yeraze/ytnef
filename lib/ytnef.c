@@ -1504,7 +1504,7 @@ int IsCompressedRTF(variableLength *p) {
   BYTE *src;
   ULONG magic;
 
-  if (p->size < 3*sizeof(DWORD))
+  if ((p->data == NULL) || (p->size < (int)(3*sizeof(DWORD))))
     return 0;
 
   src = p->data;
