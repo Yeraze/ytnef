@@ -218,7 +218,12 @@ DDWORD SwapDDWord(BYTE *p, int size) {
 char *to_utf8(size_t len, char *buf) {
   int i, j = 0;
   // an arbitrary length limit should be imposed by the caller of this function
-  char *utf8 = malloc(3 * len / 2 + 1);
+  // zeroed: callers keep the UTF-16 length as the size, so bytes past the
+  // converted text are read too
+  char *utf8 = calloc(3 * len / 2 + 1, 1);
+
+  if (utf8 == NULL)
+    return NULL;
 
   for (i = 0; i < len - 1; i += 2) {
     unsigned int c = SwapWord((BYTE *)buf + i, 2);
