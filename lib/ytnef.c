@@ -532,7 +532,9 @@ int TNEFFillMapi(TNEFStruct *TNEF, BYTE *data, DWORD size, MAPIProps *p) {
             if(vl->data == NULL)
               return -1;
           } else {
-            vl->data = calloc(num, sizeof(BYTE));
+            // one more byte so a PT_STRING8 without its NUL still ends:
+            // callers use these values as C strings
+            vl->data = calloc(num + 1, sizeof(BYTE));
             ALLOCCHECK(vl->data);
             memcpy(vl->data, d, num);
           }

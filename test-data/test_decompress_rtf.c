@@ -178,6 +178,41 @@ static int parse_stops_in_property(void) {
   return bad;
 }
 
+static int string_without_nul(void) {
+  static const unsigned int tag = 0x00069003; /* attMAPIProps */
+  BYTE props[16 + 8];
+  BYTE file[6 + 9 + sizeof(props) + 2];
+  BYTE *d = file;
+  TNEFStruct t;
+  variableLength *v;
+  unsigned int sum = 0;
+  size_t i;
+  int bad = 0;
+
+  memset(props, 0, sizeof(props));
+  put32(props, 1);                                       /* property count */
+  put32(props + 4, PROP_TAG(PT_STRING8, PR_BODY));
+  put32(props + 8, 1);                                   /* value count */
+  put32(props + 12, 5);                                  /* value size */
+  memcpy(props + 16, "hello", 5);                        /* no NUL */
+  put32(d, 0x223e9f78); d += 4;                          /* signature */
+  *d++ = 1; *d++ = 0;                                    /* key */
+  *d++ = 1;                                              /* level */
+  put32(d, tag); d += 4;
+  put32(d, sizeof(props)); d += 4;
+  memcpy(d, props, sizeof(props)); d += sizeof(props);
+  for (i = 0; i < sizeof(props); i++) sum += props[i];
+  *d++ = sum & 0xff;
+  *d++ = (sum >> 8) & 0xff;
+
+  TNEFInitialize(&t);
+  if (TNEFParseMemory(file, sizeof(file), &t) < 0) bad++;
+  v = MAPIFindProperty(&t.MapiProperties, PROP_TAG(PT_STRING8, PR_BODY));
+  if (v == MAPI_UNDEFINED || v->size != 5 || strcmp((char *)v->data, "hello") != 0) bad++;
+  TNEFFree(&t);
+  return bad;
+}
+
 static const struct { const char *name; int (*fn)(void); } cases[] = {
   { "no data", no_data },
   { "shorter than the header", too_short },
@@ -191,6 +226,7 @@ static const struct { const char *name; int (*fn)(void); } cases[] = {
   { "unknown magic", unknown_magic },
   { "IsCompressedRTF", is_compressed },
   { "parsing stops inside a property", parse_stops_in_property },
+  { "string property without its NUL", string_without_nul },
 };
 
 int main(void) {
