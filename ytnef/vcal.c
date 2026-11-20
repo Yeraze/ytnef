@@ -206,7 +206,6 @@ void SaveVCalendar(TNEFStruct TNEF, int isMtgReq) {
   char *charptr, *charptr2;
   FILE *fptr;
   int index;
-  DDWORD *ddword_ptr;
   dtr thedate;
 
   if(isMtgReq) {
@@ -271,8 +270,7 @@ void SaveVCalendar(TNEFStruct TNEF, int isMtgReq) {
     filename = NULL;
     if ((filename = MAPIFindUserProp(&(TNEF.MapiProperties),
                                      PROP_TAG(PT_LONG, 0x8201))) != MAPI_UNDEFINED) {
-      ddword_ptr = (DDWORD *)filename->data;
-      fprintf(fptr, "SEQUENCE:%i\n", (int) *ddword_ptr);
+      fprintf(fptr, "SEQUENCE:%i\n", *(int *)filename->data);
     }
 
     filename = NULL;
@@ -484,9 +482,8 @@ void SaveVCalendar(TNEFStruct TNEF, int isMtgReq) {
     filename = NULL;
     if ((filename = MAPIFindUserProp(&(TNEF.MapiProperties),
                                      PROP_TAG(PT_BOOLEAN, 0x8506))) != MAPI_UNDEFINED) {
-      ddword_ptr = (DDWORD *)filename->data;
       fprintf(fptr, "CLASS:");
-      if (*ddword_ptr == 1) {
+      if (*(DWORD *)filename->data == 1) {
         fprintf(fptr, "PRIVATE\n");
       } else {
         fprintf(fptr, "PUBLIC\n");

@@ -27,7 +27,6 @@ void SaveVTask(TNEFStruct TNEF) {
   char *charptr, *charptr2;
   dtr thedate;
   FILE *fptr;
-  DDWORD *ddword_ptr;
 
   vl = MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8,
                         PR_CONVERSATION_TOPIC));
@@ -136,9 +135,8 @@ void SaveVTask(TNEFStruct TNEF) {
     filename = MAPIFindUserProp(&(TNEF.MapiProperties), \
                                 PROP_TAG(PT_BOOLEAN, 0x8506));
     if (filename != MAPI_UNDEFINED) {
-      ddword_ptr = (DDWORD *)filename->data;
       fprintf(fptr, "CLASS:");
-      if (*ddword_ptr == 1) {
+      if (*(DWORD *)filename->data == 1) {
         fprintf(fptr, "PRIVATE\n");
       } else {
         fprintf(fptr, "PUBLIC\n");
