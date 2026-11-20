@@ -10,6 +10,7 @@ EXTRA_DIST = \
 	regress/empty-string-prop.tnef \
 	regress/truncated-field.tnef \
 	regress/duplicate-attribute.tnef \
+	regress/early-attachment-attr.tnef \
 	test.sh \
 	winmail.dat \
 	results/208225_(5_seconds)_Voice_Mail.mp3 \

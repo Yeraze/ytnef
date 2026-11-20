@@ -1033,6 +1033,8 @@ void TNEFFree(TNEFStruct *TNEF) {
   FREEVARLENGTH(TNEF->AidOwner);
   TNEFFreeMapiProps(&(TNEF->MapiProperties));
 
+  // attachment attributes that arrive before any attAttachRendData land here
+  TNEFFreeAttachment(&(TNEF->starting_attach));
   p = TNEF->starting_attach.next;
   while (p != NULL) {
     TNEFFreeAttachment(p);

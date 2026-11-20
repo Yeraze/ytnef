@@ -35,4 +35,5 @@ test -e regress-out/out/.._ESC1
 ../ytnef/ytnef -f regress-out/out regress/short-attachment.tnef
 ../ytnefprint/ytnefprint regress/empty-string-prop.tnef > /dev/null
 ../ytnefprint/ytnefprint regress/duplicate-attribute.tnef > /dev/null
+../ytnefprint/ytnefprint regress/early-attachment-attr.tnef > /dev/null
 rm -rf regress-out
