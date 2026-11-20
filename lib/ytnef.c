@@ -461,6 +461,9 @@ int TNEFFillMapi(TNEFStruct *TNEF, BYTE *data, DWORD size, MAPIProps *p) {
   int count = -1;
   int offset;
 
+  // a repeated MAPI block replaces the earlier one
+  TNEFFreeMapiProps(p);
+
   d = data;
   SIZECHECK(sizeof(DWORD));
   p_count = SwapDWord((BYTE*)data, sizeof(DWORD));
@@ -1066,6 +1069,7 @@ void TNEFFreeMapiProps(MAPIProps *p) {
     free(p->properties[i].propnames);
   }
   free(p->properties);
+  p->properties = NULL;
   p->count = 0;
 }
 #undef FREEVARLENGTH
