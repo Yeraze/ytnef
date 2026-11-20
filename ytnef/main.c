@@ -194,7 +194,8 @@ int ProcessTNEF(TNEFStruct TNEF) {
     }
   }
   if ((filename = MAPIFindUserProp(&(TNEF.MapiProperties),
-                                   PROP_TAG(PT_STRING8, 0x24))) != MAPI_UNDEFINED) {
+                                   PROP_TAG(PT_STRING8, 0x24))) != MAPI_UNDEFINED &&
+      filename->data != NULL) {
     if (strcmp((char*)filename->data, "IPM.Appointment") == 0) {
       // If it's "indicated" twice, we don't want to save 2 calendar
       // entries.

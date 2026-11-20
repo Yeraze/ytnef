@@ -28,9 +28,11 @@ void SaveVCard(TNEFStruct TNEF) {
   int boolean;
 
   if ((vl = MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8,
-                             PR_DISPLAY_NAME))) == MAPI_UNDEFINED) {
+                             PR_DISPLAY_NAME))) == MAPI_UNDEFINED ||
+      vl->data == NULL) {
     if ((vl = MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8,
-                               PR_COMPANY_NAME))) == MAPI_UNDEFINED) {
+                               PR_COMPANY_NAME))) == MAPI_UNDEFINED ||
+        vl->data == NULL) {
       if (TNEF.subject.size > 0) {
         snprintf(ifilename, MAX_FILENAME_SIZE, "%s.vcard", TNEF.subject.data);
       } else {

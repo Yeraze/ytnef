@@ -32,7 +32,7 @@ void SaveVTask(TNEFStruct TNEF) {
   vl = MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8,
                         PR_CONVERSATION_TOPIC));
 
-  if (vl == MAPI_UNDEFINED) {
+  if (vl == MAPI_UNDEFINED || vl->data == NULL) {
     return;
   }
 
