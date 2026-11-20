@@ -393,16 +393,10 @@ int ProcessTNEF(TNEFStruct TNEF) {
             }
           }
         }
-        if (filename->size == 1) {
-          filename = (variableLength *)malloc(sizeof(variableLength));
-          filename->size = 20;
-          filename->data = (BYTE *)malloc(20);
-          snprintf((char*)filename->data, 19, "file_%03i.dat", count);
-        }
         snprintf(ifilename, MAX_FILENAME_SIZE, "%.*s", filename->size, filename->data);
-        for(i = 0; i < strlen(ifilename); i++) 
-          if (ifilename[i] == ' ') 
-            ifilename[i] = '_';
+        if (!SanitizeAttachmentName(ifilename)) {
+          snprintf(ifilename, MAX_FILENAME_SIZE, "file_%03i.dat", count);
+        }
         if(filepath) {
           char tmp[MAX_FILENAME_SIZE];
           memcpy(tmp, ifilename, MAX_FILENAME_SIZE);

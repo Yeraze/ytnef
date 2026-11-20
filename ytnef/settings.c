@@ -24,14 +24,32 @@
 
 // Replace every character in a filename (in place)
 // that is not a valid AlphaNumeric (a-z, A-Z, 0-9) or a period
-// with an underscore.
+// with an underscore.  Directory separators are replaced too.
 void SanitizeFilename(char *filename) {
   int i;
   for (i = 0; i < strlen(filename); ++i) {
-    if (! (isalnum(filename[i]) || (filename[i] == '.') || (filename[i] == '\\') || (filename[i] == '/'))) {
+    if (! (isalnum((unsigned char)filename[i]) || (filename[i] == '.'))) {
       filename[i] = '_';
     }
   }
+}
+
+// Make a TNEF-supplied attachment name safe to use as a single path
+// component: spaces and directory separators become underscores, and
+// names that would still refer to a directory ("", ".", "..") are
+// rejected.  Returns 0 if the name is unusable.
+int SanitizeAttachmentName(char *filename) {
+  int i;
+  for (i = 0; filename[i] != 0; ++i) {
+    if (filename[i] == ' ' || filename[i] == '/' || filename[i] == '\\') {
+      filename[i] = '_';
+    }
+  }
+  if (filename[0] == 0 || strcmp(filename, ".") == 0 ||
+      strcmp(filename, "..") == 0) {
+    return 0;
+  }
+  return 1;
 }
 
 void CreateUniqueFilename(char* output, unsigned int max_size,
