@@ -272,6 +272,8 @@ int TNEFDefaultHandler STD_ARGLIST {
 
 // -----------------------------------------------------------------------------
 int TNEFCodePage STD_ARGLIST {
+  free(TNEF->CodePage.data);
+  TNEF->CodePage.data = NULL;
   TNEF->CodePage.size = size;
   TNEF->CodePage.data = calloc(size, sizeof(BYTE));
   ALLOCCHECK(TNEF->CodePage.data);
@@ -291,6 +293,8 @@ int TNEFMessageID STD_ARGLIST {
 }
 // -----------------------------------------------------------------------------
 int TNEFBody STD_ARGLIST {
+  free(TNEF->body.data);
+  TNEF->body.data = NULL;
   TNEF->body.size = size;
   PREALLOCCHECK(size, 100000);
   TNEF->body.data = calloc(size+1, sizeof(BYTE));
@@ -300,6 +304,8 @@ int TNEFBody STD_ARGLIST {
 }
 // -----------------------------------------------------------------------------
 int TNEFOriginalMsgClass STD_ARGLIST {
+  free(TNEF->OriginalMessageClass.data);
+  TNEF->OriginalMessageClass.data = NULL;
   TNEF->OriginalMessageClass.size = size;
   PREALLOCCHECK(size, 100);
   TNEF->OriginalMessageClass.data = calloc(size+1, sizeof(BYTE));
@@ -314,6 +320,8 @@ int TNEFMessageClass STD_ARGLIST {
 }
 // -----------------------------------------------------------------------------
 int TNEFFromHandler STD_ARGLIST {
+  free(TNEF->from.data);
+  TNEF->from.data = NULL;
   PREALLOCCHECK(size, 100);
   TNEF->from.data = calloc(size+1, sizeof(BYTE));
   ALLOCCHECK(TNEF->from.data);
@@ -376,6 +384,9 @@ int TNEFIcon STD_ARGLIST {
   // Find the last attachment.
   p = &(TNEF->starting_attach);
   while (p->next != NULL) p = p->next;
+
+  free(p->IconData.data);
+  p->IconData.data = NULL;
 
   p->IconData.size = size;
   PREALLOCCHECK(size, 10000);
@@ -807,6 +818,9 @@ int TNEFAttachmentFilename STD_ARGLIST {
   p = &(TNEF->starting_attach);
   while (p->next != NULL) p = p->next;
 
+  free(p->Title.data);
+  p->Title.data = NULL;
+
   p->Title.size = size;
   PREALLOCCHECK(size, 260);
   p->Title.data = calloc(size+1, sizeof(BYTE));
@@ -821,6 +835,9 @@ int TNEFAttachmentSave STD_ARGLIST {
   Attachment *p;
   p = &(TNEF->starting_attach);
   while (p->next != NULL) p = p->next;
+
+  free(p->FileData.data);
+  p->FileData.data = NULL;
 
   p->FileData.data = calloc(sizeof(char), size);
   ALLOCCHECK(p->FileData.data);
