@@ -1425,11 +1425,20 @@ void MAPIPrint(MAPIProps *p) {
         printf("    ");
       }
       printf("Size: %i", mapidata->size);
+      if (mapidata->data == NULL) {
+        // zero-length value
+        if (PROP_TYPE(mapi->id) == PT_OBJECT) {
+          printf("\n");
+        } else {
+          printf("    Value: []\n");
+        }
+        continue;
+      }
       switch (PROP_TYPE(mapi->id)) {
         case PT_SYSTIME:
-          MAPISysTimetoDTR(mapidata->data, &thedate);
+          MAPISysTimetoDTRSize(mapidata->data, mapidata->size, &thedate);
           printf("    Value: ");
-          ddword_tmp = *((DDWORD *)mapidata->data);
+          memcpy(&ddword_tmp, mapidata->data, sizeof(ddword_tmp));
           TNEFPrintDate(thedate);
           printf(" [HEX: ");
           for (x = 0; x < sizeof(ddword_tmp); x++) {
@@ -1444,7 +1453,7 @@ void MAPIPrint(MAPIProps *p) {
           printf("    Value: %hi\n", *((short int*)mapidata->data));
           break;
         case PT_BOOLEAN:
-          if (mapi->data->data[0] != 0) {
+          if (mapidata->data[0] != 0) {
             printf("    Value: True\n");
           } else {
             printf("    Value: False\n");
