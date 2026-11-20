@@ -1,0 +1,28 @@
+.TH YTNEFPRINT 1 "" "ytnef" "User Commands"
+.SH NAME
+ytnefprint \- print the contents of TNEF (winmail.dat) streams
+.SH SYNOPSIS
+.B ytnefprint
+.RI [ options ] " file" ...
+.SH DESCRIPTION
+.B ytnefprint
+parses Microsoft TNEF streams, the
+.I application/ms-tnef
+attachments usually named
+.IR winmail.dat ,
+and prints their message fields, attachments and MAPI properties.
+It never writes files.
+.SH OPTIONS
+.TP
+.B \-v
+Verbose output. Repeat for more detail.
+.TP
+.BI \-s " n"
+Set the largest attachment size to accept, in megabytes.
+.TP
+.B \-h
+Show a usage summary and exit.
+.SH SEE ALSO
+.BR ytnef (1)
+.SH HOMEPAGE
+https://github.com/Yeraze/ytnef

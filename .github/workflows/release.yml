@@ -1,0 +1,205 @@
+name: Release packages
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing release tag to build and upload to (for example v2.1.4)
+        required: true
+  # Dry run: build and test the packages, upload them as workflow artifacts only.
+  pull_request:
+    paths:
+      - .github/workflows/release.yml
+      - debian/**
+      - ytnef.spec.in
+      - configure.ac
+      - '**/Makefile.am'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  TAG: ${{ github.event.release.tag_name || inputs.tag }}
+
+jobs:
+  dist:
+    name: dist tarball
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TAG }}
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends autoconf automake libtool pkg-config
+
+      - name: Build and check the tarball
+        run: |
+          ./autogen.sh
+          ./configure
+          make distcheck
+
+      - name: Read the version
+        id: version
+        run: |
+          version=$(sed -n 's/^PACKAGE_VERSION = //p' Makefile)
+          if [ -n "$TAG" ] && [ "${TAG#v}" != "$version" ]; then
+            echo "::error::Tag $TAG does not match configure.ac version $version"
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: |
+            ytnef-*.tar.gz
+            ytnef-*.tar.bz2
+            debian/
+          if-no-files-found: error
+
+  deb:
+    name: deb (${{ matrix.image }})
+    needs: dist
+    runs-on: ubuntu-latest
+    container: ${{ matrix.image }}
+    strategy:
+      fail-fast: false
+      matrix:
+        image: ['ubuntu:latest', 'debian:stable']
+    env:
+      PKG_VERSION: ${{ needs.dist.outputs.version }}
+      DEBIAN_FRONTEND: noninteractive
+    steps:
+      - name: Install build tools
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends build-essential debhelper lintian pkg-config
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist
+
+      - name: Build packages
+        run: |
+          . /etc/os-release
+          debver="$PKG_VERSION-1~$ID$VERSION_ID"
+          mkdir build
+          cp "dist/ytnef-$PKG_VERSION.tar.gz" "build/libytnef_$PKG_VERSION.orig.tar.gz"
+          tar -xzf "dist/ytnef-$PKG_VERSION.tar.gz" -C build
+          cp -r dist/debian "build/ytnef-$PKG_VERSION/"
+          cd "build/ytnef-$PKG_VERSION"
+          chmod +x debian/rules
+          sed -i "1s/^libytnef ([^)]*) [^;]*;/libytnef ($debver) $VERSION_CODENAME;/" debian/changelog
+          dpkg-buildpackage -us -uc
+
+      - name: Lint
+        run: lintian --fail-on error --display-info --pedantic build/*.changes
+
+      - name: Install and run
+        run: |
+          apt-get install -y ./build/libytnef0_*.deb ./build/libytnef0-dev_*.deb ./build/ytnef-tools_*.deb
+          ytnef --help
+          ytnefprint -h
+          pkg-config --modversion libytnef
+          dpkg-deb -c build/ytnef-tools_*.deb | grep -q 'man1/ytnef.1.gz'
+
+      - name: Collect packages
+        run: |
+          mkdir out
+          cp build/libytnef0_*.deb build/libytnef0-dev_*.deb build/ytnef-tools_*.deb out/
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: deb-${{ strategy.job-index }}
+          path: out/
+          if-no-files-found: error
+
+  rpm:
+    name: rpm (fedora:latest)
+    needs: dist
+    runs-on: ubuntu-latest
+    container: fedora:latest
+    env:
+      PKG_VERSION: ${{ needs.dist.outputs.version }}
+    steps:
+      - name: Install build tools
+        run: dnf install -y rpm-build rpmlint gcc make perl-generators diffutils glibc-langpack-en
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist
+
+      - name: Build packages
+        run: rpmbuild -ta --define "_topdir $PWD/rpmbuild" "dist/ytnef-$PKG_VERSION.tar.gz"
+
+      - name: Lint
+        run: |
+          tar -xzf "dist/ytnef-$PKG_VERSION.tar.gz" "ytnef-$PKG_VERSION/ytnef.spec" "ytnef-$PKG_VERSION/ytnef.rpmlintrc"
+          rpmlint -r "ytnef-$PKG_VERSION/ytnef.rpmlintrc" "ytnef-$PKG_VERSION/ytnef.spec" \
+            rpmbuild/SRPMS/*.src.rpm rpmbuild/RPMS/*/*.rpm
+
+      - name: Install and run
+        run: |
+          dnf install -y ./rpmbuild/RPMS/*/ytnef-"$PKG_VERSION"-*.rpm ./rpmbuild/RPMS/*/libytnef-"$PKG_VERSION"-*.rpm \
+            ./rpmbuild/RPMS/*/libytnef-devel-"$PKG_VERSION"-*.rpm
+          ytnef --help
+          ytnefprint -h
+          pkg-config --modversion libytnef
+          rpm -qlp ./rpmbuild/RPMS/*/ytnef-"$PKG_VERSION"-*.rpm | grep -q man1/ytnef.1.gz
+
+      - name: Collect packages
+        run: |
+          mkdir out
+          find rpmbuild/RPMS rpmbuild/SRPMS -name '*.rpm' ! -name '*-debuginfo-*' ! -name '*-debugsource-*' -exec cp {} out/ \;
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rpm
+          path: out/
+          if-no-files-found: error
+
+  publish:
+    name: publish
+    needs: [dist, deb, rpm]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      PKG_VERSION: ${{ needs.dist.outputs.version }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Gather files and checksums
+        run: |
+          mkdir release
+          cp artifacts/dist/ytnef-"$PKG_VERSION".tar.* artifacts/deb-*/*.deb artifacts/rpm/*.rpm release/
+          cd release
+          sha256sum -- * > SHA256SUMS
+          cat SHA256SUMS
+
+      - name: Upload to the release
+        if: github.event_name != 'pull_request'
+        run: gh release upload "$TAG" release/* --clobber --repo "$GITHUB_REPOSITORY"
+
+      - name: Upload as workflow artifact (dry run)
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-files
+          path: release/

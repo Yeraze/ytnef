@@ -11,4 +11,4 @@ nobase_include_HEADERS = \
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = libytnef.pc
 
-EXTRA_DIST = libytnef.spec
+EXTRA_DIST = ChangeLog doc/recurrence.txt

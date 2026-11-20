@@ -1,0 +1,33 @@
+.TH YTNEFPROCESS 1 "" "ytnef" "User Commands"
+.SH NAME
+ytnefprocess \- replace TNEF attachments in a mail message with their contents
+.SH SYNOPSIS
+.B ytnefprocess
+.RI < message
+.SH DESCRIPTION
+.B ytnefprocess
+reads a MIME mail message on standard input, unpacks every
+.I application/ms-tnef
+part with
+.BR ytnef (1),
+and writes the message to standard output with the extracted files attached
+in place of the TNEF part. It works as a
+.BR procmail (1)
+filter, for example:
+.PP
+.nf
+.RS
+:0Bfw
+* Content-Type:.*application/ms-tnef.*
+| /usr/bin/ytnefprocess
+.RE
+.fi
+.PP
+It needs the Perl modules MIME::Parser, MIME::Entity (MIME-tools) and
+Mail::Mailer (MailTools), and keeps temporary files under
+.IR ~/.ytnef .
+.SH SEE ALSO
+.BR ytnef (1),
+.BR procmail (1)
+.SH HOMEPAGE
+https://github.com/Yeraze/ytnef

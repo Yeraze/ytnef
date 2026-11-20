@@ -1,5 +1,6 @@
 bin_PROGRAMS = ytnef
 bin_SCRIPTS = ytnefprocess
+dist_man_MANS = ytnef.1 ytnefprocess.1
 
 ytnef_SOURCES = main.c
 ytnef_CPPFLAGS = -I$(top_srcdir)/lib
@@ -11,4 +12,5 @@ ytnef_CFLAGS = \
         $(NULL)
 
 
-EXTRA_DIST = vcal.c vcard.c vtask.c utility.c settings.c ytnefprocess
+EXTRA_DIST = vcal.c vcard.c vtask.c utility.c settings.c settings.h \
+	ytnefprocess README.ytnefprocess

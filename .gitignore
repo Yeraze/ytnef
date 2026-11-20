@@ -45,8 +45,10 @@ ytnef.spec
 m4
 missing
 stamp-h1
-ytnef
-ytnefprint
+/ytnef/ytnef
+/ytnefprint/ytnefprint
+lib/libytnef.pc
+test-driver
 
 # Test generated data
 test-data/data
