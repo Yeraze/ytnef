@@ -225,11 +225,28 @@ char *to_utf8(size_t len, char *buf) {
   if (utf8 == NULL)
     return NULL;
 
-  for (i = 0; i < len - 1; i += 2) {
+  for (i = 0; i + 1 < len; i += 2) {
     unsigned int c = SwapWord((BYTE *)buf + i, 2);
+    if (c >= 0xd800 && c <= 0xdbff && i + 3 < len) {
+      unsigned int lo = SwapWord((BYTE *)buf + i + 2, 2);
+      if (lo >= 0xdc00 && lo <= 0xdfff) {
+        // surrogate pair: 4 input bytes become 4 output bytes
+        c = 0x10000 + ((c - 0xd800) << 10) + (lo - 0xdc00);
+        utf8[j++] = 0xf0 | ((c >> 18) & 0x07);
+        utf8[j++] = 0x80 | ((c >> 12) & 0x3f);
+        utf8[j++] = 0x80 | ((c >> 6) & 0x3f);
+        utf8[j++] = 0x80 | (c & 0x3f);
+        i += 2;
+        continue;
+      }
+    }
+    if (c >= 0xd800 && c <= 0xdfff) {
+      // unpaired surrogate: U+FFFD REPLACEMENT CHARACTER
+      c = 0xfffd;
+    }
     if (c <= 0x007f) {
       utf8[j++] = 0x00 | ((c & 0x007f) >> 0);
-    } else if (c < 0x07ff) {
+    } else if (c <= 0x07ff) {
       utf8[j++] = 0xc0 | ((c & 0x07c0) >> 6);
       utf8[j++] = 0x80 | ((c & 0x003f) >> 0);
     } else {
