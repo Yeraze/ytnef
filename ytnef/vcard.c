@@ -344,7 +344,7 @@ void SaveVCard(TNEFStruct TNEF) {
     if ((vl = MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_SYSTIME,
                                PR_BIRTHDAY))) != MAPI_UNDEFINED) {
       fprintf(fptr, "BDAY:");
-      MAPISysTimetoDTR(vl->data, &thedate);
+      MAPISysTimetoDTRSize(vl->data, vl->size, &thedate);
       fprintf(fptr, "%i-%02i-%02i\n", thedate.wYear, thedate.wMonth, thedate.wDay);
     }
 
@@ -352,7 +352,7 @@ void SaveVCard(TNEFStruct TNEF) {
     if ((vl = MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_SYSTIME,
                                PR_WEDDING_ANNIVERSARY))) != MAPI_UNDEFINED) {
       fprintf(fptr, "X-EVOLUTION-ANNIVERSARY:");
-      MAPISysTimetoDTR(vl->data, &thedate);
+      MAPISysTimetoDTRSize(vl->data, vl->size, &thedate);
       fprintf(fptr, "%i-%02i-%02i\n", thedate.wYear, thedate.wMonth, thedate.wDay);
     }
     fprintf(fptr, "END:VCARD\n");

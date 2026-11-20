@@ -42,6 +42,7 @@ int TNEFParse(TNEFStruct *TNEF);
 variableLength *MAPIFindUserProp(MAPIProps *p, unsigned int ID);
 variableLength *MAPIFindProperty(MAPIProps *p, unsigned int ID);
 int MAPISysTimetoDTR(BYTE *data, dtr *thedate);
+int MAPISysTimetoDTRSize(BYTE *data, DWORD size, dtr *thedate);
 void MAPIPrint(MAPIProps *p);
 void TNEFPrintDate(dtr Date);
 char *to_utf8(size_t len, char *buf);

@@ -1279,14 +1279,26 @@ variableLength *MAPIFindProperty(MAPIProps *p, unsigned int ID) {
   return MAPI_UNDEFINED;
 }
 
+static int IsLeapYear(int year) {
+  return ((year % 4) == 0 && (year % 100) != 0) || ((year % 400) == 0);
+}
+
 int MAPISysTimetoDTR(BYTE *data, dtr *thedate) {
+  return MAPISysTimetoDTRSize(data, sizeof(DDWORD), thedate);
+}
+
+// Convert a FILETIME (100ns ticks since 1601-01-01) of at least 8 bytes.
+int MAPISysTimetoDTRSize(BYTE *data, DWORD size, dtr *thedate) {
   DDWORD ddword_tmp;
-  int startingdate = 0;
   int tmp_date;
-  int days_in_year = 365;
+  int days_in_year;
   unsigned int months[] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 
-  ddword_tmp = *((DDWORD *)data);
+  memset(thedate, 0, sizeof(dtr));
+  if (data == NULL || size < sizeof(DDWORD)) {
+    return -1;
+  }
+  memcpy(&ddword_tmp, data, sizeof(DDWORD));
   ddword_tmp = ddword_tmp / 10; // micro-s
   ddword_tmp /= 1000; // ms
   ddword_tmp /= 1000; // s
@@ -1301,42 +1313,29 @@ int MAPISysTimetoDTR(BYTE *data, dtr *thedate) {
 
   ddword_tmp /= 24; // Hours to days
 
+  // 1601-01-01 was a Monday
+  thedate->wDayOfWeek = (ddword_tmp + 1) % 7;
+
   // Now calculate the year based on # of days
   thedate->wYear = 1601;
-  startingdate = 1;
+  days_in_year = 365;
   while (ddword_tmp >= days_in_year) {
     ddword_tmp -= days_in_year;
     thedate->wYear++;
-    days_in_year = 365;
-    startingdate++;
-    if ((thedate->wYear % 4) == 0) {
-      if ((thedate->wYear % 100) == 0) {
-        // if the year is 1700,1800,1900, etc, then it is only
-        // a leap year if exactly divisible by 400, not 4.
-        if ((thedate->wYear % 400) == 0) {
-          startingdate++;
-          days_in_year = 366;
-        }
-      }  else {
-        startingdate++;
-        days_in_year = 366;
-      }
-    }
-    startingdate %= 7;
+    days_in_year = IsLeapYear(thedate->wYear) ? 366 : 365;
   }
 
   // the remaining number is the day # in this year
   // So now calculate the Month, & Day of month
-  if ((thedate->wYear % 4) == 0) {
+  if (IsLeapYear(thedate->wYear)) {
     // 29 days in february in a leap year
     months[1] = 29;
   }
 
   tmp_date = (int)ddword_tmp;
-  thedate->wDayOfWeek = (tmp_date + startingdate) % 7;
   thedate->wMonth = 0;
 
-  while (tmp_date > months[thedate->wMonth]) {
+  while (thedate->wMonth < 11 && tmp_date >= months[thedate->wMonth]) {
     tmp_date -= months[thedate->wMonth];
     thedate->wMonth++;
   }
