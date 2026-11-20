@@ -1585,6 +1585,13 @@ BYTE *DecompressRTF(variableLength *p, int *size) {
        printf("Corrupted file\n");
        return NULL;
     }
+    // Every 17 input bytes (a flag byte and 8 two-byte references)
+    // produce at most 8 * 17 output bytes, so a larger claimed size is
+    // bogus; refuse it instead of allocating it.
+    if (uncompressedSize / 8 > (ULONG)p->size) {
+       printf("Corrupted file\n");
+       return NULL;
+    }
     dst = calloc(prebufSize + uncompressedSize, 1);
     ALLOCCHECK_CHAR(dst);
     memcpy(dst, RTF_PREBUF, prebufSize);
