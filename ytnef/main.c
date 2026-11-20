@@ -157,6 +157,11 @@ int main(int argc, char **argv) {
 }
 
 /* Return number of failures */
+// Embedded TNEF streams are processed recursively; cap the nesting so a
+// crafted file cannot exhaust the stack.
+#define MAX_EMBED_DEPTH 16
+static int embedDepth = 0;
+
 int ProcessTNEF(TNEFStruct TNEF) {
   char *astring;
   variableLength *filename;
@@ -333,32 +338,40 @@ int ProcessTNEF(TNEFStruct TNEF) {
         // This is an "embedded object", so skip the
         // 16-byte identifier first.
         TNEFStruct emb_tnef;
-        DWORD signature;
-        memcpy(&signature, filedata->data + 16, sizeof(DWORD));
-        if (TNEFCheckForSignature(signature) == 0) {
+        DWORD signature = 0;
+        if (filedata->size >= 16 + sizeof(DWORD))
+          memcpy(&signature, filedata->data + 16, sizeof(DWORD));
+        if (embedDepth < MAX_EMBED_DEPTH &&
+            TNEFCheckForSignature(signature) == 0) {
           // Has a TNEF signature, so process it.
           TNEFInitialize(&emb_tnef);
           emb_tnef.attachmentSize = attachmentSize;
           emb_tnef.Debug = TNEF.Debug;
           if (TNEFParseMemory(filedata->data + 16,
                               filedata->size - 16, &emb_tnef) != -1) {
+            embedDepth++;
             failures += ProcessTNEF(emb_tnef);
+            embedDepth--;
             RealAttachment = 0;
           }
           TNEFFree(&emb_tnef);
         }
       } else {
         TNEFStruct emb_tnef;
-        DWORD signature;
-        memcpy(&signature, filedata->data, sizeof(DWORD));
-        if (TNEFCheckForSignature(signature) == 0) {
+        DWORD signature = 0;
+        if (filedata->size >= sizeof(DWORD))
+          memcpy(&signature, filedata->data, sizeof(DWORD));
+        if (embedDepth < MAX_EMBED_DEPTH &&
+            TNEFCheckForSignature(signature) == 0) {
           // Has a TNEF signature, so process it.
           TNEFInitialize(&emb_tnef);
           emb_tnef.attachmentSize = attachmentSize;
           emb_tnef.Debug = TNEF.Debug;
           if (TNEFParseMemory(filedata->data,
                               filedata->size, &emb_tnef) != -1) {
+            embedDepth++;
             failures += ProcessTNEF(emb_tnef);
+            embedDepth--;
             RealAttachment = 0;
           }
           TNEFFree(&emb_tnef);
@@ -401,10 +414,11 @@ int ProcessTNEF(TNEFStruct TNEF) {
             ++failures;
           } else {
             if (object == 1) {
-              fwrite(filedata->data + 16,
-                     sizeof(BYTE),
-                     filedata->size - 16,
-                     fptr);
+              if (filedata->size > 16)
+                fwrite(filedata->data + 16,
+                       sizeof(BYTE),
+                       filedata->size - 16,
+                       fptr);
             } else {
               fwrite(filedata->data,
                      sizeof(BYTE),
