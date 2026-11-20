@@ -272,7 +272,7 @@ int ProcessTNEF(TNEFStruct TNEF) {
         variableLength buf;
 			  buf.data = DecompressRTF(filedata, &(buf.size));
         if (buf.data != NULL && filename != NULL) {
-				  char fileNameBase[32];
+				  char fileNameBase[32] = "";
 				  strncpy(fileNameBase, (char*)filename->data, sizeof(fileNameBase) - 1);
 				  
           SanitizeFilename(fileNameBase);
@@ -290,8 +290,8 @@ int ProcessTNEF(TNEFStruct TNEF) {
             fclose(fptr);
             printf("%s\n", ifilename);
           }
-          free(buf.data);
         }
+        free(buf.data);
       }
     }
   }

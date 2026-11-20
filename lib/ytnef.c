@@ -218,7 +218,12 @@ DDWORD SwapDDWord(BYTE *p, int size) {
 char *to_utf8(size_t len, char *buf) {
   int i, j = 0;
   // an arbitrary length limit should be imposed by the caller of this function
-  char *utf8 = malloc(3 * len / 2 + 1);
+  // zeroed: callers keep the UTF-16 length as the size, so bytes past the
+  // converted text are read too
+  char *utf8 = calloc(3 * len / 2 + 1, 1);
+
+  if (utf8 == NULL)
+    return NULL;
 
   for (i = 0; i < len - 1; i += 2) {
     unsigned int c = SwapWord((BYTE *)buf + i, 2);
@@ -515,33 +520,36 @@ int TNEFFillMapi(TNEFStruct *TNEF, BYTE *data, DWORD size, MAPIProps *p) {
         // First number of objects (assume 1 for now)
         if (count == -1) {
           SIZECHECK(sizeof(DWORD));
-          vl->size = SwapDWord((BYTE*)d, sizeof(DWORD));
           d += sizeof(DWORD);
         }
         // now size of object
         SIZECHECK(sizeof(DWORD));
-        vl->size = SwapDWord((BYTE*)d, sizeof(DWORD));
+        num = SwapDWord((BYTE*)d, sizeof(DWORD));
         d += sizeof(DWORD);
 
-        // now actual object
-        if (vl->size != 0) {
-          SIZECHECK(vl->size);
-          PREALLOCCHECK(vl->size, 10485760);
+        // now actual object. Only set vl->size once vl->data is set: the
+        // properties read so far stay in place if parsing stops here.
+        if (num != 0) {
+          SIZECHECK(num);
+          PREALLOCCHECK(num, 10485760);
           if (PROP_TYPE(mp->id) == PT_UNICODE) {
-            vl->data =(BYTE*) to_utf8(vl->size, (char*)d);
+            vl->data =(BYTE*) to_utf8(num, (char*)d);
             if(vl->data == NULL)
               return -1;
           } else {
-            vl->data = calloc(vl->size, sizeof(BYTE));
+            // one more byte so a PT_STRING8 without its NUL still ends:
+            // callers use these values as C strings
+            vl->data = calloc(num + 1, sizeof(BYTE));
             ALLOCCHECK(vl->data);
-            memcpy(vl->data, d, vl->size);
+            memcpy(vl->data, d, num);
           }
+          vl->size = num;
         } else {
           vl->data = NULL;
+          vl->size = 0;
         }
 
         // Make sure to read in a multiple of 4
-        num = vl->size;
         offset = ((num % 4) ? (4 - num % 4) : 0);
         d += num + ((num % 4) ? (4 - num % 4) : 0);
         break;
@@ -1504,7 +1512,7 @@ int IsCompressedRTF(variableLength *p) {
   BYTE *src;
   ULONG magic;
 
-  if (p->size < 3*sizeof(DWORD))
+  if ((p->data == NULL) || (p->size < (int)(3*sizeof(DWORD))))
     return 0;
 
   src = p->data;
@@ -1522,21 +1530,18 @@ BYTE *DecompressRTF(variableLength *p, int *size) {
   BYTE *src;
   unsigned int in;
   unsigned int out;
-  variableLength comp_Prebuf;
+  unsigned int prebufSize = strlen(RTF_PREBUF);
   ULONG compressedSize, uncompressedSize, magic;
 
-  comp_Prebuf.size = strlen(RTF_PREBUF);
-  comp_Prebuf.data = calloc(comp_Prebuf.size+1, 1);
-  ALLOCCHECK_CHAR(comp_Prebuf.data);
-  memcpy(comp_Prebuf.data, RTF_PREBUF, comp_Prebuf.size);
+  // A property can have a size but no data if parsing stopped part way through it
+  if ((p->data == NULL) || (p->size < 20)) {
+    printf("File too small\n");
+    return(NULL);
+  }
 
   src = p->data;
   in = 0;
 
-  if (p->size < 20) {
-    printf("File too small\n");
-    return(NULL);
-  }
   compressedSize = (ULONG)SwapDWord((BYTE*)src + in, sizeof(DWORD));
   in += sizeof(DWORD);
   uncompressedSize = (ULONG)SwapDWord((BYTE*)src + in, sizeof(DWORD));
@@ -1547,38 +1552,49 @@ BYTE *DecompressRTF(variableLength *p, int *size) {
   // check size excluding the size field itself
   if (compressedSize != p->size - 4) {
     printf(" Size Mismatch: %u != %i\n", compressedSize, p->size - 4);
-    free(comp_Prebuf.data);
     return NULL;
   }
 
   // process the data
   if (magic == 0x414c454d) {
     // magic number that identifies the stream as a uncompressed stream
-    dst = calloc(uncompressedSize, 1);
+    // the data follows the header, and must hold what the header claims
+    if (uncompressedSize > p->size - in) {
+      printf("Corrupted file\n");
+      return NULL;
+    }
+    dst = calloc(uncompressedSize + 1, 1);
     ALLOCCHECK_CHAR(dst);
-    memcpy(dst, src + 4, uncompressedSize);
-    free(comp_Prebuf.data);
+    memcpy(dst, src + in, uncompressedSize);
+    *size = uncompressedSize;
     return dst;
   } else if (magic == 0x75465a4c) {
     // magic number that identifies the stream as a compressed stream
     int flagCount = 0;
     int flags = 0;
-    // Prevent overflow on 32 Bit Systems
-    if (comp_Prebuf.size >= INT_MAX - uncompressedSize) {
+    // Prevent overflow, and a size that does not fit in the int returned
+    if (uncompressedSize >= INT_MAX - prebufSize) {
        printf("Corrupted file\n");
        return NULL;
     }
-    dst = calloc(comp_Prebuf.size + uncompressedSize, 1);
+    dst = calloc(prebufSize + uncompressedSize, 1);
     ALLOCCHECK_CHAR(dst);
-    memcpy(dst, comp_Prebuf.data, comp_Prebuf.size);
-    out = comp_Prebuf.size;
-    while ((out < (comp_Prebuf.size + uncompressedSize)) && (in < p->size)) {
+    memcpy(dst, RTF_PREBUF, prebufSize);
+    out = prebufSize;
+    while ((out < (prebufSize + uncompressedSize)) && (in < p->size)) {
       // each flag byte flags 8 literals/references, 1 per bit
       flags = (flagCount++ % 8 == 0) ? src[in++] : flags >> 1;
       if ((flags & 1) == 1) { // each flag bit is 1 for reference, 0 for literal
-        unsigned int offset = src[in++];
-        unsigned int length = src[in++];
+        unsigned int offset;
+        unsigned int length;
         unsigned int end;
+        if (p->size - in < 2) {
+          printf("Corrupted stream\n");
+          free(dst);
+          return NULL;
+        }
+        offset = src[in++];
+        length = src[in++];
         offset = (offset << 4) | (length >> 4); // the offset relative to block start
         length = (length & 0xF) + 2; // the number of bytes to copy
         // the decompression buffer is supposed to wrap around back
@@ -1592,13 +1608,14 @@ BYTE *DecompressRTF(variableLength *p, int *size) {
         // note: can't use System.arraycopy, because the referenced
         // bytes can cross through the current out position.
         end = offset + length;
-        while ((offset < end) && (out < (comp_Prebuf.size + uncompressedSize))
-             && (offset < (comp_Prebuf.size + uncompressedSize)))
+        while ((offset < end) && (out < (prebufSize + uncompressedSize))
+             && (offset < (prebufSize + uncompressedSize)))
           dst[out++] = dst[offset++];
       } else { // literal
-        if ((out >= (comp_Prebuf.size + uncompressedSize)) ||
+        if ((out >= (prebufSize + uncompressedSize)) ||
             (in >= p->size)) {
           printf("Corrupted stream\n");
+          free(dst);
           return NULL;
         }
         dst[out++] = src[in++];
@@ -1606,16 +1623,17 @@ BYTE *DecompressRTF(variableLength *p, int *size) {
     }
     // copy it back without the prebuffered data
     src = dst;
-    dst = calloc(uncompressedSize, 1);
+    dst = calloc(uncompressedSize + 1, 1);
+    if (dst == NULL) {
+      free(src);
+    }
     ALLOCCHECK_CHAR(dst);
-    memcpy(dst, src + comp_Prebuf.size, uncompressedSize);
+    memcpy(dst, src + prebufSize, uncompressedSize);
     free(src);
     *size = uncompressedSize;
-    free(comp_Prebuf.data);
     return dst;
   } else { // unknown magic number
     printf("Unknown compression type (magic number %x)\n", magic);
   }
-  free(comp_Prebuf.data);
   return NULL;
 }
