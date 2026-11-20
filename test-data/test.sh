@@ -23,3 +23,21 @@ diff results data
 ../ytnefprint/ytnefprint ./winmail.dat  | grep -A 18 PR_RTF_COMPRESSED       | grep '\pard Casdasdfasdfasd\\par'
 
 ../ytnefprint/ytnefprint ./ytnef-oob-TNEFVersion-SwapWord | grep 'ERROR: Field with size of 0'
+
+# Regression files: these must not crash, and nothing may be written
+# outside the output directory.
+rm -rf regress-out
+mkdir -p regress-out/out
+../ytnef/ytnef -f regress-out/out regress/path-traversal.tnef
+test ! -e regress-out/ESC1
+test -e regress-out/out/.._ESC1
+../ytnef/ytnef -f regress-out/out regress/nested-tnef.tnef
+../ytnef/ytnef -f regress-out/out regress/short-attachment.tnef
+../ytnefprint/ytnefprint regress/empty-string-prop.tnef > /dev/null
+../ytnefprint/ytnefprint regress/duplicate-attribute.tnef > /dev/null
+../ytnefprint/ytnefprint regress/early-attachment-attr.tnef > /dev/null
+../ytnefprint/ytnefprint regress/duplicate-mapi.tnef > /dev/null
+! ../ytnef/ytnef -s 0 -f regress-out/out winmail.dat
+! ../ytnef/ytnef -s 4096 -f regress-out/out winmail.dat
+../ytnef/ytnef -s 2047 -f regress-out/out winmail.dat
+rm -rf regress-out

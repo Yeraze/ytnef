@@ -95,11 +95,24 @@ int main(int argc, char **argv) {
         case 'h': PrintHelp();
           return 0;
         case 'f': savefiles = 1;
+          if (i + 1 >= argc) {
+            printf("Option '-f' requires a directory\n");
+            return -1;
+          }
           filepath = argv[i + 1];
           i++;
           break;
         case 's': 
+          if (i + 1 >= argc) {
+            printf("Option '-s' requires a size\n");
+            return -1;
+          }
           attachmentSize = atoi(argv[i+1]);
+          // the library works with the limit in bytes as an int
+          if (attachmentSize < 1 || attachmentSize > 2047) {
+            printf("Option '-s' must be between 1 and 2047\n");
+            return -1;
+          }
           i++;
           break;
         case 'F': saveRTF = 1;
@@ -149,6 +162,11 @@ int main(int argc, char **argv) {
 }
 
 /* Return number of failures */
+// Embedded TNEF streams are processed recursively; cap the nesting so a
+// crafted file cannot exhaust the stack.
+#define MAX_EMBED_DEPTH 16
+static int embedDepth = 0;
+
 int ProcessTNEF(TNEFStruct TNEF) {
   char *astring;
   variableLength *filename;
@@ -181,7 +199,8 @@ int ProcessTNEF(TNEFStruct TNEF) {
     }
   }
   if ((filename = MAPIFindUserProp(&(TNEF.MapiProperties),
-                                   PROP_TAG(PT_STRING8, 0x24))) != MAPI_UNDEFINED) {
+                                   PROP_TAG(PT_STRING8, 0x24))) != MAPI_UNDEFINED &&
+      filename->data != NULL) {
     if (strcmp((char*)filename->data, "IPM.Appointment") == 0) {
       // If it's "indicated" twice, we don't want to save 2 calendar
       // entries.
@@ -325,32 +344,40 @@ int ProcessTNEF(TNEFStruct TNEF) {
         // This is an "embedded object", so skip the
         // 16-byte identifier first.
         TNEFStruct emb_tnef;
-        DWORD signature;
-        memcpy(&signature, filedata->data + 16, sizeof(DWORD));
-        if (TNEFCheckForSignature(signature) == 0) {
+        DWORD signature = 0;
+        if (filedata->size >= 16 + sizeof(DWORD))
+          memcpy(&signature, filedata->data + 16, sizeof(DWORD));
+        if (embedDepth < MAX_EMBED_DEPTH &&
+            TNEFCheckForSignature(signature) == 0) {
           // Has a TNEF signature, so process it.
           TNEFInitialize(&emb_tnef);
           emb_tnef.attachmentSize = attachmentSize;
           emb_tnef.Debug = TNEF.Debug;
           if (TNEFParseMemory(filedata->data + 16,
                               filedata->size - 16, &emb_tnef) != -1) {
+            embedDepth++;
             failures += ProcessTNEF(emb_tnef);
+            embedDepth--;
             RealAttachment = 0;
           }
           TNEFFree(&emb_tnef);
         }
       } else {
         TNEFStruct emb_tnef;
-        DWORD signature;
-        memcpy(&signature, filedata->data, sizeof(DWORD));
-        if (TNEFCheckForSignature(signature) == 0) {
+        DWORD signature = 0;
+        if (filedata->size >= sizeof(DWORD))
+          memcpy(&signature, filedata->data, sizeof(DWORD));
+        if (embedDepth < MAX_EMBED_DEPTH &&
+            TNEFCheckForSignature(signature) == 0) {
           // Has a TNEF signature, so process it.
           TNEFInitialize(&emb_tnef);
           emb_tnef.attachmentSize = attachmentSize;
           emb_tnef.Debug = TNEF.Debug;
           if (TNEFParseMemory(filedata->data,
                               filedata->size, &emb_tnef) != -1) {
+            embedDepth++;
             failures += ProcessTNEF(emb_tnef);
+            embedDepth--;
             RealAttachment = 0;
           }
           TNEFFree(&emb_tnef);
@@ -372,16 +399,10 @@ int ProcessTNEF(TNEFStruct TNEF) {
             }
           }
         }
-        if (filename->size == 1) {
-          filename = (variableLength *)malloc(sizeof(variableLength));
-          filename->size = 20;
-          filename->data = (BYTE *)malloc(20);
-          snprintf((char*)filename->data, 19, "file_%03i.dat", count);
-        }
         snprintf(ifilename, MAX_FILENAME_SIZE, "%.*s", filename->size, filename->data);
-        for(i = 0; i < strlen(ifilename); i++) 
-          if (ifilename[i] == ' ') 
-            ifilename[i] = '_';
+        if (!SanitizeAttachmentName(ifilename)) {
+          snprintf(ifilename, MAX_FILENAME_SIZE, "file_%03i.dat", count);
+        }
         if(filepath) {
           char tmp[MAX_FILENAME_SIZE];
           memcpy(tmp, ifilename, MAX_FILENAME_SIZE);
@@ -393,10 +414,11 @@ int ProcessTNEF(TNEFStruct TNEF) {
             ++failures;
           } else {
             if (object == 1) {
-              fwrite(filedata->data + 16,
-                     sizeof(BYTE),
-                     filedata->size - 16,
-                     fptr);
+              if (filedata->size > 16)
+                fwrite(filedata->data + 16,
+                       sizeof(BYTE),
+                       filedata->size - 16,
+                       fptr);
             } else {
               fwrite(filedata->data,
                      sizeof(BYTE),

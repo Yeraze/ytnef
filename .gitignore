@@ -50,3 +50,4 @@ ytnefprint
 
 # Test generated data
 test-data/data
+test-data/regress-out

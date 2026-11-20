@@ -225,11 +225,28 @@ char *to_utf8(size_t len, char *buf) {
   if (utf8 == NULL)
     return NULL;
 
-  for (i = 0; i < len - 1; i += 2) {
+  for (i = 0; i + 1 < len; i += 2) {
     unsigned int c = SwapWord((BYTE *)buf + i, 2);
+    if (c >= 0xd800 && c <= 0xdbff && i + 3 < len) {
+      unsigned int lo = SwapWord((BYTE *)buf + i + 2, 2);
+      if (lo >= 0xdc00 && lo <= 0xdfff) {
+        // surrogate pair: 4 input bytes become 4 output bytes
+        c = 0x10000 + ((c - 0xd800) << 10) + (lo - 0xdc00);
+        utf8[j++] = 0xf0 | ((c >> 18) & 0x07);
+        utf8[j++] = 0x80 | ((c >> 12) & 0x3f);
+        utf8[j++] = 0x80 | ((c >> 6) & 0x3f);
+        utf8[j++] = 0x80 | (c & 0x3f);
+        i += 2;
+        continue;
+      }
+    }
+    if (c >= 0xd800 && c <= 0xdfff) {
+      // unpaired surrogate: U+FFFD REPLACEMENT CHARACTER
+      c = 0xfffd;
+    }
     if (c <= 0x007f) {
       utf8[j++] = 0x00 | ((c & 0x007f) >> 0);
-    } else if (c < 0x07ff) {
+    } else if (c <= 0x07ff) {
       utf8[j++] = 0xc0 | ((c & 0x07c0) >> 6);
       utf8[j++] = 0x80 | ((c & 0x003f) >> 0);
     } else {
@@ -255,6 +272,8 @@ int TNEFDefaultHandler STD_ARGLIST {
 
 // -----------------------------------------------------------------------------
 int TNEFCodePage STD_ARGLIST {
+  free(TNEF->CodePage.data);
+  TNEF->CodePage.data = NULL;
   TNEF->CodePage.size = size;
   TNEF->CodePage.data = calloc(size, sizeof(BYTE));
   ALLOCCHECK(TNEF->CodePage.data);
@@ -274,6 +293,8 @@ int TNEFMessageID STD_ARGLIST {
 }
 // -----------------------------------------------------------------------------
 int TNEFBody STD_ARGLIST {
+  free(TNEF->body.data);
+  TNEF->body.data = NULL;
   TNEF->body.size = size;
   PREALLOCCHECK(size, 100000);
   TNEF->body.data = calloc(size+1, sizeof(BYTE));
@@ -283,6 +304,8 @@ int TNEFBody STD_ARGLIST {
 }
 // -----------------------------------------------------------------------------
 int TNEFOriginalMsgClass STD_ARGLIST {
+  free(TNEF->OriginalMessageClass.data);
+  TNEF->OriginalMessageClass.data = NULL;
   TNEF->OriginalMessageClass.size = size;
   PREALLOCCHECK(size, 100);
   TNEF->OriginalMessageClass.data = calloc(size+1, sizeof(BYTE));
@@ -297,6 +320,8 @@ int TNEFMessageClass STD_ARGLIST {
 }
 // -----------------------------------------------------------------------------
 int TNEFFromHandler STD_ARGLIST {
+  free(TNEF->from.data);
+  TNEF->from.data = NULL;
   PREALLOCCHECK(size, 100);
   TNEF->from.data = calloc(size+1, sizeof(BYTE));
   ALLOCCHECK(TNEF->from.data);
@@ -359,6 +384,9 @@ int TNEFIcon STD_ARGLIST {
   // Find the last attachment.
   p = &(TNEF->starting_attach);
   while (p->next != NULL) p = p->next;
+
+  free(p->IconData.data);
+  p->IconData.data = NULL;
 
   p->IconData.size = size;
   PREALLOCCHECK(size, 10000);
@@ -432,6 +460,9 @@ int TNEFFillMapi(TNEFStruct *TNEF, BYTE *data, DWORD size, MAPIProps *p) {
   int mp_count = 0, p_count = 0;
   int count = -1;
   int offset;
+
+  // a repeated MAPI block replaces the earlier one
+  TNEFFreeMapiProps(p);
 
   d = data;
   SIZECHECK(sizeof(DWORD));
@@ -790,6 +821,9 @@ int TNEFAttachmentFilename STD_ARGLIST {
   p = &(TNEF->starting_attach);
   while (p->next != NULL) p = p->next;
 
+  free(p->Title.data);
+  p->Title.data = NULL;
+
   p->Title.size = size;
   PREALLOCCHECK(size, 260);
   p->Title.data = calloc(size+1, sizeof(BYTE));
@@ -804,6 +838,9 @@ int TNEFAttachmentSave STD_ARGLIST {
   Attachment *p;
   p = &(TNEF->starting_attach);
   while (p->next != NULL) p = p->next;
+
+  free(p->FileData.data);
+  p->FileData.data = NULL;
 
   p->FileData.data = calloc(sizeof(char), size);
   ALLOCCHECK(p->FileData.data);
@@ -903,8 +940,10 @@ int TNEFGetHeader(TNEFStruct *TNEF, DWORD *type, DWORD *size) {
 int TNEFRawRead(TNEFStruct *TNEF, BYTE *data, DWORD size, WORD *checksum) {
   WORD temp;
   int i;
+  int got = TNEF->IO.ReadProc(&TNEF->IO, sizeof(BYTE), size, data);
 
-  if (TNEF->IO.ReadProc(&TNEF->IO, sizeof(BYTE), size, data) < size) {
+  // got is signed: compared directly with the unsigned size, -1 would pass
+  if (got < 0 || (DWORD)got < size) {
     if (TNEF->Debug >= 1)
       printf("ERROR: Error reading data\n");
     return YTNEF_ERROR_READING_DATA;
@@ -997,6 +1036,8 @@ void TNEFFree(TNEFStruct *TNEF) {
   FREEVARLENGTH(TNEF->AidOwner);
   TNEFFreeMapiProps(&(TNEF->MapiProperties));
 
+  // attachment attributes that arrive before any attAttachRendData land here
+  TNEFFreeAttachment(&(TNEF->starting_attach));
   p = TNEF->starting_attach.next;
   while (p != NULL) {
     TNEFFreeAttachment(p);
@@ -1028,6 +1069,7 @@ void TNEFFreeMapiProps(MAPIProps *p) {
     free(p->properties[i].propnames);
   }
   free(p->properties);
+  p->properties = NULL;
   p->count = 0;
 }
 #undef FREEVARLENGTH
@@ -1279,14 +1321,26 @@ variableLength *MAPIFindProperty(MAPIProps *p, unsigned int ID) {
   return MAPI_UNDEFINED;
 }
 
+static int IsLeapYear(int year) {
+  return ((year % 4) == 0 && (year % 100) != 0) || ((year % 400) == 0);
+}
+
 int MAPISysTimetoDTR(BYTE *data, dtr *thedate) {
+  return MAPISysTimetoDTRSize(data, sizeof(DDWORD), thedate);
+}
+
+// Convert a FILETIME (100ns ticks since 1601-01-01) of at least 8 bytes.
+int MAPISysTimetoDTRSize(BYTE *data, DWORD size, dtr *thedate) {
   DDWORD ddword_tmp;
-  int startingdate = 0;
   int tmp_date;
-  int days_in_year = 365;
+  int days_in_year;
   unsigned int months[] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 
-  ddword_tmp = *((DDWORD *)data);
+  memset(thedate, 0, sizeof(dtr));
+  if (data == NULL || size < sizeof(DDWORD)) {
+    return -1;
+  }
+  memcpy(&ddword_tmp, data, sizeof(DDWORD));
   ddword_tmp = ddword_tmp / 10; // micro-s
   ddword_tmp /= 1000; // ms
   ddword_tmp /= 1000; // s
@@ -1301,42 +1355,29 @@ int MAPISysTimetoDTR(BYTE *data, dtr *thedate) {
 
   ddword_tmp /= 24; // Hours to days
 
+  // 1601-01-01 was a Monday
+  thedate->wDayOfWeek = (ddword_tmp + 1) % 7;
+
   // Now calculate the year based on # of days
   thedate->wYear = 1601;
-  startingdate = 1;
+  days_in_year = 365;
   while (ddword_tmp >= days_in_year) {
     ddword_tmp -= days_in_year;
     thedate->wYear++;
-    days_in_year = 365;
-    startingdate++;
-    if ((thedate->wYear % 4) == 0) {
-      if ((thedate->wYear % 100) == 0) {
-        // if the year is 1700,1800,1900, etc, then it is only
-        // a leap year if exactly divisible by 400, not 4.
-        if ((thedate->wYear % 400) == 0) {
-          startingdate++;
-          days_in_year = 366;
-        }
-      }  else {
-        startingdate++;
-        days_in_year = 366;
-      }
-    }
-    startingdate %= 7;
+    days_in_year = IsLeapYear(thedate->wYear) ? 366 : 365;
   }
 
   // the remaining number is the day # in this year
   // So now calculate the Month, & Day of month
-  if ((thedate->wYear % 4) == 0) {
+  if (IsLeapYear(thedate->wYear)) {
     // 29 days in february in a leap year
     months[1] = 29;
   }
 
   tmp_date = (int)ddword_tmp;
-  thedate->wDayOfWeek = (tmp_date + startingdate) % 7;
   thedate->wMonth = 0;
 
-  while (tmp_date > months[thedate->wMonth]) {
+  while (thedate->wMonth < 11 && tmp_date >= months[thedate->wMonth]) {
     tmp_date -= months[thedate->wMonth];
     thedate->wMonth++;
   }
@@ -1426,11 +1467,20 @@ void MAPIPrint(MAPIProps *p) {
         printf("    ");
       }
       printf("Size: %i", mapidata->size);
+      if (mapidata->data == NULL) {
+        // zero-length value
+        if (PROP_TYPE(mapi->id) == PT_OBJECT) {
+          printf("\n");
+        } else {
+          printf("    Value: []\n");
+        }
+        continue;
+      }
       switch (PROP_TYPE(mapi->id)) {
         case PT_SYSTIME:
-          MAPISysTimetoDTR(mapidata->data, &thedate);
+          MAPISysTimetoDTRSize(mapidata->data, mapidata->size, &thedate);
           printf("    Value: ");
-          ddword_tmp = *((DDWORD *)mapidata->data);
+          memcpy(&ddword_tmp, mapidata->data, sizeof(ddword_tmp));
           TNEFPrintDate(thedate);
           printf(" [HEX: ");
           for (x = 0; x < sizeof(ddword_tmp); x++) {
@@ -1445,7 +1495,7 @@ void MAPIPrint(MAPIProps *p) {
           printf("    Value: %hi\n", *((short int*)mapidata->data));
           break;
         case PT_BOOLEAN:
-          if (mapi->data->data[0] != 0) {
+          if (mapidata->data[0] != 0) {
             printf("    Value: True\n");
           } else {
             printf("    Value: False\n");
@@ -1574,6 +1624,13 @@ BYTE *DecompressRTF(variableLength *p, int *size) {
     int flags = 0;
     // Prevent overflow, and a size that does not fit in the int returned
     if (uncompressedSize >= INT_MAX - prebufSize) {
+       printf("Corrupted file\n");
+       return NULL;
+    }
+    // Every 17 input bytes (a flag byte and 8 two-byte references)
+    // produce at most 8 * 17 output bytes, so a larger claimed size is
+    // bogus; refuse it instead of allocating it.
+    if (uncompressedSize / 8 > (ULONG)p->size) {
        printf("Corrupted file\n");
        return NULL;
     }

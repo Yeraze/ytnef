@@ -27,12 +27,11 @@ void SaveVTask(TNEFStruct TNEF) {
   char *charptr, *charptr2;
   dtr thedate;
   FILE *fptr;
-  DDWORD *ddword_ptr;
 
   vl = MAPIFindProperty(&(TNEF.MapiProperties), PROP_TAG(PT_STRING8,
                         PR_CONVERSATION_TOPIC));
 
-  if (vl == MAPI_UNDEFINED) {
+  if (vl == MAPI_UNDEFINED || vl->data == NULL) {
     return;
   }
 
@@ -108,7 +107,7 @@ void SaveVTask(TNEFStruct TNEF) {
                                 PROP_TAG(PT_SYSTIME, PR_CREATION_TIME));
     if (filename != MAPI_UNDEFINED) {
       fprintf(fptr, "DTSTAMP:");
-      MAPISysTimetoDTR(filename->data, &thedate);
+      MAPISysTimetoDTRSize(filename->data, filename->size, &thedate);
       fprintf(fptr, "%04i%02i%02iT%02i%02i%02iZ\n",
               thedate.wYear, thedate.wMonth, thedate.wDay,
               thedate.wHour, thedate.wMinute, thedate.wSecond);
@@ -118,7 +117,7 @@ void SaveVTask(TNEFStruct TNEF) {
                                 PROP_TAG(PT_SYSTIME, 0x8517));
     if (filename != MAPI_UNDEFINED) {
       fprintf(fptr, "DUE:");
-      MAPISysTimetoDTR(filename->data, &thedate);
+      MAPISysTimetoDTRSize(filename->data, filename->size, &thedate);
       fprintf(fptr, "%04i%02i%02iT%02i%02i%02iZ\n",
               thedate.wYear, thedate.wMonth, thedate.wDay,
               thedate.wHour, thedate.wMinute, thedate.wSecond);
@@ -127,7 +126,7 @@ void SaveVTask(TNEFStruct TNEF) {
                                 PROP_TAG(PT_SYSTIME, PR_LAST_MODIFICATION_TIME));
     if (filename != MAPI_UNDEFINED) {
       fprintf(fptr, "LAST-MODIFIED:");
-      MAPISysTimetoDTR(filename->data, &thedate);
+      MAPISysTimetoDTRSize(filename->data, filename->size, &thedate);
       fprintf(fptr, "%04i%02i%02iT%02i%02i%02iZ\n",
               thedate.wYear, thedate.wMonth, thedate.wDay,
               thedate.wHour, thedate.wMinute, thedate.wSecond);
@@ -136,9 +135,8 @@ void SaveVTask(TNEFStruct TNEF) {
     filename = MAPIFindUserProp(&(TNEF.MapiProperties), \
                                 PROP_TAG(PT_BOOLEAN, 0x8506));
     if (filename != MAPI_UNDEFINED) {
-      ddword_ptr = (DDWORD *)filename->data;
       fprintf(fptr, "CLASS:");
-      if (*ddword_ptr == 1) {
+      if (*(DWORD *)filename->data == 1) {
         fprintf(fptr, "PRIVATE\n");
       } else {
         fprintf(fptr, "PUBLIC\n");

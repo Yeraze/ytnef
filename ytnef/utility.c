@@ -82,44 +82,68 @@ void Cstylefprint(FILE *FPTR, variableLength *VL) {
   }
 }
 
+// *str points at "HYPERLINK" inside a NUL-terminated RTF string.  On return
+// it points at the last character consumed, never at the terminating NUL,
+// because the caller advances it once more.
 void ConsumeHyperlink(FILE *fptr, char** str) {
   char *link = NULL;
   char *text = NULL;
   char *bgn = *str;
   char *end = NULL;
   bgn = strchr(bgn, '"');
-  bgn++;
-  end = strchr(bgn, '"');
+  if (bgn != NULL) {
+    bgn++;
+    end = strchr(bgn, '"');
+  }
+  if (end == NULL) {
+    // not a well-formed field: print it as plain text
+    fprintf(fptr, "%c", **str);
+    return;
+  }
   unsigned int size = end - bgn;
   link = calloc(size + 1, 1);
+  if (link == NULL)
+    return;
   strncpy(link, bgn, size);
   link[size] = '\0';
   bgn = strstr(end, "\\fldrslt");
-  int bSlash = 1;
-  for (;;) {
-    bgn++;
-    if (*bgn == '\\') {
-      bSlash = 1;
-      continue;
-    } else if (*bgn == ' ') {
-      bSlash = 0;
-      continue;
-    } else if (*bgn == '{') {
-      bSlash = 0;
-      continue;
-    } else if (*bgn == '}') {
-      break;
+  if (bgn != NULL) {
+    int bSlash = 1;
+    for (;;) {
+      bgn++;
+      if (*bgn == '\0') {
+        break;
+      } else if (*bgn == '\\') {
+        bSlash = 1;
+        continue;
+      } else if (*bgn == ' ') {
+        bSlash = 0;
+        continue;
+      } else if (*bgn == '{') {
+        bSlash = 0;
+        continue;
+      } else if (*bgn == '}') {
+        break;
+      }
+      if (!bSlash) {
+        break;
+      }
     }
-	  if (!bSlash) {
-      break;
+    if (*bgn != '}') {
+      end = strchr(bgn, '}');
+      if (end == NULL) {
+        end = bgn + strlen(bgn);
+      }
+      size = end - bgn;
+      text = calloc(size + 1, 1);
+      if (text != NULL) {
+        strncpy(text, bgn, size);
+        text[size] = '\0';
+      }
+      if (*end == '\0') {
+        end--;
+      }
     }
-  }
-  if (*bgn != '}') {
-    end = strchr(bgn, '}');
-    size = end - bgn;
-    text = calloc(size + 1, 1);
-    strncpy(text, bgn, size);
-    text[size] = '\0';
   }
   if ((text != NULL) && (strcmp(link, text) != 0)) {
     fprintf(fptr, "%s <%s>", text, link );
@@ -160,14 +184,20 @@ void PrintRTF(FILE *fptr, variableLength *VL) {
       } else
       if(strncmp(byte, "lsdlocked", 9) == 0) {
         byte += 9;
+        if (*byte == '\0')
+          break;
         if(isdigit(*byte)){
           byte = strchr(byte, ';');
+          if (byte == NULL)
+            break;
           continue;
         }
       }
     } else if (*byte == 'd' && bSlash) {
       if(strncmp(byte, "datastore", 9) == 0) {
         byte = strchr(byte, '}');
+        if (byte == NULL)
+          break;
         continue;
       }
     } else if (*byte == '~' && bSlash) {
