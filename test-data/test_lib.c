@@ -119,5 +119,37 @@ int main(void) {
     TNEFFree(&t);
   }
 
+  {
+    /* issue #109: a named property whose UTF-16 name is 114 bytes long */
+    BYTE raw[6 + 9 + 152 + 2];
+    BYTE *m = raw + 15;
+    DWORD v;
+    WORD sum = 0;
+    int i;
+    TNEFStruct t;
+
+    memset(raw, 0, sizeof(raw));
+    v = 0x223e9f78; memcpy(raw, &v, 4);          /* signature */
+    raw[6] = 0x01;                                /* message level */
+    v = attMAPIProps; memcpy(raw + 7, &v, 4);
+    v = 152; memcpy(raw + 11, &v, 4);             /* field size */
+    v = 1; memcpy(m, &v, 4);                      /* property count */
+    v = 0x80000003; memcpy(m + 4, &v, 4);         /* PT_LONG, named */
+    v = 1; memcpy(m + 24, &v, 4);                 /* one name */
+    v = 114; memcpy(m + 28, &v, 4);               /* name size */
+    for (i = 0; i < 114; i += 2) m[32 + i] = 'a';
+    v = 42; memcpy(m + 148, &v, 4);               /* value, after padding */
+    for (i = 0; i < 152; i++) sum += m[i];
+    memcpy(m + 152, &sum, 2);
+
+    TNEFInitialize(&t);
+    check(TNEFParseMemory(raw, sizeof(raw), &t) == 0,
+          "TNEFParseMemory accepts a 57-character property name");
+    check(t.MapiProperties.count == 1 &&
+          t.MapiProperties.properties[0].propnames[0].size == 114,
+          "long property name is kept");
+    TNEFFree(&t);
+  }
+
   return failed ? 1 : 0;
 }

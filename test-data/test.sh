@@ -46,4 +46,6 @@ test -e regress-out/out/.._ESC1
 if ../ytnef/ytnef -s 0 -f regress-out/out "$srcdir"/winmail.dat; then exit 1; fi
 if ../ytnef/ytnef -s 4096 -f regress-out/out "$srcdir"/winmail.dat; then exit 1; fi
 ../ytnef/ytnef -s 2047 -f regress-out/out "$srcdir"/winmail.dat
+# a parse error must give a nonzero exit status
+if ../ytnef/ytnef -f regress-out/out "$srcdir"/regress/truncated-field.tnef; then exit 1; fi
 rm -rf regress-out

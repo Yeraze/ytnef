@@ -502,7 +502,7 @@ int TNEFFillMapi(TNEFStruct *TNEF, BYTE *data, DWORD size, MAPIProps *p) {
             SIZECHECK(sizeof(DWORD));
             type = SwapDWord((BYTE*)d, sizeof(DWORD));
             d += sizeof(DWORD);
-            PREALLOCCHECK(type, 100);
+            PREALLOCCHECK(type, 1000);
             mp->propnames[length - 1].data = calloc(type+1, sizeof(BYTE));
             ALLOCCHECK(mp->propnames[length - 1].data);
             mp->propnames[length - 1].size = type;
