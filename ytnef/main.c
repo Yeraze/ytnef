@@ -108,6 +108,11 @@ int main(int argc, char **argv) {
             return -1;
           }
           attachmentSize = atoi(argv[i+1]);
+          // the library works with the limit in bytes as an int
+          if (attachmentSize < 1 || attachmentSize > 2047) {
+            printf("Option '-s' must be between 1 and 2047\n");
+            return -1;
+          }
           i++;
           break;
         case 'F': saveRTF = 1;
