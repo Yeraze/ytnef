@@ -82,7 +82,7 @@ ytnefprint/Makefile
 lib/Makefile
 lib/libytnef.pc
 test-data/Makefile
+ytnef.spec
 ])
 
 AC_OUTPUT
-AC_OUTPUT([ytnef.spec])

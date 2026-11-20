@@ -11,4 +11,5 @@ ytnef_CFLAGS = \
         $(NULL)
 
 
-EXTRA_DIST = vcal.c vcard.c vtask.c utility.c settings.c ytnefprocess
+EXTRA_DIST = vcal.c vcard.c vtask.c utility.c settings.c settings.h \
+	ytnefprocess README.ytnefprocess
