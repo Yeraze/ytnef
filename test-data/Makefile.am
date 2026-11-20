@@ -13,8 +13,10 @@ EXTRA_DIST = \
 	regress/early-attachment-attr.tnef \
 	regress/duplicate-mapi.tnef \
 	test.sh \
+	ytnef-oob-TNEFVersion-SwapWord \
 	winmail.dat \
 	results/208225_(5_seconds)_Voice_Mail.mp3 \
+	results/AUTHORS \
 	results/allproductsmar2000.dat \
 	results/bookmark.htm \
 	results/generpts.src \
@@ -32,4 +34,4 @@ test_lib_SOURCES = test_lib.c
 test_lib_CPPFLAGS = -I$(top_srcdir)/lib
 test_lib_LDADD = $(top_builddir)/lib/libytnef.la
 
-TESTS = test_decompress_rtf test_lib
+TESTS = test_decompress_rtf test_lib test.sh
