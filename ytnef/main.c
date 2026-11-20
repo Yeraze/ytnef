@@ -150,8 +150,9 @@ int main(int argc, char **argv) {
     TNEFInitialize(&TNEF);
     TNEF.Debug = verbose;
     TNEF.attachmentSize = attachmentSize;
-    if (TNEFParseFile(argv[i], &TNEF) == -1) {
+    if (TNEFParseFile(argv[i], &TNEF) < 0) {
       fprintf(stderr, "ERROR processing file\n");
+      TNEFFree(&TNEF);
       ++errors;
       continue;
     }
