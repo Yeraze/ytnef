@@ -95,10 +95,18 @@ int main(int argc, char **argv) {
         case 'h': PrintHelp();
           return 0;
         case 'f': savefiles = 1;
+          if (i + 1 >= argc) {
+            printf("Option '-f' requires a directory\n");
+            return -1;
+          }
           filepath = argv[i + 1];
           i++;
           break;
         case 's': 
+          if (i + 1 >= argc) {
+            printf("Option '-s' requires a size\n");
+            return -1;
+          }
           attachmentSize = atoi(argv[i+1]);
           i++;
           break;
