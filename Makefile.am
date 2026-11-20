@@ -7,4 +7,6 @@ ACLOCAL_AMFLAGS = -I m4
 EXTRA_DIST = \
 	README.md \
 	autogen.sh \
-	ytnef.spec.in
+	ytnef.spec.in \
+	ytnef.spec \
+	ytnef.rpmlintrc

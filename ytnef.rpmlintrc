@@ -1,0 +1,4 @@
+# Project and file names, not misspellings.
+addFilter(r"spelling-error .*(Yerase's|winmail|'dat')")
+# COPYING and the source headers carry the FSF's old postal address.
+addFilter(r"incorrect-fsf-address")
