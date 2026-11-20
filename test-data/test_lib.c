@@ -1,6 +1,7 @@
 /*
  * Tests for MAPISysTimetoDTR(), to_utf8(), MAPIPrint() on a value with no
- * data, and the DecompressRTF() output size limit.
+ * data, the DecompressRTF() output size limit, and short reads in
+ * TNEFParseMemory().
  */
 #define _DEFAULT_SOURCE
 #include <stdio.h>
@@ -100,6 +101,22 @@ int main(void) {
     check(r == NULL, "DecompressRTF refuses an impossible size");
     free(r);
     free(p.data);
+  }
+
+  {
+    /* same bytes as regress/truncated-field.tnef: a field that claims
+     * 4 bytes of data when only 3 remain */
+    BYTE raw[18] = {
+      0x78, 0x9f, 0x3e, 0x22,  0x01, 0x00,
+      0x01,  0x06, 0x90, 0x08, 0x00,  0x04, 0x00, 0x00, 0x00,
+      0x00, 0x00, 0x00
+    };
+    TNEFStruct t;
+
+    TNEFInitialize(&t);
+    check(TNEFParseMemory(raw, sizeof(raw), &t) < 0,
+          "TNEFParseMemory rejects a truncated field");
+    TNEFFree(&t);
   }
 
   return failed ? 1 : 0;

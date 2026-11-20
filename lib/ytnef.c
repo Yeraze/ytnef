@@ -920,8 +920,10 @@ int TNEFGetHeader(TNEFStruct *TNEF, DWORD *type, DWORD *size) {
 int TNEFRawRead(TNEFStruct *TNEF, BYTE *data, DWORD size, WORD *checksum) {
   WORD temp;
   int i;
+  int got = TNEF->IO.ReadProc(&TNEF->IO, sizeof(BYTE), size, data);
 
-  if (TNEF->IO.ReadProc(&TNEF->IO, sizeof(BYTE), size, data) < size) {
+  // got is signed: compared directly with the unsigned size, -1 would pass
+  if (got < 0 || (DWORD)got < size) {
     if (TNEF->Debug >= 1)
       printf("ERROR: Error reading data\n");
     return YTNEF_ERROR_READING_DATA;

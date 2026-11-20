@@ -8,6 +8,7 @@ EXTRA_DIST = \
 	regress/nested-tnef.tnef \
 	regress/short-attachment.tnef \
 	regress/empty-string-prop.tnef \
+	regress/truncated-field.tnef \
 	test.sh \
 	winmail.dat \
 	results/208225_(5_seconds)_Voice_Mail.mp3 \
