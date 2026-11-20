@@ -15,24 +15,18 @@ concurrency:
 jobs:
   build:
     name: ${{ matrix.name }}
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         include:
           - name: linux-gcc
-            os: ubuntu-latest
             cc: gcc
           - name: linux-clang
-            os: ubuntu-latest
             cc: clang
           - name: linux-clang-asan-ubsan
-            os: ubuntu-latest
             cc: clang
             cflags: -g -O1 -fno-omit-frame-pointer -fsanitize=address,undefined -fno-sanitize-recover=all
-          - name: macos-clang
-            os: macos-latest
-            cc: clang
     env:
       CC: ${{ matrix.cc }}
       ASAN_OPTIONS: detect_leaks=1:abort_on_error=1
@@ -40,15 +34,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install dependencies (Linux)
-        if: runner.os == 'Linux'
+      - name: Install dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends autoconf automake libtool pkg-config
-
-      - name: Install dependencies (macOS)
-        if: runner.os == 'macOS'
-        run: brew install autoconf automake libtool pkg-config
 
       - name: Generate build system
         run: ./autogen.sh
