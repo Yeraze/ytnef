@@ -1,0 +1,4 @@
+usr/lib/*/libytnef.a
+usr/lib/*/libytnef.so
+usr/lib/*/pkgconfig/libytnef.pc
+usr/include
