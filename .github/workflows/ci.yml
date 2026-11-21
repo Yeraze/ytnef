@@ -75,6 +75,24 @@ jobs:
             test-data/*.trs
           if-no-files-found: ignore
 
+  big-endian:
+    name: linux-s390x (big-endian, qemu)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-qemu-action@v3
+        with:
+          platforms: s390x
+
+      - name: Build and test on s390x
+        run: |
+          docker run --rm --platform linux/s390x -v "$PWD":/src -w /src alpine:latest sh -euxc '
+            apk add --no-cache bash build-base autoconf automake libtool pkgconf
+            ./autogen.sh && ./configure
+            make -j"$(nproc)" && make check || { cat test-data/*.log; exit 1; }
+          '
+
   distcheck:
     name: distcheck
     runs-on: ubuntu-latest

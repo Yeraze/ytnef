@@ -131,87 +131,33 @@ TNEFHandler TNEFList[] = {
 };
 
 
+/* Read a little-endian integer of up to sizeof(type) bytes from p.
+ * Assembled arithmetically, so it is correct on any host byte order. */
 WORD SwapWord(BYTE *p, int size) {
-  union BYTES2WORD
-  {
-      WORD word;
-      BYTE bytes[sizeof(WORD)];
-  };
-  
-  union BYTES2WORD converter;  
-  converter.word = 0;
-  int i = 0;
-  int correct = size > sizeof(WORD) ? sizeof(WORD) : size;
+  WORD value = 0;
+  int i = size > (int)sizeof(WORD) ? (int)sizeof(WORD) : size;
 
-#ifdef WORDS_BIGENDIAN
-  for (i = 0; i < correct; ++i)
-  {
-      converter.bytes[i] = p[correct - i];
-  }
-#else
-  for (i = 0; i < correct; ++i)
-  {
-      converter.bytes[i] = p[i];
-  }
-#endif
-  
-  return converter.word;
+  while (i-- > 0)
+    value = (WORD)((value << 8) | p[i]);
+  return value;
 }
 
 DWORD SwapDWord(BYTE *p, int size) {
-  union BYTES2DWORD
-  {
-      DWORD dword;
-      BYTE  bytes[sizeof(DWORD)];
-  };
-  
-  union BYTES2DWORD converter;
-  converter.dword = 0;
-  int i = 0;  
-  int correct = size > sizeof(DWORD) ? sizeof(DWORD) : size;
-  
-#ifdef WORDS_BIGENDIAN
-  for (i = 0; i < correct; ++i)
-  {
-      converter.bytes[i] = p[correct - i];
-  }
-#else
-  for (i = 0; i < correct; ++i)
-  {
-      converter.bytes[i] = p[i];
-  }
-#endif
-  
-  return converter.dword;
+  DWORD value = 0;
+  int i = size > (int)sizeof(DWORD) ? (int)sizeof(DWORD) : size;
+
+  while (i-- > 0)
+    value = (value << 8) | p[i];
+  return value;
 }
 
-
-
 DDWORD SwapDDWord(BYTE *p, int size) {
-  union BYTES2DDWORD
-  {
-      DDWORD ddword;
-      BYTE   bytes[sizeof(DDWORD)];
-  };
-  
-  union BYTES2DDWORD converter;
-  converter.ddword = 0;
-  int i = 0;  
-  int correct = size > sizeof(DDWORD) ? sizeof(DDWORD) : size;
-  
-#ifdef WORDS_BIGENDIAN
-  for (i = 0; i < correct; ++i)
-  {
-      converter.bytes[i] = p[correct - i];
-  }
-#else
-  for (i = 0; i < correct; ++i)
-  {
-      converter.bytes[i] = p[i];
-  }
-#endif
-  
-  return converter.ddword;
+  DDWORD value = 0;
+  int i = size > (int)sizeof(DDWORD) ? (int)sizeof(DDWORD) : size;
+
+  while (i-- > 0)
+    value = (value << 8) | p[i];
+  return value;
 }
 
 /* convert 16-bit unicode to UTF8 unicode */
