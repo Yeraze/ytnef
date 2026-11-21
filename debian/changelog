@@ -1,3 +1,11 @@
+libytnef (2.1.5-1) unstable; urgency=medium
+
+  * New upstream release: fix decoding on big-endian hosts (#119),
+    accept longer named property names and fail on parse errors (#109),
+    and add big-endian (s390x) CI.
+
+ -- Randall Hand <randall.hand@gmail.com>  Fri, 20 Nov 2026 20:55:00 -0500
+
 libytnef (2.1.4-1) unstable; urgency=medium
 
   * New upstream release: security and correctness fixes, CI, and
