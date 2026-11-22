@@ -3,6 +3,10 @@ Yerase's TNEF Stream Reader
 
 [![Build Status](https://api.travis-ci.com/Yeraze/ytnef.svg?branch=master)](https://travis-ci.com/github/Yeraze/ytnef)
 
+> **New: [ytnef-rust](https://github.com/Yeraze/ytnef-rust)** — a memory-safe Rust port of
+> ytnef: TNEF (winmail.dat) parser library and CLI, with a C-compatible API.
+> Install the tools with `cargo install ytnef-cli`.
+
 Installation
 ------------
 
